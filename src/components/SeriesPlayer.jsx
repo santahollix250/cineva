@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import { MoviesContext } from '../context/MoviesContext';
+import MovieCast from './MovieCast';
 
 const SeriesPlayer = () => {
     const navigate = useNavigate();
@@ -90,7 +91,6 @@ const SeriesPlayer = () => {
 
     // ========== INITIALIZATION ==========
 
-    // Sort episodes function
     const sortEpisodes = (episodesArray) => {
         if (!episodesArray || !Array.isArray(episodesArray)) return [];
         return [...episodesArray].sort((a, b) => {
@@ -103,7 +103,6 @@ const SeriesPlayer = () => {
         });
     };
 
-    // Get seasons from episodes
     const getSeasonsFromEpisodes = (episodesArray) => {
         const seasonSet = new Set();
         episodesArray.forEach(ep => {
@@ -113,7 +112,6 @@ const SeriesPlayer = () => {
         return Array.from(seasonSet).sort((a, b) => a - b);
     };
 
-    // Initialize series data
     useEffect(() => {
         if (!series && id && movies.length > 0) {
             const foundSeries = movies.find(m => m.id === id || m.id === parseInt(id));
@@ -170,7 +168,6 @@ const SeriesPlayer = () => {
         }
     }, [id, movies, episodes, getEpisodesBySeries]);
 
-    // Update when current episode index changes
     useEffect(() => {
         if (episodesList.length > 0 && currentEpisodeIndex >= 0 && currentEpisodeIndex < episodesList.length) {
             const episode = episodesList[currentEpisodeIndex];
@@ -180,7 +177,6 @@ const SeriesPlayer = () => {
         }
     }, [currentEpisodeIndex, episodesList]);
 
-    // Initialize video when current episode changes
     useEffect(() => {
         if (currentEpisode) {
             setLoading(true);
@@ -497,7 +493,6 @@ const SeriesPlayer = () => {
         return '';
     };
 
-    // Load YouTube IFrame API
     useEffect(() => {
         if (videoType !== 'youtube') return;
 
@@ -519,7 +514,6 @@ const SeriesPlayer = () => {
         };
     }, [videoType]);
 
-    // Function to inject CSS into YouTube iframe to hide all branding and recommended videos
     const hideYouTubeBranding = (iframe) => {
         try {
             setTimeout(() => {
@@ -527,7 +521,6 @@ const SeriesPlayer = () => {
 
                 const style = document.createElement('style');
                 style.textContent = `
-                    /* Hide YouTube logo and all branding */
                     .ytp-watermark, .ytp-youtube-button, .ytp-title, .ytp-title-link,
                     .ytp-chrome-top, .ytp-chrome-bottom, .ytp-gradient-top, .ytp-gradient-bottom,
                     .ytp-pause-overlay, .ytp-endscreen-content, .ytp-share-panel, 
@@ -548,7 +541,6 @@ const SeriesPlayer = () => {
                         height: 0 !important;
                     }
                     
-                    /* Specifically hide the recommended videos overlay when paused */
                     .ytp-pause-overlay, .ytp-endscreen-content, .html5-endscreen,
                     .ytp-upnext, .ytp-videowall-still, .ytp-ce-element {
                         display: none !important;
@@ -556,28 +548,23 @@ const SeriesPlayer = () => {
                         visibility: hidden !important;
                     }
                     
-                    /* Make sure the video fills the entire player */
                     .html5-video-player, .video-stream, .html5-main-video {
                         width: 100% !important;
                         height: 100% !important;
                     }
                     
-                    /* Remove any background */
                     .html5-video-player {
                         background: black !important;
                     }
                     
-                    /* Hide any text that might appear */
                     .ytp-text, .ytp-button, .ytp-title-text {
                         display: none !important;
                     }
                     
-                    /* Force video to cover full area */
                     .video-stream.html5-main-video {
                         object-fit: contain !important;
                     }
 
-                    /* Hide the YouTube logo that appears on pause */
                     .ytp-chrome-top, .ytp-gradient-top {
                         display: none !important;
                     }
@@ -585,7 +572,6 @@ const SeriesPlayer = () => {
 
                 iframe.contentDocument.head.appendChild(style);
 
-                // Also try to inject into shadow DOM if present
                 const videoPlayer = iframe.contentDocument.querySelector('.html5-video-player');
                 if (videoPlayer && videoPlayer.shadowRoot) {
                     const shadowStyle = document.createElement('style');
@@ -593,7 +579,6 @@ const SeriesPlayer = () => {
                     videoPlayer.shadowRoot.appendChild(shadowStyle);
                 }
 
-                // Remove any overlay elements that might appear dynamically
                 const observer = new MutationObserver((mutations) => {
                     mutations.forEach(() => {
                         const pauseOverlay = iframe.contentDocument.querySelector('.ytp-pause-overlay');
@@ -619,7 +604,6 @@ const SeriesPlayer = () => {
         }
     };
 
-    // Initialize YouTube player
     useEffect(() => {
         if (!youTubeApiReady || videoType !== 'youtube' || !youtubeId || !youtubeContainerRef.current) return;
 
@@ -709,7 +693,6 @@ const SeriesPlayer = () => {
         };
     }, [youTubeApiReady, videoType, youtubeId, muted]);
 
-    // Track YouTube progress
     const startYouTubeProgressTracking = (player) => {
         const interval = setInterval(() => {
             if (player && player.getCurrentTime && player.getDuration && !isSeeking) {
@@ -758,7 +741,7 @@ const SeriesPlayer = () => {
             setIsYouTubeVideo(false);
             const vimeoId = extractVimeoId(url);
             if (vimeoId) {
-                const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0&controls=true&badge=0&transparent=1&color=ffffff&autopause=0&player_id=0&app_id=0`;
+                const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0&controls=true&badge=0&transparent=1&color=10b981&autopause=0&player_id=0&app_id=0`;
                 setVideoUrl(embedUrl);
                 console.log("🎬 Using Vimeo embedded player (clean mode)");
             } else {
@@ -1073,7 +1056,6 @@ const SeriesPlayer = () => {
         };
     }, []);
 
-    // Episode navigation
     const goToNextEpisode = () => {
         if (currentEpisodeIndex < episodesList.length - 1) {
             setCurrentEpisodeIndex(prev => prev + 1);
@@ -1111,7 +1093,6 @@ const SeriesPlayer = () => {
         );
     };
 
-    // Close mobile menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (showMobileMenu && !e.target.closest('.mobile-menu-container')) {
@@ -1313,7 +1294,7 @@ const SeriesPlayer = () => {
         <div className="mt-8 bg-gradient-to-br from-gray-900/80 to-gray-950/80 rounded-2xl p-5 md:p-6 border border-gray-800 shadow-xl">
             <div className="flex items-center justify-between mb-5 md:mb-6">
                 <h3 className="text-xl md:text-2xl font-bold flex items-center gap-2 md:gap-3">
-                    <FaComment className="text-purple-500 text-xl md:text-2xl" />
+                    <FaComment className="text-emerald-500 text-xl md:text-2xl" />
                     Comments ({comments.length})
                 </h3>
                 <button
@@ -1331,7 +1312,7 @@ const SeriesPlayer = () => {
                             <img
                                 src={userAvatar}
                                 alt={userName}
-                                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-purple-600"
+                                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-emerald-600"
                                 onError={(e) => {
                                     e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`;
                                 }}
@@ -1363,7 +1344,7 @@ const SeriesPlayer = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting || !newComment.trim()}
-                                    className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed rounded-lg text-white font-medium flex items-center gap-2 transition-all duration-200 text-sm md:text-base"
+                                    className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed rounded-lg text-black font-medium flex items-center gap-2 transition-all duration-200 text-sm md:text-base"
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -1396,7 +1377,7 @@ const SeriesPlayer = () => {
                                         <img
                                             src={comment.user_avatar}
                                             alt={comment.user_name}
-                                            className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-purple-600/50"
+                                            className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-emerald-600/50"
                                             onError={(e) => {
                                                 e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_name}`;
                                             }}
@@ -1424,7 +1405,7 @@ const SeriesPlayer = () => {
                                                             <>
                                                                 <button
                                                                     onClick={() => handleSaveEdit(comment.id)}
-                                                                    className="p-1.5 md:p-2 text-green-500 hover:text-green-400 hover:bg-green-500/10 rounded-lg transition-all"
+                                                                    className="p-1.5 md:p-2 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
                                                                     title="Save"
                                                                 >
                                                                     <FaCheck size={14} />
@@ -1441,7 +1422,7 @@ const SeriesPlayer = () => {
                                                             <>
                                                                 <button
                                                                     onClick={() => handleEditComment(comment)}
-                                                                    className="p-1.5 md:p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-all"
+                                                                    className="p-1.5 md:p-2 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all"
                                                                     title="Edit"
                                                                 >
                                                                     <FaEdit size={14} />
@@ -1478,9 +1459,9 @@ const SeriesPlayer = () => {
                                             <div className="flex items-center gap-3 md:gap-4">
                                                 <button
                                                     onClick={() => handleLikeComment(comment.id)}
-                                                    className="flex items-center gap-1.5 text-gray-400 hover:text-purple-500 transition-colors text-sm md:text-base"
+                                                    className="flex items-center gap-1.5 text-gray-400 hover:text-emerald-500 transition-colors text-sm md:text-base"
                                                 >
-                                                    <FaHeart className={`${comment.likes > 0 ? 'text-purple-500' : ''} text-sm md:text-base`} />
+                                                    <FaHeart className={`${comment.likes > 0 ? 'text-emerald-500' : ''} text-sm md:text-base`} />
                                                     <span>{comment.likes || 0}</span>
                                                 </button>
 
@@ -1505,23 +1486,23 @@ const SeriesPlayer = () => {
                         <div className="mt-6 pt-6 border-t border-gray-800">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                                 <div className="text-center p-3 md:p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
-                                    <div className="text-xl md:text-3xl font-bold text-purple-500">{comments.length}</div>
+                                    <div className="text-xl md:text-3xl font-bold text-emerald-500">{comments.length}</div>
                                     <div className="text-xs md:text-sm text-gray-400">Total Comments</div>
                                 </div>
                                 <div className="text-center p-3 md:p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
-                                    <div className="text-xl md:text-3xl font-bold text-yellow-500">
+                                    <div className="text-xl md:text-3xl font-bold text-amber-500">
                                         {comments.reduce((sum, c) => sum + (c.likes || 0), 0)}
                                     </div>
                                     <div className="text-xs md:text-sm text-gray-400">Total Likes</div>
                                 </div>
                                 <div className="text-center p-3 md:p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
-                                    <div className="text-xl md:text-3xl font-bold text-green-500">
+                                    <div className="text-xl md:text-3xl font-bold text-teal-500">
                                         {new Set(comments.map(c => c.user_name)).size}
                                     </div>
                                     <div className="text-xs md:text-sm text-gray-400">Unique Users</div>
                                 </div>
                                 <div className="text-center p-3 md:p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
-                                    <div className="text-xl md:text-3xl font-bold text-blue-500">
+                                    <div className="text-xl md:text-3xl font-bold text-cyan-500">
                                         {comments.filter(c => c.device_info?.platform?.includes('Mobile')).length}
                                     </div>
                                     <div className="text-xs md:text-sm text-gray-400">Mobile Users</div>
@@ -1540,7 +1521,7 @@ const SeriesPlayer = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 border-3 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-3 md:mb-4"></div>
+                    <div className="w-12 h-12 md:w-16 md:h-16 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3 md:mb-4"></div>
                     <p className="text-white text-base md:text-xl font-light">Loading player...</p>
                 </div>
             </div>
@@ -1551,13 +1532,13 @@ const SeriesPlayer = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black flex items-center justify-center p-4">
                 <div className="text-center p-6 md:p-10 max-w-lg bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-gray-800 shadow-2xl">
-                    <FaExclamationTriangle className="text-purple-500 text-5xl md:text-7xl mx-auto mb-3 md:mb-4" />
+                    <FaExclamationTriangle className="text-emerald-500 text-5xl md:text-7xl mx-auto mb-3 md:mb-4" />
                     <h1 className="text-2xl md:text-4xl text-white font-bold mb-2 md:mb-4">Playback Error</h1>
                     <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8">{error || "No episode selected"}</p>
                     <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
                         <button
                             onClick={() => navigate(-1)}
-                            className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-medium transition-all duration-200 text-sm md:text-base"
+                            className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base"
                         >
                             Go Back
                         </button>
@@ -1570,7 +1551,7 @@ const SeriesPlayer = () => {
                         {error && error.includes('format') && (
                             <button
                                 onClick={handleUseEmbed}
-                                className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl text-white font-medium transition-all duration-200 text-sm md:text-base"
+                                className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base"
                             >
                                 Try Embed Player
                             </button>
@@ -1578,7 +1559,7 @@ const SeriesPlayer = () => {
                         {error && (
                             <button
                                 onClick={handleRetry}
-                                className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-medium transition-all duration-200 text-sm md:text-base"
+                                className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base"
                             >
                                 Retry
                             </button>
@@ -1592,25 +1573,25 @@ const SeriesPlayer = () => {
     const getPlayerTypeInfo = () => {
         if (useEmbed) {
             return {
-                color: 'text-orange-400',
-                bgColor: 'bg-orange-600',
+                color: 'text-amber-400',
+                bgColor: 'bg-amber-600',
                 label: 'Embed',
-                text: 'text-orange-300'
+                text: 'text-amber-300'
             };
         }
         if (isDailyMotionVideo) {
             return {
-                color: 'text-purple-400',
-                bgColor: 'bg-purple-600',
+                color: 'text-teal-400',
+                bgColor: 'bg-teal-600',
                 label: 'DailyMotion',
-                text: 'text-purple-300'
+                text: 'text-teal-300'
             };
         } else if (isVimeoVideo) {
             return {
-                color: 'text-blue-400',
-                bgColor: 'bg-blue-600',
+                color: 'text-cyan-400',
+                bgColor: 'bg-cyan-600',
                 label: 'Vimeo',
-                text: 'text-blue-300'
+                text: 'text-cyan-300'
             };
         } else if (videoType === 'youtube') {
             return {
@@ -1621,10 +1602,10 @@ const SeriesPlayer = () => {
             };
         } else {
             return {
-                color: 'text-green-400',
-                bgColor: 'bg-green-600',
+                color: 'text-emerald-400',
+                bgColor: 'bg-emerald-600',
                 label: 'Custom Player',
-                text: 'text-green-300'
+                text: 'text-emerald-300'
             };
         }
     };
@@ -1641,7 +1622,7 @@ const SeriesPlayer = () => {
                     <div className="max-w-7xl mx-auto flex items-center justify-between">
                         <button
                             onClick={() => navigate(-1)}
-                            className="flex items-center gap-2 text-white hover:text-purple-500 transition-colors text-sm md:text-base font-medium group"
+                            className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors text-sm md:text-base font-medium group"
                         >
                             <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" /> Back
                         </button>
@@ -1660,23 +1641,21 @@ const SeriesPlayer = () => {
                         </div>
 
                         <div className="flex items-center gap-2 md:gap-4">
-                            {/* Favorite & Watchlist Buttons */}
                             <button
                                 onClick={toggleFavorite}
-                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${isFavorite ? 'text-purple-500' : 'text-gray-400 hover:text-purple-500'}`}
+                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${isFavorite ? 'text-emerald-500' : 'text-gray-400 hover:text-emerald-500'}`}
                                 title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                             >
                                 <FaHeart size={20} />
                             </button>
                             <button
                                 onClick={toggleWatchlist}
-                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${inWatchlist ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'}`}
+                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${inWatchlist ? 'text-cyan-500' : 'text-gray-400 hover:text-cyan-500'}`}
                                 title={inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
                             >
                                 <FaBookmark size={20} />
                             </button>
 
-                            {/* Episode Navigation */}
                             <button
                                 onClick={goToPreviousEpisode}
                                 disabled={currentEpisodeIndex === 0}
@@ -1703,7 +1682,6 @@ const SeriesPlayer = () => {
                                 <FaArrowCircleRight size={18} />
                             </button>
 
-                            {/* Episode List Toggle */}
                             <button
                                 onClick={() => setShowEpisodeList(!showEpisodeList)}
                                 className="p-1.5 md:p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white hidden md:block"
@@ -1712,7 +1690,6 @@ const SeriesPlayer = () => {
                                 <FaListUl size={20} />
                             </button>
 
-                            {/* Season Selector Toggle */}
                             {seasons.length > 1 && (
                                 <button
                                     onClick={() => setShowSeasonSelector(!showSeasonSelector)}
@@ -1724,7 +1701,6 @@ const SeriesPlayer = () => {
                                 </button>
                             )}
 
-                            {/* Mobile Menu Button */}
                             <button
                                 onClick={() => setShowMobileMenu(!showMobileMenu)}
                                 className="md:hidden p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
@@ -1732,7 +1708,6 @@ const SeriesPlayer = () => {
                                 <FaEllipsisV size={18} />
                             </button>
 
-                            {/* Mobile Menu Dropdown */}
                             {showMobileMenu && (
                                 <div className="absolute top-16 right-4 w-80 bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 rounded-xl shadow-2xl z-50 mobile-menu-container md:hidden">
                                     <div className="p-4 border-b border-gray-800">
@@ -1741,7 +1716,7 @@ const SeriesPlayer = () => {
                                     <div className="p-3 space-y-1 max-h-[80vh] overflow-y-auto">
                                         <button
                                             onClick={toggleFavorite}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${isFavorite ? 'text-purple-500 bg-purple-500/10' : 'text-gray-300 hover:bg-gray-800'
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${isFavorite ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-300 hover:bg-gray-800'
                                                 }`}
                                         >
                                             <FaHeart size={18} />
@@ -1750,7 +1725,7 @@ const SeriesPlayer = () => {
 
                                         <button
                                             onClick={toggleWatchlist}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${inWatchlist ? 'text-blue-500 bg-blue-500/10' : 'text-gray-300 hover:bg-gray-800'
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${inWatchlist ? 'text-cyan-500 bg-cyan-500/10' : 'text-gray-300 hover:bg-gray-800'
                                                 }`}
                                         >
                                             <FaBookmark size={18} />
@@ -1759,7 +1734,6 @@ const SeriesPlayer = () => {
 
                                         <div className="border-t border-gray-800 my-2"></div>
 
-                                        {/* Mobile Season Selector */}
                                         {seasons.length > 1 && (
                                             <div className="mb-2">
                                                 <p className="text-xs text-gray-400 px-3 py-2">Select Season</p>
@@ -1779,7 +1753,7 @@ const SeriesPlayer = () => {
                                                                 setShowMobileMenu(false);
                                                             }}
                                                             className={`px-3 py-1.5 rounded-lg text-sm ${selectedSeason === season
-                                                                ? 'bg-purple-600 text-white'
+                                                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black'
                                                                 : 'bg-gray-800 text-gray-300'
                                                                 }`}
                                                         >
@@ -1827,7 +1801,6 @@ const SeriesPlayer = () => {
                                             <span className="text-sm">{showEpisodeList ? 'Hide episodes' : 'Show episodes'}</span>
                                         </button>
 
-                                        {/* Mobile Download Option */}
                                         {hasDownload(currentEpisode) && (
                                             <>
                                                 <div className="border-t border-gray-800 my-2"></div>
@@ -1836,11 +1809,11 @@ const SeriesPlayer = () => {
                                                         handleDownload(e, currentEpisode);
                                                         setShowMobileMenu(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 hover:from-green-600/30 hover:to-emerald-600/30 rounded-lg transition-all group border border-green-500/20 hover:border-green-500/40"
+                                                    className="w-full flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 hover:from-emerald-600/30 hover:to-teal-600/30 rounded-lg transition-all group border border-emerald-500/20 hover:border-emerald-500/40"
                                                     disabled={downloading && downloadEpisodeId === currentEpisode.id}
                                                 >
-                                                    <div className="w-8 h-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg flex items-center justify-center">
-                                                        <FaCloudDownloadAlt className="text-green-400 text-lg" />
+                                                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-lg flex items-center justify-center">
+                                                        <FaCloudDownloadAlt className="text-emerald-400 text-lg" />
                                                     </div>
                                                     <div className="flex-1 text-left">
                                                         <p className="text-sm font-medium text-white">
@@ -1848,7 +1821,7 @@ const SeriesPlayer = () => {
                                                         </p>
                                                         <p className="text-xs text-gray-400">Click to download</p>
                                                     </div>
-                                                    {downloading && downloadEpisodeId === currentEpisode.id && <FaSpinner className="animate-spin text-green-400" />}
+                                                    {downloading && downloadEpisodeId === currentEpisode.id && <FaSpinner className="animate-spin text-emerald-400" />}
                                                 </button>
                                             </>
                                         )}
@@ -1860,7 +1833,6 @@ const SeriesPlayer = () => {
                 </div>
             )}
 
-            {/* Season Selector Dropdown - Desktop */}
             {showSeasonSelector && seasons.length > 1 && !isFullscreen && (
                 <div className="absolute top-20 right-32 z-40 bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-700 rounded-xl shadow-2xl">
                     <div className="p-3">
@@ -1881,7 +1853,7 @@ const SeriesPlayer = () => {
                                         setShowSeasonSelector(false);
                                     }}
                                     className={`px-4 py-2 rounded-lg text-sm text-left transition-all ${selectedSeason === season
-                                        ? 'bg-purple-600 text-white'
+                                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black'
                                         : 'text-gray-300 hover:bg-gray-800'
                                         }`}
                                 >
@@ -1925,9 +1897,9 @@ const SeriesPlayer = () => {
                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20">
                         <button
                             onClick={handlePlayPause}
-                            className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-2xl"
+                            className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-2xl"
                         >
-                            <FaPlay size={24} className="text-white ml-1" />
+                            <FaPlay size={24} className="text-black ml-1" />
                         </button>
                     </div>
                 )}
@@ -1935,7 +1907,7 @@ const SeriesPlayer = () => {
                 {!videoLoaded && !error && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
                         <div className="text-center">
-                            <FaSpinner className="text-3xl md:text-4xl text-purple-600 animate-spin mx-auto mb-3" />
+                            <FaSpinner className="text-3xl md:text-4xl text-emerald-500 animate-spin mx-auto mb-3" />
                             <p className="text-white text-sm md:text-base">Loading video...</p>
                         </div>
                     </div>
@@ -1944,18 +1916,18 @@ const SeriesPlayer = () => {
                 {error && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-20">
                         <div className="text-center p-6 max-w-md bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-gray-800">
-                            <FaExclamationTriangle className="text-purple-500 text-4xl md:text-5xl mx-auto mb-3" />
+                            <FaExclamationTriangle className="text-emerald-500 text-4xl md:text-5xl mx-auto mb-3" />
                             <p className="text-white text-sm md:text-base mb-4">{error}</p>
                             <div className="flex gap-3 justify-center">
                                 <button
                                     onClick={handleRetry}
-                                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white font-medium text-sm"
+                                    className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-medium text-sm"
                                 >
                                     Try Again
                                 </button>
                                 <button
                                     onClick={handleUseEmbed}
-                                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg text-white font-medium text-sm"
+                                    className="px-4 py-2 bg-gradient-to-br from-cyan-600 to-teal-700 hover:from-cyan-700 hover:to-teal-800 rounded-lg text-black font-medium text-sm"
                                 >
                                     Try Embed Player
                                 </button>
@@ -1967,7 +1939,6 @@ const SeriesPlayer = () => {
                 {shouldShowCustomControls && (
                     <div className={`absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent transition-all duration-300 z-30 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                         <div className="max-w-7xl mx-auto slider-container">
-                            {/* Progress slider */}
                             <div className="mb-3">
                                 <input
                                     type="range"
@@ -1980,7 +1951,7 @@ const SeriesPlayer = () => {
                                     onChange={handleSeekChange}
                                     onMouseUp={handleSeekEnd}
                                     onTouchEnd={handleSeekEnd}
-                                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-purple-600 [&::-webkit-slider-thumb]:to-pink-600 hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+                                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-emerald-500 [&::-webkit-slider-thumb]:to-teal-500 hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
                                     onClick={(e) => e.stopPropagation()}
                                 />
                                 <div className="flex justify-between text-xs text-gray-300 mt-1">
@@ -1993,7 +1964,7 @@ const SeriesPlayer = () => {
                                 <div className="flex items-center gap-2 md:gap-4">
                                     <button
                                         onClick={handlePlayPause}
-                                        className="hover:text-purple-500 transition-colors p-1.5"
+                                        className="hover:text-emerald-400 transition-colors p-1.5"
                                     >
                                         {playing ? (
                                             <FaPause className={`${isMobile ? 'text-xl' : 'text-2xl'}`} />
@@ -2006,13 +1977,13 @@ const SeriesPlayer = () => {
                                         <>
                                             <button
                                                 onClick={(e) => handleRewind(e, 10)}
-                                                className="hover:text-purple-500 transition-colors p-1.5"
+                                                className="hover:text-emerald-400 transition-colors p-1.5"
                                             >
                                                 <FaBackward className="text-xl" />
                                             </button>
                                             <button
                                                 onClick={(e) => handleForward(e, 10)}
-                                                className="hover:text-purple-500 transition-colors p-1.5"
+                                                className="hover:text-emerald-400 transition-colors p-1.5"
                                             >
                                                 <FaForward className="text-xl" />
                                             </button>
@@ -2023,7 +1994,7 @@ const SeriesPlayer = () => {
                                         <div className="flex items-center gap-2 ml-1">
                                             <button
                                                 onClick={handleToggleMute}
-                                                className="hover:text-purple-500 transition-colors p-1.5"
+                                                className="hover:text-emerald-400 transition-colors p-1.5"
                                             >
                                                 {muted ? <FaVolumeMute className="text-xl" /> : <FaVolumeUp className="text-xl" />}
                                             </button>
@@ -2038,7 +2009,7 @@ const SeriesPlayer = () => {
                                                 onChange={handleVolumeChange}
                                                 onMouseUp={handleVolumeEnd}
                                                 onTouchEnd={handleVolumeEnd}
-                                                className="w-20 md:w-28 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-purple-600 [&::-webkit-slider-thumb]:to-pink-600 hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+                                                className="w-20 md:w-28 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-emerald-500 [&::-webkit-slider-thumb]:to-teal-500 hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
                                                 onClick={(e) => e.stopPropagation()}
                                             />
                                         </div>
@@ -2058,7 +2029,7 @@ const SeriesPlayer = () => {
                                                         <button
                                                             key={rate}
                                                             onClick={(e) => handlePlaybackRate(rate, e)}
-                                                            className={`px-2 py-1 text-xs rounded ${playbackRate === rate ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gray-800 hover:bg-gray-700'}`}
+                                                            className={`px-2 py-1 text-xs rounded ${playbackRate === rate ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black' : 'bg-gray-800 hover:bg-gray-700'}`}
                                                         >
                                                             {rate}x
                                                         </button>
@@ -2070,7 +2041,7 @@ const SeriesPlayer = () => {
 
                                     <button
                                         onClick={handleFullscreen}
-                                        className="hover:text-purple-500 transition-colors p-1.5"
+                                        className="hover:text-emerald-400 transition-colors p-1.5"
                                     >
                                         {isFullscreen ? (
                                             <FaCompress className={`${isMobile ? 'text-xl' : 'text-2xl'}`} />
@@ -2085,7 +2056,7 @@ const SeriesPlayer = () => {
                 )}
 
                 {!shouldShowCustomControls && showControls && (
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-purple-500/30 z-30">
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-emerald-500/30 z-30">
                         <div className="flex items-center gap-1.5">
                             <FaVideo className={playerType.color} />
                             <span className="text-white text-xs">
@@ -2104,10 +2075,10 @@ const SeriesPlayer = () => {
                             <div className="mb-6 md:mb-8">
                                 <h1 className="text-2xl md:text-4xl font-bold mb-2">{series?.title}</h1>
                                 <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                                    <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-xs md:text-sm font-medium">
+                                    <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full text-xs md:text-sm font-medium text-black">
                                         Season {currentEpisode.seasonNumber || currentEpisode.season_number || 1}
                                     </span>
-                                    <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-xs md:text-sm font-medium">
+                                    <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full text-xs md:text-sm font-medium text-black">
                                         Episode {currentEpisode.episodeNumber || currentEpisode.episode_number || 1}
                                     </span>
                                     {series?.year && (
@@ -2116,23 +2087,21 @@ const SeriesPlayer = () => {
                                         </span>
                                     )}
                                     {series?.rating && (
-                                        <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-full flex items-center gap-1 text-xs md:text-sm font-medium">
-                                            <FaStar className="text-yellow-300" /> {series.rating}
+                                        <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full flex items-center gap-1 text-xs md:text-sm font-medium text-black">
+                                            <FaStar className="text-black" /> {series.rating}
                                         </span>
                                     )}
 
-                                    {/* Translator Badge */}
                                     {series?.translator && (
-                                        <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center gap-1 text-xs md:text-sm font-medium">
-                                            <FaLanguage className="text-green-200" /> {series.translator}
+                                        <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center gap-1 text-xs md:text-sm font-medium text-black">
+                                            <FaLanguage className="text-black" /> {series.translator}
                                         </span>
                                     )}
 
-                                    {/* Download Button */}
                                     {hasDownload(currentEpisode) && (
                                         <button
                                             onClick={(e) => handleDownload(e, currentEpisode)}
-                                            className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full text-white font-medium shadow-lg shadow-green-600/30 transition-all duration-200 transform hover:scale-105 text-xs md:text-sm"
+                                            className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full text-black font-medium shadow-lg shadow-emerald-600/30 transition-all duration-200 transform hover:scale-105 text-xs md:text-sm"
                                             disabled={downloading && downloadEpisodeId === currentEpisode.id}
                                         >
                                             {downloading && downloadEpisodeId === currentEpisode.id ? (
@@ -2154,7 +2123,6 @@ const SeriesPlayer = () => {
                                     {currentEpisode.description || 'No description available for this episode.'}
                                 </p>
 
-                                {/* Episode metadata */}
                                 <div className="flex flex-wrap gap-3 md:gap-4 text-gray-400 text-xs md:text-sm">
                                     {currentEpisode.duration && (
                                         <span className="flex items-center gap-1"><FaClock /> {currentEpisode.duration}</span>
@@ -2168,7 +2136,10 @@ const SeriesPlayer = () => {
                                 </div>
                             </div>
 
-                            {/* Season Selector - Mobile Friendly */}
+                            {/* ✅ CAST STRIP FOR THE SERIES */}
+                            <MovieCast movieId={series?.id} />
+
+                            {/* Season Selector */}
                             {seasons.length > 0 && (
                                 <div className="mb-6">
                                     <h3 className="text-lg md:text-xl font-bold mb-3">Seasons</h3>
@@ -2187,7 +2158,7 @@ const SeriesPlayer = () => {
                                                     }
                                                 }}
                                                 className={`px-4 md:px-5 py-2 rounded-full whitespace-nowrap transition-all duration-200 text-sm md:text-base font-medium ${selectedSeason === season
-                                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-600/30 scale-105'
+                                                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black shadow-lg shadow-emerald-600/30 scale-105'
                                                     : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:scale-105'
                                                     }`}
                                             >
@@ -2215,7 +2186,7 @@ const SeriesPlayer = () => {
                                                     <div
                                                         key={episode.id}
                                                         className={`flex items-center gap-3 p-3 md:p-4 rounded-xl transition-all duration-200 ${isCurrent
-                                                            ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/10 border border-purple-500/50 shadow-lg shadow-purple-600/10'
+                                                            ? 'bg-gradient-to-r from-emerald-600/20 to-teal-600/10 border border-emerald-500/50 shadow-lg shadow-emerald-600/10'
                                                             : 'bg-gradient-to-br from-gray-800/30 to-gray-900/30 hover:from-gray-800/50 hover:to-gray-900/50 border border-gray-700/50 hover:border-gray-600'
                                                             }`}
                                                     >
@@ -2223,8 +2194,8 @@ const SeriesPlayer = () => {
                                                             onClick={() => goToEpisode(globalIndex)}
                                                             className="flex-1 flex items-center gap-3 text-left"
                                                         >
-                                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                                <span className="text-xs md:text-sm font-bold">{epNumber}</span>
+                                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                                <span className="text-xs md:text-sm font-bold text-black">{epNumber}</span>
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <h4 className="font-medium text-white text-sm md:text-base truncate">
@@ -2237,22 +2208,21 @@ const SeriesPlayer = () => {
                                                                 )}
                                                             </div>
                                                             {isCurrent && (
-                                                                <FaPlay size={10} className="text-purple-400 flex-shrink-0" />
+                                                                <FaPlay size={10} className="text-emerald-400 flex-shrink-0" />
                                                             )}
                                                         </button>
 
-                                                        {/* Episode-specific download button */}
                                                         {episodeHasDownload && (
                                                             <button
                                                                 onClick={(e) => handleDownload(e, episode)}
-                                                                className="p-2 bg-gradient-to-r from-green-600/20 to-emerald-600/20 hover:from-green-600/30 hover:to-emerald-600/30 rounded-lg transition-all border border-green-500/20 hover:border-green-500/40 group"
+                                                                className="p-2 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 hover:from-emerald-600/30 hover:to-teal-600/30 rounded-lg transition-all border border-emerald-500/20 hover:border-emerald-500/40 group"
                                                                 title="Download this episode"
                                                                 disabled={downloading && downloadEpisodeId === episode.id}
                                                             >
                                                                 {downloading && downloadEpisodeId === episode.id ? (
-                                                                    <FaSpinner className="animate-spin text-green-400 text-sm" />
+                                                                    <FaSpinner className="animate-spin text-emerald-400 text-sm" />
                                                                 ) : (
-                                                                    <FaCloudDownloadAlt className="text-green-400 text-sm group-hover:scale-110 transition-transform" />
+                                                                    <FaCloudDownloadAlt className="text-emerald-400 text-sm group-hover:scale-110 transition-transform" />
                                                                 )}
                                                             </button>
                                                         )}
@@ -2267,11 +2237,11 @@ const SeriesPlayer = () => {
                             {renderCommentsSection()}
                         </div>
 
-                        {/* Right sidebar with series info */}
+                        {/* Right sidebar */}
                         <div className="lg:col-span-1">
                             <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-5 md:p-6 border border-gray-800 sticky top-4">
                                 <h3 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
-                                    <FaInfoCircle className="text-purple-500" />
+                                    <FaInfoCircle className="text-emerald-500" />
                                     About {series?.title}
                                 </h3>
 
@@ -2298,7 +2268,7 @@ const SeriesPlayer = () => {
                                         <p><span className="text-gray-400">Language:</span> <span className="text-white">{series.language}</span></p>
                                     )}
                                     {series?.translator && (
-                                        <p className="flex items-center gap-1"><span className="text-gray-400">Translator:</span> <span className="text-green-400">{series.translator}</span></p>
+                                        <p className="flex items-center gap-1"><span className="text-gray-400">Translator:</span> <span className="text-emerald-400">{series.translator}</span></p>
                                     )}
                                     <p><span className="text-gray-400">Total Episodes:</span> <span className="text-white">{episodesList.length}</span></p>
                                     <p><span className="text-gray-400">Seasons:</span> <span className="text-white">{seasons.length}</span></p>
@@ -2307,7 +2277,7 @@ const SeriesPlayer = () => {
                                 <div className="mt-6 pt-4 border-t border-gray-800">
                                     <button
                                         onClick={() => setShowComments(!showComments)}
-                                        className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm md:text-base"
+                                        className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm md:text-base"
                                     >
                                         <FaComment />
                                         {showComments ? 'Hide Comments' : 'View Comments'} ({comments.length})
@@ -2320,7 +2290,7 @@ const SeriesPlayer = () => {
             )}
 
             {/* Custom scrollbar styles */}
-            <style jsx>{`
+            <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
                     height: 6px;
@@ -2332,12 +2302,12 @@ const SeriesPlayer = () => {
                 }
                 
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #8b5cf6;
+                    background: #10b981;
                     border-radius: 3px;
                 }
                 
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #a78bfa;
+                    background: #34d399;
                 }
             `}</style>
         </div>

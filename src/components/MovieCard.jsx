@@ -1,4 +1,5 @@
-import { FaPlay, FaStar, FaLanguage, FaTv, FaHeart, FaRegHeart, FaCalendarAlt, FaClock } from "react-icons/fa";
+// src/components/MovieCard.jsx
+import { FaPlay, FaStar, FaHeart, FaRegHeart, FaClock } from "react-icons/fa";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -33,15 +34,10 @@ export default function MovieCard({ movie, onSeriesClick }) {
   const parts = getMovieParts(movie);
   const hasContent = hasPlayableContent(movie);
 
-  const streamUrl = movie?.streamLink ||
-    movie?.videoUrl ||
-    (parts.length > 0 ? parts[0]?.streamLink || parts[0]?.videoUrl : null) ||
-    null;
-
-  const safeStreamUrl = streamUrl?.startsWith('http') ? streamUrl : streamUrl ? `https://${streamUrl}` : null;
-  const rating = movie?.rating || (movie?.vote_average ? movie.vote_average.toFixed(1) : null);
+  const rating = movie?.rating || (movie?.vote_average ? Number(movie.vote_average).toFixed(1) : null);
   const translator = movie?.translator || '';
   const year = movie?.year || movie?.release_date?.split('-')[0] || '';
+  const category = movie?.category?.split(',')[0]?.trim() || '';
 
   const formatUploadedTime = (dateString) => {
     if (!dateString) return null;
@@ -113,107 +109,139 @@ export default function MovieCard({ movie, onSeriesClick }) {
     ? "https://via.placeholder.com/300x450?text=No+Poster"
     : (movie?.poster || "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&h=750&fit=crop");
 
+  const isSeries = movie?.type === 'series';
+
   return (
     <div
-      className="group relative rounded-lg sm:rounded-xl bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 overflow-hidden cursor-pointer w-[110px] xs:w-[120px] sm:w-[150px] md:w-[170px] lg:w-[190px] xl:w-[210px] transition-all duration-300 hover:shadow-lg sm:hover:shadow-xl hover:shadow-red-900/10 sm:hover:shadow-red-900/20 hover:border-red-500/30 sm:hover:border-red-500/40"
+      className={`group relative cursor-pointer transition-all duration-300 ease-out
+        w-[130px] xs:w-[140px] sm:w-[155px] md:w-[175px] lg:w-[195px] xl:w-[215px]
+        ${isHovered ? 'sm:-translate-y-1' : ''}
+      `}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleWatchNow}
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden">
+      {/* ═══════════ POSTER ═══════════ */}
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gray-900 shadow-lg shadow-black/40">
+
         <img
           src={posterUrl}
           alt={movie?.title}
-          className="w-full h-full object-cover transition-transform duration-500 sm:duration-700 group-hover:scale-105 sm:group-hover:scale-110"
+          className={`w-full h-full object-cover transition-transform duration-500 ease-out ${
+            isHovered ? 'sm:scale-105' : 'scale-100'
+          }`}
           loading="lazy"
           onError={() => setImageError(true)}
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 sm:from-black/80 via-transparent to-transparent pointer-events-none"></div>
+        {/* Soft bottom gradient for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
 
-        <div className="absolute top-1 sm:top-2 left-1 sm:left-2 right-1 sm:right-2 flex flex-wrap gap-0.5 sm:gap-1 z-10">
-          {translator && (
-            <div className="px-1 sm:px-2 py-0.5 sm:py-1 bg-green-600/90 rounded-full text-[7px] xs:text-[8px] sm:text-[10px] text-white font-medium flex items-center gap-0.5 sm:gap-1 shadow-md sm:shadow-lg">
-              <FaLanguage className="text-[6px] xs:text-[7px] sm:text-[10px]" />
-              <span className="max-w-[35px] xs:max-w-[40px] sm:max-w-[50px] truncate">{translator}</span>
+        {/* ─── HOVER OVERLAY (desktop only) ─── */}
+        <div
+          className={`hidden sm:flex absolute inset-0 items-center justify-center bg-black/50 transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          {hasContent ? (
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500
+              flex items-center justify-center shadow-2xl shadow-emerald-500/60 ring-2 ring-white/40">
+              <FaPlay className="text-black text-base ml-0.5" />
             </div>
+          ) : (
+            <span className="text-black text-xs font-bold
+              bg-gradient-to-r from-amber-400 to-yellow-400
+              px-3 py-1.5 rounded-full shadow-lg">
+              Coming Soon
+            </span>
           )}
-
-          {rating && (
-            <div className="px-1 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-yellow-600 to-amber-600 rounded-full text-[7px] xs:text-[8px] sm:text-[10px] text-white font-medium flex items-center gap-0.5 sm:gap-1 shadow-md sm:shadow-lg">
-              <FaStar className="text-[6px] xs:text-[7px] sm:text-[10px]" />
-              <span>{rating}</span>
-            </div>
-          )}
-
-          <div className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-[7px] xs:text-[8px] sm:text-[10px] text-white font-medium flex items-center gap-0.5 sm:gap-1 shadow-md sm:shadow-lg ${movie?.type === 'series' ? 'bg-purple-600' : 'bg-red-600'}`}>
-            {movie?.type === 'series' ? <FaTv className="text-[6px] xs:text-[7px] sm:text-[10px]" /> : <FaPlay className="text-[6px] xs:text-[7px] sm:text-[10px]" />}
-            <span className="hidden xs:inline">{movie?.type === 'series' ? 'Series' : 'Movie'}</span>
-          </div>
         </div>
 
-        {year && (
-          <div className="absolute bottom-1 sm:bottom-2 left-1 sm:left-2 px-1 sm:px-2 py-0.5 sm:py-1 bg-black/70 rounded-full text-[7px] xs:text-[8px] sm:text-[10px] text-white flex items-center gap-0.5 sm:gap-1 z-10">
-            <FaCalendarAlt className="text-[6px] xs:text-[7px] sm:text-[10px] text-gray-400" />
-            <span>{year}</span>
-          </div>
+        {/* ─── TOP-LEFT: Type pill (tiny, text only) ─── */}
+        <span
+          className={`absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[8px] sm:text-[9px]
+            font-black tracking-wider uppercase backdrop-blur-sm shadow
+            ${isSeries
+              ? 'bg-emerald-500/95 text-black'
+              : 'bg-cyan-500/95 text-black'
+            }`}
+        >
+          {isSeries ? 'Series' : 'Movie'}
+        </span>
+
+        {/* ─── TOP-RIGHT: Rating (only if exists) ─── */}
+        {rating && (
+          <span className="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5
+            px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold
+            bg-black/70 backdrop-blur-sm border border-amber-400/40 text-amber-300 shadow">
+            <FaStar className="text-[7px] text-amber-400" />
+            {rating}
+          </span>
         )}
 
+        {/* ─── BOTTOM-LEFT: Year ─── */}
+        {year && (
+          <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded
+            text-[8px] sm:text-[9px] font-semibold text-white/90
+            bg-black/60 backdrop-blur-sm">
+            {year}
+          </span>
+        )}
+
+        {/* ─── BOTTOM-RIGHT: Like button ─── */}
         <button
           onClick={toggleLike}
-          className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 bg-black/70 rounded-full flex items-center justify-center border border-gray-700 hover:border-red-500 transition-all duration-300 z-10"
+          aria-label="Like"
+          className={`absolute bottom-1.5 right-1.5 w-6 h-6 sm:w-7 sm:h-7 rounded-full
+            flex items-center justify-center transition-all duration-200
+            ${liked
+              ? 'bg-emerald-500 shadow-md shadow-emerald-500/50'
+              : 'bg-black/60 backdrop-blur-sm hover:bg-black/80'
+            }`}
         >
           {liked ? (
-            <FaHeart className="text-red-500 text-[10px] xs:text-xs sm:text-sm" />
+            <FaHeart className="text-black text-[10px] sm:text-xs" />
           ) : (
-            <FaRegHeart className="text-white text-[10px] xs:text-xs sm:text-sm hover:text-red-400 transition-colors" />
+            <FaRegHeart className="text-white text-[10px] sm:text-xs" />
           )}
         </button>
-
-        {isHovered && hasContent && (
-          <div className="absolute inset-0 bg-black/50 sm:bg-black/60 flex items-center justify-center z-20 backdrop-blur-[1px] sm:backdrop-blur-none">
-            <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-red-600 to-red-700 rounded-full flex items-center justify-center shadow-md sm:shadow-lg transform hover:scale-105 sm:hover:scale-110 transition-transform">
-              <FaPlay className="text-white text-[10px] xs:text-xs sm:text-sm ml-0.5" />
-            </div>
-          </div>
-        )}
-
-        {isHovered && !hasContent && (
-          <div className="absolute inset-0 bg-black/70 sm:bg-black/80 flex items-center justify-center z-20">
-            <div className="text-center">
-              <span className="text-white text-[8px] xs:text-[9px] sm:text-xs font-medium bg-yellow-600/80 px-2 xs:px-2.5 sm:px-3 py-1 xs:py-1.5 sm:py-1.5 rounded-full">
-                Coming Soon
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className="p-1.5 xs:p-2 sm:p-3">
-        <h3 className="text-white text-[10px] xs:text-xs sm:text-sm font-semibold line-clamp-1 text-center group-hover:text-red-400 transition-colors duration-300">
+      {/* ═══════════ INFO BELOW POSTER ═══════════ */}
+      <div className="pt-2 sm:pt-2.5">
+
+        {/* Title */}
+        <h3 className="text-white text-[11px] xs:text-xs sm:text-sm font-semibold
+          line-clamp-2 leading-snug group-hover:text-emerald-400 transition-colors duration-200">
           {movie?.title || 'Untitled'}
         </h3>
 
-        <div className="flex items-center justify-center gap-1 sm:gap-1.5 mt-0.5 xs:mt-1">
-          {movie?.category && (
-            <p className="text-[7px] xs:text-[8px] sm:text-[10px] text-gray-400 line-clamp-1">
-              {movie.category.split(',')[0].trim()}
-            </p>
-          )}
+        {/* Translator — clear, prominent, full name */}
+        {translator && (
+          <p className="mt-1 text-[9px] xs:text-[10px] sm:text-[11px] font-medium
+            text-emerald-400 truncate" title={translator}>
+            {translator}
+          </p>
+        )}
 
-          {uploadedTime && (
-            <>
-              {movie?.category && <span className="text-[7px] xs:text-[8px] sm:text-[10px] text-gray-600">•</span>}
-              <div className="flex items-center gap-0.5 text-[7px] xs:text-[8px] sm:text-[10px] text-purple-400">
-                <FaClock className="text-[6px] xs:text-[7px] sm:text-[8px]" />
-                <span>{uploadedTime}</span>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Meta row: category • time */}
+        {(category || uploadedTime) && (
+          <div className="flex items-center gap-1 mt-0.5 text-[8px] xs:text-[9px] sm:text-[10px] text-gray-500">
+            {category && (
+              <span className="truncate">{category}</span>
+            )}
+            {category && uploadedTime && (
+              <span className="text-gray-700">•</span>
+            )}
+            {uploadedTime && (
+              <span className="inline-flex items-center gap-0.5 text-emerald-500/80 flex-shrink-0">
+                <FaClock className="text-[7px]" />
+                {uploadedTime}
+              </span>
+            )}
+          </div>
+        )}
       </div>
-
-      <div className="absolute inset-0 rounded-lg sm:rounded-xl bg-gradient-to-r from-red-500/0 via-red-500/0 to-red-500/0 group-active:from-red-500/10 group-active:via-red-500/5 group-active:to-red-500/10 sm:group-hover:from-red-500/5 sm:group-hover:via-red-500/10 sm:group-hover:to-red-500/5 opacity-0 group-active:opacity-100 sm:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
     </div>
   );
 }

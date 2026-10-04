@@ -9,7 +9,9 @@ import {
     FaChevronLeft,
     FaChevronRight,
     FaLanguage,
-    FaFilm
+    FaFilm,
+    FaFire,
+    FaBolt
 } from 'react-icons/fa';
 import HeroCard from './HeroCard';
 
@@ -37,7 +39,7 @@ const useSmartHeroImage = (backgroundUrl, posterUrl, isMobile) => {
             }
             if (url.includes('cloudinary.com')) {
                 const suffix = isMobile
-                    ? 'c_fill,g_auto,q_auto:best,w=780,h=780'
+                    ? 'c_fill,g_auto,q_auto:best,w=780,h=1200'
                     : 'c_fill,g_auto,q_auto:best,w=1920,h=1080';
                 url = url.includes('?') ? `${url}&${suffix}` : `${url}?${suffix}`;
             }
@@ -68,225 +70,55 @@ const useSmartHeroImage = (backgroundUrl, posterUrl, isMobile) => {
 };
 
 /* ------------------------------------------------------------------
-   Circular Card Slideshow (mobile) — softer "cave" curve, bigger cards
+   Smart Headline — Midnight Emerald palette
 ------------------------------------------------------------------- */
-const CircularCardSlideshow = ({
-    cards,
-    activeIndex,
-    onCardClick,
-    onSwipeLeft,
-    onSwipeRight,
-    onCardSelect
-}) => {
-    const total = cards.length;
+const getHeroHeadline = (item) => {
+    if (!item) {
+        return {
+            text: 'Featured',
+            icon: FaFire,
+            color: 'from-emerald-400 to-teal-400',
+        };
+    }
 
-    const touchStartX = useRef(0);
-    const touchStartY = useRef(0);
-    const touchActive = useRef(false);
-    const [isDragging, setIsDragging] = useState(false);
+    const isSeries = item?.type === 'series' || !!item?.latestEpisode;
+    const hasNewEpisode = !!item?.latestEpisode;
+    const totalSeasons = parseInt(item?.totalSeasons) || 0;
 
-    const handleTouchStart = (e) => {
-        touchStartX.current = e.touches[0].clientX;
-        touchStartY.current = e.touches[0].clientY;
-        touchActive.current = true;
-        setIsDragging(true);
-    };
-
-    const handleTouchMove = (e) => {
-        if (!touchActive.current) return;
-        const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
-        const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
-        if (dx > dy) e.preventDefault();
-    };
-
-    const handleTouchEnd = (e) => {
-        if (!touchActive.current) return;
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
-        const dx = endX - touchStartX.current;
-        const dy = endY - touchStartY.current;
-        const threshold = 40;
-
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
-            if (dx < 0) onSwipeLeft && onSwipeLeft();
-            else onSwipeRight && onSwipeRight();
+    if (isSeries) {
+        if (hasNewEpisode && (totalSeasons === 0 || totalSeasons >= 2)) {
+            return {
+                text: 'Hot Season',
+                icon: FaFire,
+                color: 'from-emerald-400 via-teal-400 to-cyan-400',
+            };
         }
-        touchActive.current = false;
-        setIsDragging(false);
+        if (totalSeasons === 1 && !hasNewEpisode) {
+            return {
+                text: 'New Season',
+                icon: FaBolt,
+                color: 'from-emerald-400 to-teal-400',
+            };
+        }
+        if (totalSeasons >= 2 && !hasNewEpisode) {
+            return {
+                text: 'Trending Series',
+                icon: FaFire,
+                color: 'from-teal-400 via-emerald-400 to-emerald-500',
+            };
+        }
+        return {
+            text: 'Featured Series',
+            icon: FaFire,
+            color: 'from-emerald-400 to-teal-400',
+        };
+    }
+
+    return {
+        text: 'Top Movie',
+        icon: FaStar,
+        color: 'from-amber-400 via-yellow-400 to-amber-500',
     };
-
-    // ✅ Softer "cave" curve — less lift, less rotation, less scale drop
-    const getCardTransform = (idx) => {
-        let offset = idx - activeIndex;
-        if (offset > total / 2) offset -= total;
-        if (offset < -total / 2) offset += total;
-
-        const distance = Math.abs(offset);
-
-        const horizontalStep = 42;   // a bit wider spread for bigger cards
-        const verticalLift = 10;      // ✅ shallower cave (was 18)
-        const rotationStep = 4;       // ✅ softer tilt (was 7)
-        const scaleStep = 0.06;       // ✅ gentler shrink (was 0.1)
-        const minScale = 0.82;        // ✅ side cards stay bigger (was 0.68)
-
-        const x = offset * horizontalStep;
-        const y = distance * 4 - verticalLift;
-        const rotate = offset * rotationStep;
-        const scale = Math.max(minScale, 1 - distance * scaleStep);
-        const zIndex = 50 - distance;
-        const opacity = distance === 0 ? 1 : Math.max(0.75, 0.95 - distance * 0.08);
-
-        return { x, y, rotate, scale, zIndex, opacity, isActive: distance === 0 };
-    };
-
-    return (
-        <div
-            className="relative flex items-center justify-center select-none"
-            style={{
-                height: 210,       // ✅ shorter container (was 190 + more room)
-                width: 300,        // ✅ wider for bigger cards
-                paddingTop: 10,
-                paddingBottom: 22,
-                paddingLeft: 8,
-                paddingRight: 8,
-                perspective: '1000px',
-                touchAction: 'pan-y',
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-        >
-            {cards.map((movie, idx) => {
-                const t = getCardTransform(idx);
-                return (
-                    <motion.div
-                        key={movie?.id || movie?._id || idx}
-                        data-card="true"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (t.isActive) onCardClick && onCardClick(movie);
-                            else onCardSelect && onCardSelect(idx);
-                        }}
-                        animate={{
-                            x: t.x,
-                            y: t.y,
-                            rotate: t.rotate,
-                            scale: t.scale,
-                            opacity: t.opacity,
-                            zIndex: t.zIndex,
-                        }}
-                        transition={{
-                            type: 'spring',
-                            stiffness: 240,
-                            damping: 28,
-                            mass: 0.9,
-                        }}
-                        className="absolute cursor-pointer"
-                        style={{
-                            transformStyle: 'preserve-3d',
-                            // ✅ BIGGER cards
-                            width: 108,       // was 88
-                            height: 162,      // 2:3 aspect
-                            pointerEvents: isDragging ? 'none' : 'auto',
-                        }}
-                    >
-                        <div
-                            className={`relative w-full h-full rounded-xl overflow-hidden transition-shadow duration-500 ${
-                                t.isActive
-                                    ? 'shadow-2xl shadow-purple-500/50 ring-2 ring-purple-500/70'
-                                    : 'shadow-xl shadow-black/70 ring-1 ring-white/10'
-                            }`}
-                        >
-                            <HeroCard movie={movie} />
-
-                            {t.isActive && (
-                                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-lg shadow-purple-500/60" />
-                                    <div className="w-3 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-pink-500/60" />
-                                    <div className="w-1.5 h-1.5 rounded-full bg-pink-500 shadow-lg shadow-pink-500/60" />
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                );
-            })}
-
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-[9px] text-gray-400 pointer-events-none">
-                <FaChevronLeft className="text-[7px]" />
-                <span>swipe</span>
-                <FaChevronRight className="text-[7px]" />
-            </div>
-        </div>
-    );
-};
-
-/* ------------------------------------------------------------------
-   Horizontal Card Row (desktop) — bigger cards, softer arch
-------------------------------------------------------------------- */
-const HorizontalCardRow = ({
-    cards,
-    activeIndex,
-    onCardClick,
-    onCardSelect
-}) => {
-    return (
-        <div className="relative w-full select-none">
-            <div
-                className="flex items-end gap-4 justify-end"
-                style={{ scrollbarWidth: 'none' }}
-            >
-                {cards.map((movie, idx) => {
-                    const isActive = idx === activeIndex;
-
-                    // ✅ Gentle cave curve for desktop too (subtle lift + small tilt)
-                    const offset = idx - activeIndex;
-                    const distance = Math.abs(offset);
-                    const lift = distance === 0 ? -10 : -4 + distance * 2; // active card rises more
-                    const tilt = offset * 1.5; // gentle tilt
-
-                    return (
-                        <div
-                            key={movie?.id || movie?._id || idx}
-                            data-card="true"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (isActive) onCardClick && onCardClick(movie);
-                                else onCardSelect && onCardSelect(idx);
-                            }}
-                            className={`flex-shrink-0 cursor-pointer transition-all duration-500 ease-out origin-bottom ${
-                                isActive
-                                    ? 'scale-105 z-20'
-                                    : 'scale-95 opacity-80 hover:opacity-100 hover:scale-100'
-                            }`}
-                            style={{
-                                width: 190,     // ✅ bigger card width (was 175)
-                                height: 285,    // 2:3 aspect
-                                transform: `translateY(${lift}px) rotate(${tilt}deg) ${isActive ? 'scale(1.05)' : 'scale(0.95)'}`,
-                            }}
-                        >
-                            <div
-                                className={`relative w-full h-full rounded-xl overflow-hidden transition-shadow duration-500 ${
-                                    isActive
-                                        ? 'shadow-2xl shadow-purple-500/50 ring-2 ring-purple-500/70'
-                                        : 'shadow-xl shadow-black/70 ring-1 ring-white/10'
-                                }`}
-                            >
-                                <HeroCard movie={movie} />
-
-                                {isActive && (
-                                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
-                                        <div className="w-2 h-2 rounded-full bg-purple-500 shadow-lg shadow-purple-500/60" />
-                                        <div className="w-4 h-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-pink-500/60" />
-                                        <div className="w-2 h-2 rounded-full bg-pink-500 shadow-lg shadow-pink-500/60" />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
 };
 
 /* ------------------------------------------------------------------
@@ -301,8 +133,6 @@ const HeroSlide = ({
     latestCards = [],
     onCardClick,
     activeCardIndex,
-    onCardSwipeLeft,
-    onCardSwipeRight,
     onCardSelect
 }) => {
     const { optimizedUrl, isLoading } = useSmartHeroImage(
@@ -314,8 +144,8 @@ const HeroSlide = ({
     const isSeries = item?.type === 'series' || item?.latestEpisode;
     const hasNewEpisode = !!item?.latestEpisode;
     const hasTranslator = !!item?.translator && item.translator.trim() !== '';
-
-    const getBackgroundPosition = () => (isMobile ? 'center 30%' : 'center 20%');
+    const year = item?.year || '';
+    const headline = getHeroHeadline(item);
 
     const itemRef = useRef(item);
     useEffect(() => { itemRef.current = item; }, [item]);
@@ -330,6 +160,10 @@ const HeroSlide = ({
         if (itemRef.current && onInfo) onInfo(itemRef.current, e);
     }, [onInfo]);
 
+    const description = hasNewEpisode && item.latestEpisode?.description
+        ? item.latestEpisode.description
+        : item?.description || 'Experience this amazing content.';
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -338,259 +172,373 @@ const HeroSlide = ({
             className={`absolute inset-0 ${isActive ? 'z-10' : 'z-0 pointer-events-none'}`}
         >
             <div className="relative w-full h-full overflow-hidden">
-                {/* BACKGROUND */}
+
+                {/* =========================================== */}
+                {/* BLURRED BACKGROUND                          */}
+                {/* =========================================== */}
                 <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[2000ms] ease-out"
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
                         backgroundImage: `url(${optimizedUrl})`,
-                        backgroundPosition: getBackgroundPosition(),
+                        backgroundPosition: 'center 20%',
                         backgroundSize: 'cover',
-                        filter: 'blur(1px) saturate(1.2) brightness(0.9)',
-                        transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                        filter: 'blur(40px) saturate(1.3) brightness(0.4)',
+                        transform: 'scale(1.15)',
+                    }}
+                />
+
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 mix-blend-overlay"
+                    style={{
+                        backgroundImage: `url(${optimizedUrl})`,
+                        backgroundPosition: 'center',
+                        backgroundSize: 'cover',
+                        filter: 'blur(60px) saturate(1.4)',
+                        transform: 'scale(1.2)',
                     }}
                 />
 
                 {isLoading && isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black animate-pulse">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#060d0a] to-black animate-pulse">
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-12 h-12 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="w-12 h-12 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                         </div>
                     </div>
                 )}
 
-                {/* Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/30 hidden md:block" />
+                {/* Gradients */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#060d0a] via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,0.85)_100%)] pointer-events-none" />
 
-                {isMobile && (
-                    <>
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/95" />
-                        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black to-transparent" />
-                    </>
+                {/* =========================================== */}
+                {/* HEADLINE BADGE — TOP RIGHT                  */}
+                {/* =========================================== */}
+                {isActive && (
+                    <motion.div
+                        initial={{ x: 30, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.15, duration: 0.5, ease: 'easeOut' }}
+                        className="absolute z-30 top-2 right-2 sm:top-3 sm:right-4 md:top-4 md:right-6"
+                    >
+                        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-emerald-500/25 shadow-lg shadow-emerald-500/20">
+                            <div className="relative flex-shrink-0">
+                                <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${headline.color} blur-md opacity-70 animate-pulse`} />
+                                <div className={`relative w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br ${headline.color} flex items-center justify-center shadow-lg`}>
+                                    <headline.icon className="text-black text-[8px] sm:text-[10px]" />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <span className={`text-[10px] sm:text-xs font-black tracking-wider bg-gradient-to-r ${headline.color} bg-clip-text text-transparent uppercase`}>
+                                    {headline.text}
+                                </span>
+                                <motion.span
+                                    animate={{ scale: [1, 1.35, 1], opacity: [0.6, 1, 0.6] }}
+                                    transition={{ duration: 1.8, repeat: Infinity }}
+                                    className="text-amber-400 text-[8px] sm:text-[10px]"
+                                >
+                                    ✦
+                                </motion.span>
+                            </div>
+                        </div>
+                    </motion.div>
                 )}
 
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.5)_100%)] pointer-events-none" />
-
-                {/* MOBILE LAYOUT */}
+                {/* =========================================== */}
+                {/* MOBILE LAYOUT — Cards pushed up ~20%         */}
+                {/* =========================================== */}
                 {isMobile && (
-                    <div className="absolute inset-0 z-20 flex items-end p-3 pb-14">
-                        <div className="w-full flex items-end justify-between gap-2">
+                    <div className="absolute inset-0 z-20 flex flex-col px-3 pt-14 pb-10">
+                        <div className="max-w-md mx-auto w-full h-full flex flex-col">
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0 max-w-[52%]">
+                            {/* Top spacer — larger, pushes cards up */}
+                            <div className="flex-[1.2]" />
+
+                            {/* ============ CARDS ============ */}
+                            {latestCards.length > 0 && (
                                 <motion.div
-                                    initial={{ y: 20, opacity: 0 }}
+                                    initial={{ y: -20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.3, duration: 0.5 }}
-                                    className="flex flex-wrap gap-1 mb-1.5"
+                                    transition={{ delay: 0.2, duration: 0.5 }}
+                                    className="w-full flex justify-center items-end"
                                 >
-                                    <span className="px-1.5 py-0.5 rounded-full font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[8px]">
+                                    <div className="flex items-end justify-center gap-3">
+                                        {latestCards.map((movie, idx) => {
+                                            const isActiveCard = idx === activeCardIndex;
+                                            return (
+                                                <button
+                                                    key={movie?.id || movie?._id || idx}
+                                                    data-card="true"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (isActiveCard) onCardClick && onCardClick(movie);
+                                                        else onCardSelect && onCardSelect(idx);
+                                                    }}
+                                                    className={`relative flex-shrink-0 rounded-xl overflow-hidden transition-all duration-500 origin-bottom ${
+                                                        isActiveCard
+                                                            ? 'w-[130px] scale-105 -translate-y-3 z-20 ring-2 ring-emerald-400 shadow-2xl shadow-emerald-500/60'
+                                                            : 'w-[100px] scale-95 opacity-65 hover:opacity-100'
+                                                    }`}
+                                                    style={{ aspectRatio: '2 / 3' }}
+                                                >
+                                                    <HeroCard movie={movie} />
+                                                    {isActiveCard && (
+                                                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                                            <div className="w-4 h-1.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400" />
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Big gap between cards and info */}
+                            <div className="flex-[0.8]" />
+
+                            {/* ============ INFO BELOW ============ */}
+                            <div className="w-full text-center pb-2">
+
+                                {/* Badges */}
+                                <motion.div
+                                    initial={{ y: 15, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.3, duration: 0.4 }}
+                                    className="flex flex-wrap items-center justify-center gap-2 mb-3"
+                                >
+                                    <span className="px-3 py-1 rounded-full font-bold shadow-lg text-xs text-black bg-gradient-to-r from-emerald-400 to-teal-400">
                                         {isSeries ? (
-                                            <><FaTv className="inline mr-0.5 text-[6px]" /> SERIES</>
+                                            <><FaTv className="inline mr-1 text-[10px]" /> SERIES</>
                                         ) : (
-                                            <><FaFilm className="inline mr-0.5 text-[6px]" /> MOVIE</>
+                                            <><FaFilm className="inline mr-1 text-[10px]" /> MOVIE</>
                                         )}
                                     </span>
 
                                     {hasTranslator && (
-                                        <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-white font-semibold flex items-center gap-0.5 text-[8px]">
-                                            <FaLanguage className="text-[6px]" />
-                                            {item.translator}
+                                        <span className="px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-semibold text-xs flex items-center gap-1 shadow-lg backdrop-blur-sm">
+                                            <FaLanguage className="text-[10px]" />
+                                            <span className="max-w-[90px] truncate">{item.translator}</span>
+                                        </span>
+                                    )}
+
+                                    {hasNewEpisode && (
+                                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold text-xs flex items-center gap-1 shadow-lg shadow-emerald-500/50 animate-pulse">
+                                            <FaPlusCircle className="text-[10px]" /> NEW
                                         </span>
                                     )}
 
                                     {item?.rating && (
-                                        <span className="flex items-center gap-0.5 text-yellow-400 bg-black/50 px-1.5 py-0.5 rounded-full text-[8px]">
-                                            <FaStar className="text-[6px]" />
+                                        <span className="flex items-center gap-1 text-amber-400 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold border border-amber-500/30">
+                                            <FaStar className="text-[10px]" />
                                             {item.rating}
                                         </span>
                                     )}
                                 </motion.div>
 
+                                {/* Title */}
                                 <motion.h1
-                                    initial={{ y: 20, opacity: 0 }}
+                                    initial={{ y: 15, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.35, duration: 0.5 }}
-                                    className="font-bold text-white leading-tight drop-shadow-lg text-sm mb-1 line-clamp-2"
-                                    style={{ textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}
+                                    transition={{ delay: 0.35, duration: 0.4 }}
+                                    className="font-black text-white leading-tight mb-2 text-2xl xs:text-3xl line-clamp-2"
+                                    style={{ textShadow: '0 2px 14px rgba(0,0,0,0.95)' }}
                                 >
                                     {item?.title}
                                 </motion.h1>
 
+                                {hasNewEpisode && item.latestEpisode && (
+                                    <motion.h2
+                                        initial={{ y: 15, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.4, duration: 0.4 }}
+                                        className="text-emerald-300 font-semibold text-xs mb-2 line-clamp-1"
+                                    >
+                                        ▶ {item.latestEpisode.title}
+                                    </motion.h2>
+                                )}
+
                                 <motion.p
-                                    initial={{ y: 20, opacity: 0 }}
+                                    initial={{ y: 15, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.4, duration: 0.5 }}
-                                    className="text-gray-200 drop-shadow-md text-[9px] mb-2 line-clamp-2"
-                                    style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
+                                    transition={{ delay: 0.45, duration: 0.4 }}
+                                    className="text-gray-200 leading-relaxed mx-auto mb-4 text-xs line-clamp-2 max-w-xs"
+                                    style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}
                                 >
-                                    {hasNewEpisode && item.latestEpisode?.description
-                                        ? item.latestEpisode.description
-                                        : item?.description || 'Experience this amazing content.'}
+                                    {description}
                                 </motion.p>
 
+                                {/* Buttons */}
                                 <motion.div
-                                    initial={{ y: 20, opacity: 0 }}
+                                    initial={{ y: 15, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.45, duration: 0.5 }}
-                                    className="flex gap-1.5"
+                                    transition={{ delay: 0.5, duration: 0.4 }}
+                                    className="flex gap-2 justify-center"
                                 >
                                     <button
                                         onClick={handlePlayClick}
-                                        className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white font-semibold flex items-center gap-1 shadow-lg px-2.5 py-1.5 text-[10px] active:scale-95"
+                                        className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-full text-black font-bold flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/40 hover:shadow-emerald-500/60 transition-all duration-300 hover:scale-105 active:scale-95 px-6 py-2.5 text-xs"
                                     >
-                                        <FaPlay className="text-[8px]" />
-                                        <span>{hasNewEpisode ? 'Watch' : 'Play'}</span>
+                                        <FaPlay className="text-[10px]" />
+                                        <span>{hasNewEpisode ? 'Watch Latest' : 'Watch Now'}</span>
                                     </button>
                                     <button
                                         onClick={handleInfoClick}
-                                        className="bg-black/50 backdrop-blur-sm rounded-lg text-white font-semibold flex items-center gap-1 border border-white/20 px-2.5 py-1.5 text-[10px] active:scale-95"
+                                        className="bg-emerald-950/60 backdrop-blur-md border border-emerald-900/60 rounded-full text-white font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:bg-emerald-900/60 hover:scale-105 active:scale-95 px-6 py-2.5 text-xs"
                                     >
-                                        <FaInfoCircle className="text-[8px]" />
-                                        <span>Info</span>
+                                        <FaInfoCircle className="text-[10px]" />
+                                        <span>More Info</span>
                                     </button>
                                 </motion.div>
                             </div>
-
-                            {/* Cards bottom right */}
-                            {latestCards.length > 0 && (
-                                <motion.div
-                                    initial={{ x: 30, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.5, duration: 0.6 }}
-                                    className="flex-shrink-0"
-                                >
-                                    <CircularCardSlideshow
-                                        cards={latestCards}
-                                        activeIndex={activeCardIndex}
-                                        onCardClick={onCardClick}
-                                        onSwipeLeft={onCardSwipeLeft}
-                                        onSwipeRight={onCardSwipeRight}
-                                        onCardSelect={onCardSelect}
-                                    />
-                                </motion.div>
-                            )}
                         </div>
                     </div>
                 )}
 
-                {/* DESKTOP LAYOUT */}
+                {/* =========================================== */}
+                {/* DESKTOP/TABLET LAYOUT                       */}
+                {/* =========================================== */}
                 {!isMobile && (
-                    <div className="absolute inset-0 z-20 flex items-end p-6 md:p-10">
+                    <div className="absolute inset-0 z-20 flex flex-col justify-end p-6 md:p-10 pb-16">
                         <div className="max-w-7xl mx-auto w-full">
-                            <div className="flex flex-row items-end justify-between gap-10">
+                            <div className="flex items-end justify-between gap-8">
 
-                                {/* Info left */}
-                                <div className="max-w-xl lg:max-w-2xl flex-1">
+                                {/* LEFT: MOVIE INFO */}
+                                <div className="flex-1 max-w-2xl">
+
                                     <motion.div
-                                        initial={{ y: 20, opacity: 0 }}
+                                        initial={{ y: 15, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
-                                        transition={{ delay: 0.2, duration: 0.5 }}
-                                        className="flex flex-wrap gap-1.5 md:gap-2 mb-2 md:mb-3"
+                                        transition={{ delay: 0.3, duration: 0.4 }}
+                                        className="flex flex-wrap items-center gap-2 mb-3"
                                     >
-                                        <span className="px-2 md:px-3.5 py-0.5 md:py-1 rounded-full font-semibold shadow-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[11px] md:text-xs">
+                                        <span className="px-3.5 py-1 rounded-full font-bold shadow-lg text-xs text-black bg-gradient-to-r from-emerald-400 to-teal-400">
                                             {isSeries ? (
-                                                <><FaTv className="inline mr-1 text-[9px]" /> SERIES</>
+                                                <><FaTv className="inline mr-1 text-[10px]" /> SERIES</>
                                             ) : (
-                                                <><FaFilm className="inline mr-1 text-[9px]" /> MOVIE</>
+                                                <><FaFilm className="inline mr-1 text-[10px]" /> MOVIE</>
                                             )}
                                         </span>
 
                                         {hasTranslator && (
-                                            <span className="px-2 md:px-3.5 py-0.5 md:py-1 rounded-full bg-blue-600 text-white font-semibold flex items-center gap-1 shadow-lg text-[11px] md:text-xs">
-                                                <FaLanguage className="text-[9px]" />
-                                                {item.translator}
+                                            <span className="px-3.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-semibold text-xs flex items-center gap-1 shadow-lg backdrop-blur-sm">
+                                                <FaLanguage className="text-[10px]" />
+                                                <span className="max-w-[120px] truncate">{item.translator}</span>
                                             </span>
                                         )}
 
                                         {hasNewEpisode && (
-                                            <span className="px-2 md:px-3.5 py-0.5 md:py-1 rounded-full bg-green-600 text-white font-semibold flex items-center gap-1 animate-pulse shadow-lg text-[11px] md:text-xs">
-                                                <FaPlusCircle className="text-[9px]" />
-                                                NEW EPISODE
+                                            <span className="px-3.5 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold text-xs flex items-center gap-1 shadow-lg shadow-emerald-500/50 animate-pulse">
+                                                <FaPlusCircle className="text-[10px]" /> NEW
                                             </span>
                                         )}
 
                                         {item?.rating && (
-                                            <span className="flex items-center gap-1 text-yellow-400 bg-black/50 px-2 md:px-3 py-0.5 md:py-1 rounded-full backdrop-blur-sm shadow-lg text-[11px] md:text-xs">
-                                                <FaStar className="text-[9px]" />
+                                            <span className="flex items-center gap-1 text-amber-400 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold border border-amber-500/30">
+                                                <FaStar className="text-[10px]" />
                                                 {item.rating}
+                                            </span>
+                                        )}
+
+                                        {year && (
+                                            <span className="flex items-center gap-1 text-emerald-300 bg-emerald-950/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs border border-emerald-900/40">
+                                                {year}
                                             </span>
                                         )}
                                     </motion.div>
 
                                     <motion.h1
-                                        initial={{ y: 20, opacity: 0 }}
+                                        initial={{ y: 15, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
-                                        transition={{ delay: 0.3, duration: 0.5 }}
-                                        className="font-bold text-white leading-tight drop-shadow-lg text-3xl sm:text-4xl md:text-5xl mb-2"
-                                        style={{ textShadow: '0 2px 12px rgba(0,0,0,0.85)' }}
+                                        transition={{ delay: 0.35, duration: 0.4 }}
+                                        className="font-black text-white leading-tight mb-2 text-3xl sm:text-4xl md:text-5xl line-clamp-2"
+                                        style={{ textShadow: '0 2px 14px rgba(0,0,0,0.95)' }}
                                     >
                                         {item?.title}
-                                        {hasNewEpisode && (
-                                            <span className="text-base md:text-lg ml-2 text-purple-400">- New Episode</span>
-                                        )}
                                     </motion.h1>
 
                                     {hasNewEpisode && item.latestEpisode && (
                                         <motion.h2
-                                            initial={{ y: 20, opacity: 0 }}
+                                            initial={{ y: 15, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
-                                            transition={{ delay: 0.4, duration: 0.5 }}
-                                            className="text-purple-300 font-medium drop-shadow-md text-sm md:text-base mb-2"
+                                            transition={{ delay: 0.4, duration: 0.4 }}
+                                            className="text-emerald-300 font-semibold text-sm mb-2 line-clamp-1"
                                         >
-                                            Latest: {item.latestEpisode.title}
+                                            ▶ {item.latestEpisode.title}
                                         </motion.h2>
                                     )}
 
                                     <motion.p
-                                        initial={{ y: 20, opacity: 0 }}
+                                        initial={{ y: 15, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
-                                        transition={{ delay: 0.5, duration: 0.5 }}
-                                        className="text-gray-100 drop-shadow-md leading-relaxed text-sm md:text-base mb-3 md:mb-4 line-clamp-2 md:line-clamp-3"
-                                        style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}
+                                        transition={{ delay: 0.45, duration: 0.4 }}
+                                        className="text-gray-200 leading-relaxed mb-4 text-sm md:text-base line-clamp-3 max-w-xl"
+                                        style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}
                                     >
-                                        {hasNewEpisode && item.latestEpisode?.description
-                                            ? item.latestEpisode.description
-                                            : item?.description || 'Experience this amazing content.'}
+                                        {description}
                                     </motion.p>
 
                                     <motion.div
-                                        initial={{ y: 20, opacity: 0 }}
+                                        initial={{ y: 15, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
-                                        transition={{ delay: 0.6, duration: 0.5 }}
-                                        className="flex gap-2 md:gap-3"
+                                        transition={{ delay: 0.5, duration: 0.4 }}
+                                        className="flex gap-3"
                                     >
                                         <button
                                             onClick={handlePlayClick}
-                                            className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white font-semibold flex items-center gap-1.5 shadow-xl px-6 md:px-7 py-2 md:py-2.5 text-sm md:text-base hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all duration-300"
+                                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-full text-black font-bold flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/40 hover:shadow-emerald-500/60 transition-all duration-300 hover:scale-105 active:scale-95 px-8 py-3 text-sm md:text-base"
                                         >
                                             <FaPlay className="text-xs md:text-sm" />
                                             <span>{hasNewEpisode ? 'Watch Latest' : 'Watch Now'}</span>
                                         </button>
                                         <button
                                             onClick={handleInfoClick}
-                                            className="bg-black/50 backdrop-blur-sm rounded-lg text-white font-semibold flex items-center gap-1.5 border border-white/20 px-6 md:px-7 py-2 md:py-2.5 text-sm md:text-base hover:bg-black/70 transform hover:scale-105 transition-all duration-300"
+                                            className="bg-emerald-950/60 backdrop-blur-md border border-emerald-900/60 rounded-full text-white font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:bg-emerald-900/60 hover:scale-105 active:scale-95 px-8 py-3 text-sm md:text-base"
                                         >
                                             <FaInfoCircle className="text-xs md:text-sm" />
-                                            <span>Info</span>
+                                            <span>More Info</span>
                                         </button>
                                     </motion.div>
                                 </div>
 
-                                {/* Cards right */}
+                                {/* RIGHT: 3 LARGE CARDS */}
                                 {latestCards.length > 0 && (
                                     <motion.div
-                                        initial={{ x: 40, opacity: 0 }}
-                                        animate={{ x: 0, opacity: 1 }}
-                                        transition={{ delay: 0.5, duration: 0.6 }}
-                                        className="flex-shrink-0 max-w-[60%]"
+                                        initial={{ y: 30, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.25, duration: 0.5 }}
+                                        className="flex-shrink-0 flex items-end justify-end gap-4 lg:gap-5"
                                     >
-                                        <HorizontalCardRow
-                                            cards={latestCards}
-                                            activeIndex={activeCardIndex}
-                                            onCardClick={onCardClick}
-                                            onCardSelect={onCardSelect}
-                                        />
+                                        {latestCards.map((movie, idx) => {
+                                            const isActiveCard = idx === activeCardIndex;
+                                            return (
+                                                <button
+                                                    key={movie?.id || movie?._id || idx}
+                                                    data-card="true"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (isActiveCard) onCardClick && onCardClick(movie);
+                                                        else onCardSelect && onCardSelect(idx);
+                                                    }}
+                                                    className={`relative flex-shrink-0 rounded-xl overflow-hidden transition-all duration-500 origin-bottom ${
+                                                        isActiveCard
+                                                            ? 'w-[170px] lg:w-[190px] scale-105 -translate-y-4 z-20 ring-2 ring-emerald-400 shadow-2xl shadow-emerald-500/60'
+                                                            : 'w-[140px] lg:w-[155px] scale-95 opacity-70 hover:opacity-100'
+                                                    }`}
+                                                    style={{ aspectRatio: '2 / 3' }}
+                                                >
+                                                    <HeroCard movie={movie} />
+                                                    {isActiveCard && (
+                                                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
+                                                            <div className="w-2 h-1.5 rounded-full bg-emerald-400" />
+                                                            <div className="w-5 h-1.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400" />
+                                                            <div className="w-2 h-1.5 rounded-full bg-teal-400" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </motion.div>
                                 )}
                             </div>
@@ -615,14 +563,14 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
     const itemsRef = useRef(items);
     const isSwiping = useRef(false);
 
-    const latestFive = useMemo(() => {
+    const latestThree = useMemo(() => {
         if (latestCards && latestCards.length > 0) {
-            return latestCards.slice(0, 5);
+            return latestCards.slice(0, 3);
         }
-        return (items || []).slice(0, 5);
+        return (items || []).slice(0, 3);
     }, [latestCards, items]);
 
-    const slides = latestFive;
+    const slides = latestThree;
 
     useEffect(() => {
         itemsRef.current = slides;
@@ -639,7 +587,7 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
         if (isAutoPlaying && slides.length > 1) {
             autoPlayRef.current = setInterval(() => {
                 setCurrentIndex((prev) => (prev + 1) % slides.length);
-            }, 2000);
+            }, 4000);
         }
         return () => {
             if (autoPlayRef.current) clearInterval(autoPlayRef.current);
@@ -661,16 +609,6 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
         if (slides.length === 0) return;
         const next = ((idx % slides.length) + slides.length) % slides.length;
         setCurrentIndex(next);
-        pauseAutoPlay();
-    }, [slides.length, pauseAutoPlay]);
-
-    const handleCardSwipeLeft = useCallback(() => {
-        setCurrentIndex((prev) => (prev + 1) % slides.length);
-        pauseAutoPlay();
-    }, [slides.length, pauseAutoPlay]);
-
-    const handleCardSwipeRight = useCallback(() => {
-        setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
         pauseAutoPlay();
     }, [slides.length, pauseAutoPlay]);
 
@@ -751,7 +689,11 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
 
     return (
         <section
-            className={`relative overflow-hidden bg-black select-none ${isMobile ? 'h-[72vh] sm:h-[72vh]' : 'h-[78vh] md:h-[82vh]'}`}
+            className={`relative overflow-hidden bg-black select-none ${
+                isMobile
+                    ? 'h-[92vh] min-h-[620px] max-h-[780px]'
+                    : 'h-[88vh] min-h-[620px] max-h-[820px]'
+            }`}
             onMouseEnter={() => setIsAutoPlaying(false)}
             onMouseLeave={() => setIsAutoPlaying(true)}
             onTouchStart={handleTouchStart}
@@ -768,11 +710,9 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
                             onPlay={handlePlayClick}
                             onInfo={handleInfoClick}
                             isMobile={isMobile}
-                            latestCards={latestFive}
+                            latestCards={latestThree}
                             onCardClick={onCardClick}
                             activeCardIndex={currentIndex}
-                            onCardSwipeLeft={handleCardSwipeLeft}
-                            onCardSwipeRight={handleCardSwipeRight}
                             onCardSelect={handleCardSelect}
                         />
                     ))}
@@ -781,7 +721,9 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
 
             {/* Dots */}
             {slides.length > 1 && (
-                <div className={`absolute left-1/2 transform -translate-x-1/2 z-30 flex gap-1.5 md:gap-2 ${isMobile ? 'bottom-4' : 'bottom-5 md:bottom-6'}`}>
+                <div className={`absolute left-1/2 transform -translate-x-1/2 z-30 flex gap-1.5 md:gap-2 ${
+                    isMobile ? 'bottom-3' : 'bottom-5 md:bottom-6'
+                }`}>
                     {slides.map((_, index) => (
                         <button
                             key={index}
@@ -790,14 +732,15 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
                             aria-label={`Go to slide ${index + 1}`}
                         >
                             <span
-                                className={`block transition-all duration-300 rounded-full ${index === currentIndex
-                                    ? isMobile
-                                        ? 'w-4 h-0.5 bg-gradient-to-r from-purple-600 to-pink-600'
-                                        : 'w-6 md:w-8 h-0.5 bg-gradient-to-r from-purple-600 to-pink-600'
-                                    : isMobile
-                                        ? 'w-1.5 h-0.5 bg-gray-500 group-hover:bg-gray-400'
-                                        : 'w-2 md:w-3 h-0.5 bg-gray-500 group-hover:bg-gray-400'
-                                    }`}
+                                className={`block transition-all duration-300 rounded-full ${
+                                    index === currentIndex
+                                        ? isMobile
+                                            ? 'w-5 h-1 bg-gradient-to-r from-emerald-400 to-teal-400'
+                                            : 'w-8 h-1 bg-gradient-to-r from-emerald-400 to-teal-400'
+                                        : isMobile
+                                            ? 'w-2 h-1 bg-white/40'
+                                            : 'w-3 h-1 bg-white/30'
+                                }`}
                             />
                         </button>
                     ))}
@@ -809,36 +752,37 @@ const HeroSlider = ({ items, onPlay, onInfo, latestCards = [], onCardClick }) =>
                 <>
                     <button
                         onClick={prevSlide}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/70 transition-all duration-300 hover:scale-110 group focus:outline-none"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/70 transition-all duration-300 hover:scale-110 group focus:outline-none border border-emerald-500/20"
                         aria-label="Previous slide"
                     >
-                        <FaChevronLeft className="text-white text-sm group-hover:text-purple-400 transition-colors" />
+                        <FaChevronLeft className="text-white text-sm group-hover:text-emerald-400 transition-colors" />
                     </button>
                     <button
                         onClick={nextSlide}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-30 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/70 transition-all duration-300 hover:scale-110 group focus:outline-none"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-30 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/70 transition-all duration-300 hover:scale-110 group focus:outline-none border border-emerald-500/20"
                         aria-label="Next slide"
                     >
-                        <FaChevronRight className="text-white text-sm group-hover:text-purple-400 transition-colors" />
+                        <FaChevronRight className="text-white text-sm group-hover:text-emerald-400 transition-colors" />
                     </button>
                 </>
             )}
 
-            {/* Progress Bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800/50 z-30">
+            {/* Progress bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800/40 z-30">
                 <div
-                    className="h-full bg-gradient-to-r from-purple-600 to-pink-400 transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-300"
                     style={{ width: `${((currentIndex + 1) / slides.length) * 100}%` }}
                 />
             </div>
 
             {/* Counter */}
             {slides.length > 1 && (
-                <div className={`absolute z-30 bg-black/50 backdrop-blur-sm rounded-full border border-white/20 ${isMobile
-                    ? 'top-2 right-2 px-1.5 py-0.5 text-[9px]'
-                    : 'top-4 md:top-6 right-4 md:right-6 px-2 py-1 text-[11px] md:text-xs'
-                    }`}>
-                    <span className="text-purple-400 font-bold">{currentIndex + 1}</span>
+                <div className={`absolute z-30 bg-black/60 backdrop-blur-sm rounded-full border border-emerald-500/30 ${
+                    isMobile
+                        ? 'bottom-3 right-3 px-2 py-0.5 text-[10px]'
+                        : 'bottom-5 md:bottom-6 right-4 md:right-6 px-3 py-1 text-xs'
+                }`}>
+                    <span className="text-emerald-400 font-bold">{currentIndex + 1}</span>
                     <span className="text-white">/{slides.length}</span>
                 </div>
             )}

@@ -85,7 +85,7 @@ export default function MovieComments({ movieId }) {
     };
 
     return (
-        <div className="bg-gradient-to-br from-gray-900/50 to-black/50 rounded-2xl border border-gray-800 p-6">
+        <div className="bg-gradient-to-br from-gray-900/50 to-black/50 rounded-2xl border border-emerald-900/30 p-6">
             <h3 className="text-xl font-bold text-white mb-6">💬 Comments & Reviews</h3>
 
             {/* Add Comment */}
@@ -96,7 +96,7 @@ export default function MovieComments({ movieId }) {
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             placeholder="Share your thoughts about this movie..."
-                            className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder:text-gray-500 resize-none"
+                            className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder:text-gray-500 resize-none focus:outline-none focus:border-emerald-500"
                             rows={3}
                         />
                     </div>
@@ -110,14 +110,14 @@ export default function MovieComments({ movieId }) {
                             <button
                                 key={star}
                                 onClick={() => setUserRating(star)}
-                                className={`text-xl ${star <= userRating ? 'text-yellow-500' : 'text-gray-600'}`}
+                                className={`text-xl ${star <= userRating ? 'text-amber-500' : 'text-gray-600'}`}
                             >
                                 <FaStar />
                             </button>
                         ))}
                     </div>
                     {userRating > 0 && (
-                        <span className="text-yellow-400 font-bold">{userRating}/10</span>
+                        <span className="text-amber-400 font-bold">{userRating}/10</span>
                     )}
                 </div>
 
@@ -130,7 +130,7 @@ export default function MovieComments({ movieId }) {
                     </button>
                     <button
                         onClick={handleSubmitComment}
-                        className="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-white font-bold"
+                        className="px-6 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-bold"
                     >
                         Post Comment
                     </button>
@@ -150,7 +150,7 @@ export default function MovieComments({ movieId }) {
                                 </div>
                             </div>
                             {comment.rating > 0 && (
-                                <div className="flex items-center gap-1 bg-yellow-600/20 text-yellow-400 px-3 py-1 rounded-full">
+                                <div className="flex items-center gap-1 bg-amber-600/20 text-amber-400 px-3 py-1 rounded-full">
                                     <FaStar className="text-xs" />
                                     <span className="font-bold">{comment.rating}/10</span>
                                 </div>
@@ -162,14 +162,14 @@ export default function MovieComments({ movieId }) {
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => handleLike(comment.id)}
-                                className="flex items-center gap-2 text-gray-400 hover:text-red-400"
+                                className="flex items-center gap-2 text-gray-400 hover:text-emerald-400"
                             >
                                 {comment.likes > 0 ? <FaThumbsUp /> : <FaRegThumbsUp />}
                                 <span>{comment.likes || 0}</span>
                             </button>
                             <button
                                 onClick={() => setReplyingTo(comment.id)}
-                                className="flex items-center gap-2 text-gray-400 hover:text-blue-400"
+                                className="flex items-center gap-2 text-gray-400 hover:text-cyan-400"
                             >
                                 <FaReply /> Reply
                             </button>
@@ -179,7 +179,7 @@ export default function MovieComments({ movieId }) {
                         {comments
                             .filter(c => c.parent_id === comment.id)
                             .map(reply => (
-                                <div key={reply.id} className="ml-8 mt-4 pl-4 border-l-2 border-gray-800">
+                                <div key={reply.id} className="ml-8 mt-4 pl-4 border-l-2 border-emerald-900/30">
                                     <div className="flex items-center gap-2 mb-2">
                                         <FaUserCircle className="text-xl text-gray-500" />
                                         <span className="font-medium text-white">{reply.user?.username}</span>

@@ -1,4 +1,4 @@
-// components/SimpleVideoModal.jsx - Updated for YouTube and multiple platforms
+// components/SimpleVideoModal.jsx - Updated for Midnight Emerald
 import { useState, useRef, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import { FaTimes, FaPlay, FaPause, FaVolumeUp, FaVolumeMute, FaExpand, FaCompress, FaStar, FaCalendarAlt, FaFilm, FaTv, FaClock, FaYoutube, FaVideo, FaLink, FaExternalLinkAlt } from 'react-icons/fa';
@@ -55,13 +55,13 @@ const SimpleVideoModal = ({
     // Platform icons
     const platformIcons = {
         youtube: <FaYoutube className="text-red-500" />,
-        vimeo: <FaVideo className="text-blue-400" />,
-        dailymotion: <FaVideo className="text-blue-600" />,
-        twitch: <FaVideo className="text-purple-600" />,
-        facebook: <FaVideo className="text-blue-700" />,
-        file: <FaVideo className="text-green-500" />,
-        dash: <FaVideo className="text-orange-500" />,
-        hls: <FaVideo className="text-purple-500" />,
+        vimeo: <FaVideo className="text-teal-400" />,
+        dailymotion: <FaVideo className="text-cyan-600" />,
+        twitch: <FaVideo className="text-emerald-600" />,
+        facebook: <FaVideo className="text-cyan-700" />,
+        file: <FaVideo className="text-emerald-500" />,
+        dash: <FaVideo className="text-amber-500" />,
+        hls: <FaVideo className="text-emerald-500" />,
         unknown: <FaLink className="text-gray-500" />
     };
 
@@ -93,7 +93,6 @@ const SimpleVideoModal = ({
     // Handle player error
     const handlePlayerError = (error) => {
         console.error('Player error:', error);
-        // You can show an error message to the user here
     };
 
     const handlePlayPause = () => {
@@ -142,7 +141,7 @@ const SimpleVideoModal = ({
             {/* Video Container */}
             <div className="relative w-full max-w-6xl bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
                 {/* Video Header */}
-                <div className="p-6 bg-gradient-to-r from-gray-900 to-black border-b border-gray-800">
+                <div className="p-6 bg-gradient-to-r from-gray-900 to-black border-b border-emerald-900/30">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
@@ -169,7 +168,7 @@ const SimpleVideoModal = ({
                                 )}
                                 {rating && (
                                     <span className="flex items-center gap-1 text-sm">
-                                        <FaStar className="text-yellow-400" /> {rating}
+                                        <FaStar className="text-amber-400" /> {rating}
                                     </span>
                                 )}
                                 {duration && (
@@ -178,7 +177,7 @@ const SimpleVideoModal = ({
                                     </span>
                                 )}
                                 {type && (
-                                    <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${type === 'series' ? 'bg-purple-600' : 'bg-red-600'}`}>
+                                    <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${type === 'series' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black' : 'bg-gradient-to-r from-cyan-600 to-emerald-600 text-black'}`}>
                                         {type === 'series' ? <FaTv /> : <FaFilm />}
                                         {type === 'series' ? 'Series' : 'Movie'}
                                     </span>
@@ -201,7 +200,7 @@ const SimpleVideoModal = ({
                     {!playerReady && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                             <div className="text-center">
-                                <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                                 <p className="text-gray-300">Loading player...</p>
                                 <p className="text-gray-500 text-sm mt-2">
                                     Playing from {videoType === 'youtube' ? 'YouTube' : videoType}
@@ -244,7 +243,7 @@ const SimpleVideoModal = ({
                                 }
                             },
                             facebook: {
-                                appId: 'your-facebook-app-id' // Optional: Add your Facebook app ID
+                                appId: 'your-facebook-app-id'
                             },
                             file: {
                                 attributes: {
@@ -267,12 +266,12 @@ const SimpleVideoModal = ({
                             <div className="flex items-center gap-4">
                                 <button
                                     onClick={handlePlayPause}
-                                    className="p-3 bg-red-600 hover:bg-red-700 rounded-full transition-all hover:scale-110"
+                                    className="p-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-full transition-all hover:scale-110"
                                 >
                                     {playing ? (
-                                        <FaPause className="text-white text-lg" />
+                                        <FaPause className="text-black text-lg" />
                                     ) : (
-                                        <FaPlay className="text-white text-lg ml-0.5" />
+                                        <FaPlay className="text-black text-lg ml-0.5" />
                                     )}
                                 </button>
 
@@ -295,7 +294,7 @@ const SimpleVideoModal = ({
                                             step={0.1}
                                             value={volume}
                                             onChange={handleVolumeChange}
-                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500"
                                         />
                                         <span className="text-white text-sm min-w-[40px]">
                                             {Math.round(volume * 100)}%
@@ -313,7 +312,7 @@ const SimpleVideoModal = ({
                                 </button>
                                 <button
                                     onClick={onClose}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium"
+                                    className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-medium"
                                 >
                                     Close
                                 </button>
@@ -326,15 +325,15 @@ const SimpleVideoModal = ({
                                 <div className="flex items-center gap-2">
                                     <span>Source:</span>
                                     <span className={`px-2 py-1 rounded ${videoType === 'youtube' ? 'bg-red-600/20 text-red-300' :
-                                        videoType === 'vimeo' ? 'bg-blue-600/20 text-blue-300' :
-                                            videoType === 'file' ? 'bg-green-600/20 text-green-300' :
+                                        videoType === 'vimeo' ? 'bg-teal-600/20 text-teal-300' :
+                                            videoType === 'file' ? 'bg-emerald-600/20 text-emerald-300' :
                                                 'bg-gray-700 text-gray-300'}`}>
                                         {videoType.toUpperCase()}
                                     </span>
                                 </div>
                                 <button
                                     onClick={handleOpenInNewTab}
-                                    className="text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                    className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
                                 >
                                     <FaExternalLinkAlt /> Open original
                                 </button>
@@ -345,7 +344,7 @@ const SimpleVideoModal = ({
 
                 {/* Description Section */}
                 {(description || genre) && (
-                    <div className="p-6 bg-gray-900 border-t border-gray-800">
+                    <div className="p-6 bg-gray-900 border-t border-emerald-900/30">
                         {description && (
                             <>
                                 <h3 className="text-lg font-semibold text-white mb-3">Description</h3>

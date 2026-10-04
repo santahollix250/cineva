@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import { MoviesContext } from '../context/MoviesContext';
+import MovieCast from './MovieCast';
 
 // ===== Error Boundary for player crashes =====
 class PlayerErrorBoundary extends React.Component {
@@ -31,7 +32,7 @@ class PlayerErrorBoundary extends React.Component {
             return (
                 <div className="flex items-center justify-center h-full bg-black text-white p-4 text-center">
                     <div>
-                        <FaExclamationTriangle className="text-purple-500 text-4xl mx-auto mb-2" />
+                        <FaExclamationTriangle className="text-emerald-500 text-4xl mx-auto mb-2" />
                         <p className="text-sm">Video failed to load.</p>
                         <p className="text-xs text-gray-400 mt-1">{this.state.error?.message}</p>
                     </div>
@@ -165,16 +166,14 @@ const Player = () => {
         }
     }, [videoType]);
 
-    // Initialize YouTube player — FIXED: guarded + deferred
+    // Initialize YouTube player — guarded + deferred
     useEffect(() => {
         if (!youTubeApiReady || videoType !== 'youtube' || !youtubeId) return;
         if (!youtubeContainerRef.current) return;
 
-        // Destroy previous
         try { youtubePlayerRef.current?.destroy?.(); } catch { /* noop */ }
         youtubePlayerRef.current = null;
 
-        // Create new player
         try {
             const player = new window.YT.Player(youtubeContainerRef.current, {
                 videoId: youtubeId,
@@ -332,7 +331,7 @@ const Player = () => {
         } else if (detectedType === 'vimeo') {
             const vid = extractId(url, 'vimeo');
             if (vid) {
-                setVideoUrl(`https://player.vimeo.com/video/${vid}?autoplay=1&title=0&byline=0&portrait=0&controls=true&badge=0&transparent=1&color=ffffff`);
+                setVideoUrl(`https://player.vimeo.com/video/${vid}?autoplay=1&title=0&byline=0&portrait=0&controls=true&badge=0&transparent=1&color=10b981`);
             } else setError('Invalid Vimeo URL');
         } else if (detectedType === 'youtube') {
             const vid = extractId(url, 'youtube');
@@ -598,11 +597,11 @@ const Player = () => {
     const getDownloadLink = (item) => item?.download_link || item?.download || item?.videoUrl;
 
     const getPlayerTypeInfo = () => {
-        if (useEmbed) return { color: 'text-orange-400', bgColor: 'bg-orange-600', label: 'Embed', text: 'text-orange-300' };
-        if (isDailyMotionVideo) return { color: 'text-purple-400', bgColor: 'bg-purple-600', label: 'DailyMotion', text: 'text-purple-300' };
-        if (isVimeoVideo) return { color: 'text-blue-400', bgColor: 'bg-blue-600', label: 'Vimeo', text: 'text-blue-300' };
+        if (useEmbed) return { color: 'text-amber-400', bgColor: 'bg-amber-600', label: 'Embed', text: 'text-amber-300' };
+        if (isDailyMotionVideo) return { color: 'text-teal-400', bgColor: 'bg-teal-600', label: 'DailyMotion', text: 'text-teal-300' };
+        if (isVimeoVideo) return { color: 'text-cyan-400', bgColor: 'bg-cyan-600', label: 'Vimeo', text: 'text-cyan-300' };
         if (videoType === 'youtube') return { color: 'text-red-400', bgColor: 'bg-red-600', label: 'YouTube', text: 'text-red-300' };
-        return { color: 'text-green-400', bgColor: 'bg-green-600', label: 'Custom Player', text: 'text-green-300' };
+        return { color: 'text-emerald-400', bgColor: 'bg-emerald-600', label: 'Custom Player', text: 'text-emerald-300' };
     };
 
     const playerType = getPlayerTypeInfo();
@@ -611,7 +610,6 @@ const Player = () => {
 
     // ===== RENDER VIDEO =====
     const renderVideo = () => {
-        // Guard: no URL yet
         if (!videoUrl && !youtubeId) {
             return (
                 <div className="flex items-center justify-center h-full bg-black text-white text-sm">
@@ -639,7 +637,7 @@ const Player = () => {
             return (
                 <div className="relative w-full h-full">
                     <div className="absolute top-3 left-3 z-10 bg-black/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs sm:text-sm">
-                        <FaDailymotion className="text-blue-400 text-sm" />
+                        <FaDailymotion className="text-teal-400 text-sm" />
                         <span className="font-medium">DailyMotion</span>
                     </div>
                     {videoUrl && (
@@ -661,7 +659,7 @@ const Player = () => {
             return (
                 <div className="relative w-full h-full">
                     <div className="absolute top-3 left-3 z-10 bg-black/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs sm:text-sm">
-                        <FaVimeo className="text-blue-400 text-sm" />
+                        <FaVimeo className="text-cyan-400 text-sm" />
                         <span className="font-medium">Vimeo</span>
                     </div>
                     {videoUrl && (
@@ -694,7 +692,6 @@ const Player = () => {
             );
         }
 
-        // Direct video
         if (!videoUrl) return <div className="flex items-center justify-center h-full bg-black text-white text-sm">No video source</div>;
         return (
             <video
@@ -724,9 +721,9 @@ const Player = () => {
 
     // ===== RENDER PARTS =====
     const renderPartsList = () => (
-        <div className="mb-5 bg-gradient-to-r from-gray-900/80 to-gray-800/80 rounded-xl p-4 border border-purple-500/30">
+        <div className="mb-5 bg-gradient-to-r from-gray-900/80 to-gray-800/80 rounded-xl p-4 border border-emerald-500/30">
             <div className="flex items-center gap-2 mb-3">
-                <FaLayerGroup className="text-purple-500 text-base" />
+                <FaLayerGroup className="text-emerald-500 text-base" />
                 <h3 className="text-base font-bold">Movie Parts ({movieParts.length})</h3>
             </div>
             <div className="space-y-2">
@@ -737,12 +734,12 @@ const Player = () => {
                         <div
                             key={part.partNumber}
                             onClick={() => setSelectedPart(part)}
-                            className={`p-3 rounded-xl cursor-pointer transition-all ${isSelected ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500' : 'bg-gray-800/50 hover:bg-gray-800 border border-gray-700'}`}
+                            className={`p-3 rounded-xl cursor-pointer transition-all ${isSelected ? 'bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border border-emerald-500' : 'bg-gray-800/50 hover:bg-gray-800 border border-gray-700'}`}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isSelected ? 'bg-purple-600' : 'bg-purple-600/20 text-purple-400'}`}>
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isSelected ? 'bg-emerald-600 text-black' : 'bg-emerald-600/20 text-emerald-400'}`}>
                                             Part {part.partNumber}
                                         </span>
                                         <span className="font-semibold text-sm truncate">{part.title}</span>
@@ -757,7 +754,7 @@ const Player = () => {
                                 {canDownloadPart && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleDownload(getDownloadLink(part), part); }}
-                                        className="ml-3 p-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white transition-all transform hover:scale-105 shadow-lg shadow-purple-600/30"
+                                        className="ml-3 p-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black transition-all transform hover:scale-105 shadow-lg shadow-emerald-600/30"
                                         disabled={downloading}
                                     >
                                         <FaDownload className="text-sm" />
@@ -776,7 +773,7 @@ const Player = () => {
         <div className="mt-5 bg-gradient-to-br from-gray-900/80 to-gray-950/80 rounded-2xl p-5 border border-gray-800">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold flex items-center gap-2">
-                    <FaComment className="text-purple-500" />
+                    <FaComment className="text-emerald-500" />
                     Comments ({comments.length})
                 </h3>
                 <button
@@ -790,12 +787,12 @@ const Player = () => {
                 <>
                     <div className="mb-5 p-4 bg-gray-800/50 rounded-xl border border-gray-700">
                         <div className="flex items-center gap-3 mb-3">
-                            <img src={userAvatar} alt={userName} className="w-10 h-10 rounded-full border-2 border-purple-600" />
+                            <img src={userAvatar} alt={userName} className="w-10 h-10 rounded-full border-2 border-emerald-600" />
                             <input
                                 type="text"
                                 value={userName}
                                 onChange={updateUserName}
-                                className="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm focus:outline-none focus:border-purple-500"
+                                className="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
                                 placeholder="Your name"
                             />
                         </div>
@@ -803,7 +800,7 @@ const Player = () => {
                             <textarea
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm resize-none focus:outline-none focus:border-purple-500"
+                                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm resize-none focus:outline-none focus:border-emerald-500"
                                 placeholder="Share your thoughts..."
                                 rows="3"
                                 maxLength="500"
@@ -813,7 +810,7 @@ const Player = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting || !newComment.trim()}
-                                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:bg-gray-700 rounded-lg text-white font-medium flex items-center gap-2 text-sm"
+                                    className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:bg-gray-700 rounded-lg text-black font-medium flex items-center gap-2 text-sm"
                                 >
                                     {isSubmitting ? <><FaSpinner className="animate-spin" />Posting...</> : <><FaPaperPlane />Post Comment</>}
                                 </button>
@@ -830,7 +827,7 @@ const Player = () => {
                             comments.map((c) => (
                                 <div key={c.id} className="bg-gray-800/30 rounded-xl p-4 hover:bg-gray-800/50 transition-all border border-gray-700/50">
                                     <div className="flex items-start gap-3">
-                                        <img src={c.user_avatar} alt={c.user_name} className="w-10 h-10 rounded-full border border-purple-600/50" />
+                                        <img src={c.user_avatar} alt={c.user_name} className="w-10 h-10 rounded-full border border-emerald-600/50" />
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between gap-2 mb-1">
                                                 <div className="flex items-center gap-2 flex-wrap">
@@ -840,12 +837,12 @@ const Player = () => {
                                                 {c.user_name === userName && (
                                                     editingComment === c.id ? (
                                                         <div className="flex gap-1">
-                                                            <button onClick={() => handleSaveEdit(c.id)} className="p-1 text-green-500 hover:bg-green-500/10 rounded"><FaCheck className="text-xs" /></button>
+                                                            <button onClick={() => handleSaveEdit(c.id)} className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded"><FaCheck className="text-xs" /></button>
                                                             <button onClick={() => setEditingComment(null)} className="p-1 text-red-500 hover:bg-red-500/10 rounded"><FaTimes className="text-xs" /></button>
                                                         </div>
                                                     ) : (
                                                         <div className="flex gap-1">
-                                                            <button onClick={() => handleEditComment(c.id)} className="p-1 text-blue-400 hover:bg-blue-400/10 rounded"><FaEdit className="text-xs" /></button>
+                                                            <button onClick={() => handleEditComment(c.id)} className="p-1 text-cyan-400 hover:bg-cyan-400/10 rounded"><FaEdit className="text-xs" /></button>
                                                             <button onClick={() => handleDeleteComment(c.id)} className="p-1 text-red-500 hover:bg-red-500/10 rounded"><FaTrash className="text-xs" /></button>
                                                         </div>
                                                     )
@@ -855,15 +852,15 @@ const Player = () => {
                                                 <textarea
                                                     value={editText}
                                                     onChange={(e) => setEditText(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm mt-2 focus:outline-none focus:border-purple-500"
+                                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm mt-2 focus:outline-none focus:border-emerald-500"
                                                     rows="2"
                                                     autoFocus
                                                 />
                                             ) : (
                                                 <p className="text-gray-200 text-sm whitespace-pre-wrap break-words my-2 leading-relaxed">{c.message}</p>
                                             )}
-                                            <button onClick={() => handleLikeComment(c.id)} className="flex items-center gap-1.5 text-gray-400 hover:text-purple-500 text-sm mt-1">
-                                                <FaHeart className={c.likes > 0 ? 'text-purple-500' : ''} />
+                                            <button onClick={() => handleLikeComment(c.id)} className="flex items-center gap-1.5 text-gray-400 hover:text-emerald-500 text-sm mt-1">
+                                                <FaHeart className={c.likes > 0 ? 'text-emerald-500' : ''} />
                                                 <span>{c.likes || 0}</span>
                                             </button>
                                         </div>
@@ -884,7 +881,7 @@ const Player = () => {
             return (
                 <div className="mt-5 bg-gray-900/30 rounded-xl p-4 border border-gray-800">
                     <h3 className="text-base font-bold mb-3">You May Also Like</h3>
-                    <div className="flex justify-center py-4"><FaSpinner className="text-purple-500 animate-spin text-xl" /></div>
+                    <div className="flex justify-center py-4"><FaSpinner className="text-emerald-500 animate-spin text-xl" /></div>
                 </div>
             );
         }
@@ -893,7 +890,7 @@ const Player = () => {
             <div className="mt-5 bg-gray-900/30 rounded-xl p-4 border border-gray-800">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base font-bold flex items-center gap-2">
-                        <FaPlayCircle className="text-purple-500" />
+                        <FaPlayCircle className="text-emerald-500" />
                         <span>You May Also Like</span>
                     </h3>
                     <span className="text-xs text-gray-400 bg-gray-800 px-2.5 py-1 rounded-full">{relatedMovies.length} movies</span>
@@ -904,13 +901,13 @@ const Player = () => {
                             <div className="relative rounded-xl overflow-hidden shadow-lg">
                                 <img src={rm.poster || rm.thumbnail || 'https://via.placeholder.com/300x450?text=No+Image'} alt={rm.title} className="w-full aspect-[2/3] object-cover group-hover:opacity-80 transition-all" />
                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50">
-                                    <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-                                        <FaPlay className="text-white ml-0.5 text-sm" />
+                                    <div className="w-10 h-10 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full flex items-center justify-center">
+                                        <FaPlay className="text-black ml-0.5 text-sm" />
                                     </div>
                                 </div>
                                 <div className="absolute top-2 left-2 flex gap-1">
-                                    {rm.rating && <span className="bg-yellow-600 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">★ {rm.rating}</span>}
-                                    {rm.year && <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">{rm.year}</span>}
+                                    {rm.rating && <span className="bg-amber-600 text-black text-xs px-1.5 py-0.5 rounded-full font-medium">★ {rm.rating}</span>}
+                                    {rm.year && <span className="bg-cyan-600 text-black text-xs px-1.5 py-0.5 rounded-full font-medium">{rm.year}</span>}
                                 </div>
                                 <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent">
                                     <h4 className="text-white font-medium text-sm line-clamp-1">{rm.title}</h4>
@@ -921,7 +918,7 @@ const Player = () => {
                 </div>
                 <div className="relative md:hidden">
                     {relatedMovies.length > DISPLAY_LIMIT && (
-                        <button onClick={() => scrollRelated(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/80 backdrop-blur-sm rounded-full p-2 shadow-lg border border-purple-500/30">
+                        <button onClick={() => scrollRelated(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/80 backdrop-blur-sm rounded-full p-2 shadow-lg border border-emerald-500/30">
                             <FaChevronLeft className="text-white text-xs" />
                         </button>
                     )}
@@ -938,7 +935,7 @@ const Player = () => {
                         ))}
                     </div>
                     {relatedMovies.length > DISPLAY_LIMIT && (
-                        <button onClick={() => scrollRelated(1)} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/80 backdrop-blur-sm rounded-full p-2 shadow-lg border border-purple-500/30">
+                        <button onClick={() => scrollRelated(1)} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/80 backdrop-blur-sm rounded-full p-2 shadow-lg border border-emerald-500/30">
                             <FaChevronRight className="text-white text-xs" />
                         </button>
                     )}
@@ -952,7 +949,7 @@ const Player = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 border-3 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-3 md:mb-4"></div>
+                    <div className="w-12 h-12 md:w-16 md:h-16 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3 md:mb-4"></div>
                     <p className="text-white text-base md:text-xl font-light">Loading player...</p>
                 </div>
             </div>
@@ -964,13 +961,13 @@ const Player = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black flex items-center justify-center p-4">
                 <div className="text-center p-6 md:p-10 max-w-lg bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-gray-800 shadow-2xl">
-                    <FaExclamationTriangle className="text-purple-500 text-5xl md:text-7xl mx-auto mb-3 md:mb-4" />
+                    <FaExclamationTriangle className="text-emerald-500 text-5xl md:text-7xl mx-auto mb-3 md:mb-4" />
                     <h1 className="text-2xl md:text-4xl text-white font-bold mb-2 md:mb-4">Playback Error</h1>
                     <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8">{error || 'No movie selected'}</p>
                     <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-                        <button onClick={() => navigate(-1)} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-medium text-sm md:text-base">Go Back</button>
+                        <button onClick={() => navigate(-1)} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium text-sm md:text-base">Go Back</button>
                         <button onClick={() => navigate('/')} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 rounded-xl text-white font-medium flex items-center gap-2 justify-center text-sm md:text-base"><FaHome /> Go Home</button>
-                        {error && <button onClick={() => setRetryCount(p => p + 1)} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-medium text-sm md:text-base">Retry</button>}
+                        {error && <button onClick={() => setRetryCount(p => p + 1)} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl text-black font-medium text-sm md:text-base">Retry</button>}
                     </div>
                 </div>
             </div>
@@ -982,7 +979,7 @@ const Player = () => {
             {!isFullscreen && (
                 <div className="absolute top-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-b from-black/90 via-black/60 to-transparent z-30">
                     <div className="max-w-7xl mx-auto flex items-center justify-between">
-                        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white hover:text-purple-500 transition-colors text-sm md:text-base font-medium group">
+                        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors text-sm md:text-base font-medium group">
                             <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" /> Back
                         </button>
                         <div className="flex-1 text-center px-4 hidden md:block">
@@ -991,11 +988,11 @@ const Player = () => {
                                 <FaVideo className={playerType.color} />
                                 <span className={`text-xs md:text-sm ${playerType.text}`}>{playerType.label}</span>
                             </div>
-                            {selectedPart && <div className="text-xs text-purple-400 mt-0.5">Part {selectedPart.partNumber}</div>}
+                            {selectedPart && <div className="text-xs text-emerald-400 mt-0.5">Part {selectedPart.partNumber}</div>}
                         </div>
                         <div className="flex items-center gap-2 md:gap-4">
-                            <button onClick={toggleFavorite} className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${isFavorite ? 'text-purple-500' : 'text-gray-400 hover:text-purple-500'}`}><FaHeart size={20} /></button>
-                            <button onClick={toggleWatchlist} className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${inWatchlist ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'}`}><FaBookmark size={20} /></button>
+                            <button onClick={toggleFavorite} className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${isFavorite ? 'text-emerald-500' : 'text-gray-400 hover:text-emerald-500'}`}><FaHeart size={20} /></button>
+                            <button onClick={toggleWatchlist} className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${inWatchlist ? 'text-cyan-500' : 'text-gray-400 hover:text-cyan-500'}`}><FaBookmark size={20} /></button>
                         </div>
                     </div>
                 </div>
@@ -1018,8 +1015,8 @@ const Player = () => {
 
                 {showCustomControls && videoLoaded && !playing && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20">
-                        <button onClick={handlePlayPause} className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full flex items-center justify-center shadow-2xl transition-all transform hover:scale-110">
-                            <FaPlay size={20} className="text-white ml-1" />
+                        <button onClick={handlePlayPause} className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-full flex items-center justify-center shadow-2xl transition-all transform hover:scale-110">
+                            <FaPlay size={20} className="text-black ml-1" />
                         </button>
                     </div>
                 )}
@@ -1027,7 +1024,7 @@ const Player = () => {
                 {!videoLoaded && !error && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-20">
                         <div className="text-center">
-                            <FaSpinner className="text-3xl text-purple-600 animate-spin mx-auto mb-2" />
+                            <FaSpinner className="text-3xl text-emerald-500 animate-spin mx-auto mb-2" />
                             <p className="text-white text-sm">Loading video...</p>
                         </div>
                     </div>
@@ -1036,11 +1033,11 @@ const Player = () => {
                 {error && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/95 z-20">
                         <div className="text-center p-4 max-w-sm">
-                            <FaExclamationTriangle className="text-purple-500 text-4xl mx-auto mb-2" />
+                            <FaExclamationTriangle className="text-emerald-500 text-4xl mx-auto mb-2" />
                             <p className="text-white text-sm mb-3">{error}</p>
                             <div className="flex gap-2 justify-center">
-                                <button onClick={() => setRetryCount(p => p + 1)} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-white text-xs font-medium">Retry</button>
-                                <button onClick={() => setUseEmbed(true)} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-xs font-medium">Embed Mode</button>
+                                <button onClick={() => setRetryCount(p => p + 1)} className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black text-xs font-medium">Retry</button>
+                                <button onClick={() => setUseEmbed(true)} className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 rounded-lg text-black text-xs font-medium">Embed Mode</button>
                             </div>
                         </div>
                     </div>
@@ -1051,7 +1048,7 @@ const Player = () => {
                         <div className="max-w-7xl mx-auto">
                             <div className="mb-2">
                                 <input type="range" min="0" max="1" step="0.001" value={progress} onChange={handleSeek}
-                                    className="w-full h-1.5 bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-600" />
+                                    className="w-full h-1.5 bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500" />
                                 <div className="flex justify-between text-xs text-gray-300 mt-1">
                                     <span>{formatTime(currentTime)}</span>
                                     <span>{formatTime(duration)}</span>
@@ -1059,15 +1056,15 @@ const Player = () => {
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 md:gap-3">
-                                    <button onClick={handlePlayPause} className="hover:text-purple-500 p-1.5">{playing ? <FaPause size={14} /> : <FaPlay size={14} />}</button>
+                                    <button onClick={handlePlayPause} className="hover:text-emerald-400 p-1.5">{playing ? <FaPause size={14} /> : <FaPlay size={14} />}</button>
                                     {!isMobile && (
                                         <>
-                                            <button onClick={() => handleSkip(-10)} className="hover:text-purple-500 p-1.5"><FaBackward size={12} /></button>
-                                            <button onClick={() => handleSkip(10)} className="hover:text-purple-500 p-1.5"><FaForward size={12} /></button>
+                                            <button onClick={() => handleSkip(-10)} className="hover:text-emerald-400 p-1.5"><FaBackward size={12} /></button>
+                                            <button onClick={() => handleSkip(10)} className="hover:text-emerald-400 p-1.5"><FaForward size={12} /></button>
                                             <div className="flex items-center gap-2 ml-1">
-                                                <button onClick={handleToggleMute} className="hover:text-purple-500 p-1.5">{muted ? <FaVolumeMute size={14} /> : <FaVolumeUp size={14} />}</button>
+                                                <button onClick={handleToggleMute} className="hover:text-emerald-400 p-1.5">{muted ? <FaVolumeMute size={14} /> : <FaVolumeUp size={14} />}</button>
                                                 <input type="range" min="0" max="1" step="0.1" value={volume} onChange={handleVolume}
-                                                    className="w-16 md:w-24 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-600" />
+                                                    className="w-16 md:w-24 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500" />
                                             </div>
                                         </>
                                     )}
@@ -1079,13 +1076,13 @@ const Player = () => {
                                             <div className="absolute right-0 bottom-full mb-1 bg-gray-900 border border-gray-700 rounded-lg p-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-40">
                                                 <div className="grid grid-cols-3 gap-1">
                                                     {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(rate => (
-                                                        <button key={rate} onClick={() => handlePlaybackRate(rate)} className={`px-2 py-1 text-xs rounded-md transition-all ${playbackRate === rate ? 'bg-purple-600 text-white' : 'bg-gray-800 hover:bg-gray-700'}`}>{rate}x</button>
+                                                        <button key={rate} onClick={() => handlePlaybackRate(rate)} className={`px-2 py-1 text-xs rounded-md transition-all ${playbackRate === rate ? 'bg-emerald-600 text-black' : 'bg-gray-800 hover:bg-gray-700'}`}>{rate}x</button>
                                                     ))}
                                                 </div>
                                             </div>
                                         </div>
                                     )}
-                                    <button onClick={handleFullscreen} className="hover:text-purple-500 p-1.5">{isFullscreen ? <FaCompress size={14} /> : <FaExpand size={14} />}</button>
+                                    <button onClick={handleFullscreen} className="hover:text-emerald-400 p-1.5">{isFullscreen ? <FaCompress size={14} /> : <FaExpand size={14} />}</button>
                                 </div>
                             </div>
                         </div>
@@ -1093,7 +1090,7 @@ const Player = () => {
                 )}
 
                 {!showCustomControls && showControls && (
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-purple-500/30 z-30">
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-emerald-500/30 z-30">
                         <div className="flex items-center gap-1.5">
                             <FaVideo className={playerType.color} />
                             <span className="text-white text-xs">{playerType.label} Player</span>
@@ -1108,29 +1105,34 @@ const Player = () => {
                         <div className="lg:col-span-2">
                             <h1 className="text-2xl md:text-3xl font-bold mb-3">{movie.title}</h1>
                             <div className="flex flex-wrap gap-2 mb-4">
-                                {movie.year && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaCalendarAlt className="text-xs" /> {movie.year}</span>}
-                                {movie.rating && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaStar className="text-yellow-300" /> {movie.rating}</span>}
-                                {movie.translator && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaLanguage className="text-green-200" /> {movie.translator}</span>}
-                                {movie.category && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaTag className="text-blue-300" /> {movie.category.split(',')[0]}</span>}
-                                {movieParts.length > 0 && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-600/30 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaLayerGroup className="text-purple-400" />{movieParts.length} Part{movieParts.length > 1 ? 's' : ''}</span>}
+                                {movie.year && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaCalendarAlt className="text-xs" /> {movie.year}</span>}
+                                {movie.rating && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaStar className="text-black" /> {movie.rating}</span>}
+                                {movie.translator && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaLanguage className="text-black" /> {movie.translator}</span>}
+                                {movie.category && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-cyan-600 to-teal-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaTag className="text-black" /> {movie.category.split(',')[0]}</span>}
+                                {movieParts.length > 0 && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border border-emerald-600/30 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaLayerGroup className="text-emerald-400" />{movieParts.length} Part{movieParts.length > 1 ? 's' : ''}</span>}
                             </div>
+
                             <div className="bg-gray-900/50 rounded-xl p-4 mb-5 border border-gray-800">
-                                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><FaInfoCircle className="text-purple-400 text-sm" />Synopsis</h3>
+                                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><FaInfoCircle className="text-emerald-400 text-sm" />Synopsis</h3>
                                 <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{movie.description || 'No description available.'}</p>
                             </div>
+
+                            {/* ✅ CAST SECTION — TMDB powered */}
+                            <MovieCast movieId={movie?.id} />
+
                             {movieParts.length > 0 && renderPartsList()}
                             {renderComments()}
                         </div>
                         <div className="lg:col-span-1">
                             <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-5 md:p-6 border border-gray-800 sticky top-4">
-                                <h3 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2"><FaInfoCircle className="text-purple-500" />About {movie.title}</h3>
+                                <h3 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2"><FaInfoCircle className="text-emerald-500" />About {movie.title}</h3>
                                 {movie.poster && <img src={movie.poster} alt={movie.title} className="w-full rounded-xl mb-4 border border-gray-700" />}
                                 <p className="text-gray-300 text-sm md:text-base mb-4 leading-relaxed">{movie.description || 'No description available.'}</p>
                                 <div className="space-y-2 text-xs md:text-sm">
                                     {movie.genre && <p><span className="text-gray-400">Genre:</span> <span className="text-white">{movie.genre}</span></p>}
                                     {movie.country && <p><span className="text-gray-400">Country:</span> <span className="text-white">{movie.country}</span></p>}
                                     {movie.language && <p><span className="text-gray-400">Language:</span> <span className="text-white">{movie.language}</span></p>}
-                                    {movie.translator && <p><span className="text-gray-400">Translator:</span> <span className="text-green-400">{movie.translator}</span></p>}
+                                    {movie.translator && <p><span className="text-gray-400">Translator:</span> <span className="text-emerald-400">{movie.translator}</span></p>}
                                     {movie.year && <p><span className="text-gray-400">Year:</span> <span className="text-white">{movie.year}</span></p>}
                                     {movie.duration && <p><span className="text-gray-400">Duration:</span> <span className="text-white">{movie.duration}</span></p>}
                                     {movie.director && <p><span className="text-gray-400">Director:</span> <span className="text-white">{movie.director}</span></p>}
@@ -1138,13 +1140,13 @@ const Player = () => {
                                 </div>
                                 {canDownload(movie) && (
                                     <div className="mt-6 pt-4 border-t border-gray-800">
-                                        <button onClick={() => handleDownload(getDownloadLink(movie))} className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl text-white font-medium flex items-center justify-center gap-2 text-sm md:text-base shadow-lg shadow-green-600/30" disabled={downloading}>
+                                        <button onClick={() => handleDownload(getDownloadLink(movie))} className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl text-black font-medium flex items-center justify-center gap-2 text-sm md:text-base shadow-lg shadow-emerald-600/30" disabled={downloading}>
                                             {downloading ? <><FaSpinner className="animate-spin" />Downloading... {downloadProgress}%</> : <><FaCloudDownloadAlt />Download Movie</>}
                                         </button>
                                     </div>
                                 )}
                                 <div className="mt-4">
-                                    <button onClick={() => setShowComments(!showComments)} className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-medium flex items-center justify-center gap-2 text-sm md:text-base">
+                                    <button onClick={() => setShowComments(!showComments)} className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium flex items-center justify-center gap-2 text-sm md:text-base">
                                         <FaComment />{showComments ? 'Hide Comments' : 'View Comments'} ({comments.length})
                                     </button>
                                 </div>
@@ -1155,12 +1157,11 @@ const Player = () => {
                 </div>
             )}
 
-            {/* ✅ FIXED: removed jsx prop */}
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 3px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 3px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a78bfa; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 3px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #34d399; }
                 .scrollbar-hide::-webkit-scrollbar { display: none; }
             `}</style>
         </div>

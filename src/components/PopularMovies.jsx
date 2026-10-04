@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { MoviesContext } from "../context/MoviesContext";
 import MovieCard from "../components/MovieCard";
 import HeroSlider from "../components/HeroSlider";
+import NewsTicker from "../components/NewsTicker";
 import { getTranslatorsWithProfiles } from "../lib/translators";
 import {
   FaSearch,
@@ -61,12 +62,11 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ===== PROFESSIONAL NETFLIX-STYLE SPLASH SCREEN =====
+// ===== PROFESSIONAL SPLASH SCREEN — Midnight Emerald =====
 const CinematicLoading = () => {
   const [progress, setProgress] = useState(0);
   const [showText, setShowText] = useState(false);
   const [showSubtext, setShowSubtext] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -84,17 +84,15 @@ const CinematicLoading = () => {
   useEffect(() => {
     const timer1 = setTimeout(() => setShowText(true), 300);
     const timer2 = setTimeout(() => setShowSubtext(true), 800);
-    const timer3 = setTimeout(() => setAnimationComplete(true), 1500);
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
-      clearTimeout(timer3);
     };
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-black to-red-950/30" />
+    <div className="fixed inset-0 z-50 bg-[#060d0a] overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#060d0a] via-black to-emerald-950/30" />
       <div
         className="absolute inset-0 opacity-5 mix-blend-overlay pointer-events-none"
         style={{
@@ -109,7 +107,7 @@ const CinematicLoading = () => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: "100%", opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="h-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 mb-8 mx-auto"
+            className="h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 mb-8 mx-auto"
             style={{ maxWidth: "300px" }}
           />
           <div className="relative">
@@ -117,7 +115,7 @@ const CinematicLoading = () => {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.3 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="absolute inset-0 bg-red-600 blur-3xl"
+              className="absolute inset-0 bg-emerald-500 blur-3xl"
             />
             <motion.div
               initial={{ y: 50, opacity: 0 }}
@@ -126,7 +124,7 @@ const CinematicLoading = () => {
               className="overflow-hidden"
             >
               <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight">
-                <span className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 bg-clip-text text-transparent">
                   CINEVA
                 </span>
               </h1>
@@ -146,7 +144,7 @@ const CinematicLoading = () => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: "100%", opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeInOut", delay: 0.2 }}
-            className="h-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 mt-8 mx-auto"
+            className="h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 mt-8 mx-auto"
             style={{ maxWidth: "300px" }}
           />
           <AnimatePresence>
@@ -161,9 +159,9 @@ const CinematicLoading = () => {
                   Premium Entertainment Experience
                 </p>
                 <div className="flex items-center justify-center gap-2 mt-3">
-                  <div className="w-1 h-1 bg-red-500 rounded-full" />
+                  <div className="w-1 h-1 bg-emerald-500 rounded-full" />
                   <p className="text-gray-500 text-xs tracking-[0.2em] uppercase">STREAMING NOW</p>
-                  <div className="w-1 h-1 bg-red-500 rounded-full" />
+                  <div className="w-1 h-1 bg-emerald-500 rounded-full" />
                 </div>
               </motion.div>
             )}
@@ -174,9 +172,9 @@ const CinematicLoading = () => {
             transition={{ delay: 1 }}
             className="mt-12 max-w-xs mx-auto"
           >
-            <div className="relative h-0.5 bg-gray-800 rounded-full overflow-hidden">
+            <div className="relative h-0.5 bg-emerald-950 rounded-full overflow-hidden">
               <motion.div
-                className="absolute inset-0 bg-red-600 rounded-full"
+                className="absolute inset-0 bg-emerald-500 rounded-full"
                 style={{ width: `${Math.min(progress, 100)}%` }}
                 transition={{ duration: 0.3 }}
               />
@@ -184,7 +182,7 @@ const CinematicLoading = () => {
             <div className="flex justify-between items-center mt-2">
               <span className="text-[10px] text-gray-600">LOADING</span>
               <motion.span
-                className="text-[10px] text-red-500 font-mono"
+                className="text-[10px] text-emerald-400 font-mono"
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
@@ -201,7 +199,7 @@ const CinematicLoading = () => {
             {[...Array(3)].map((_, i) => (
               <motion.div
                 key={i}
-                className="w-1 h-1 bg-red-500/50 rounded-full"
+                className="w-1 h-1 bg-emerald-500/50 rounded-full"
                 animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
               />
@@ -240,10 +238,7 @@ export default function Movies() {
   const navigate = useNavigate();
 
   const isNavigating = useRef(false);
-  const touchStartTime = useRef(0);
-  const touchStartX = useRef(0);
 
-  const loaderRef = useRef(null);
   const [displayCount, setDisplayCount] = useState(24);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -264,7 +259,6 @@ export default function Movies() {
   const [showQuickView, setShowQuickView] = useState(false);
   const [quickViewMovie, setQuickViewMovie] = useState(null);
 
-  // ✅ Translators (auto-detected from movies)
   const [translators, setTranslators] = useState([]);
   const [translatorsLoading, setTranslatorsLoading] = useState(true);
 
@@ -286,29 +280,21 @@ export default function Movies() {
 
   const getMovieParts = useCallback((movie) => {
     if (!movie) return [];
-    if (movie.parts && Array.isArray(movie.parts)) {
-      return movie.parts;
-    }
+    if (movie.parts && Array.isArray(movie.parts)) return movie.parts;
     if (movie.download) {
       try {
         const parsed = typeof movie.download === 'string'
           ? JSON.parse(movie.download)
           : movie.download;
-        if (Array.isArray(parsed)) {
-          return parsed;
-        } else if (parsed && parsed.parts && Array.isArray(parsed.parts)) {
-          return parsed.parts;
-        }
-      } catch (e) {
-        // Not JSON, ignore
-      }
+        if (Array.isArray(parsed)) return parsed;
+        else if (parsed && parsed.parts && Array.isArray(parsed.parts)) return parsed.parts;
+      } catch (e) { /* not JSON */ }
     }
     return [];
   }, []);
 
   const getOptimizedImageUrl = useCallback((url, isBackground = true, forMobile = false) => {
     if (!url) return null;
-
     if (window.innerWidth <= 768 || forMobile) {
       if (isBackground) {
         if (url.includes('tmdb.org') || url.includes('themoviedb')) {
@@ -327,7 +313,6 @@ export default function Movies() {
         return url.includes('?') ? `${url}&q_auto:good&c_fill&w=400` : `${url}?q_auto:good&c_fill&w=400`;
       }
     }
-
     if (isBackground && window.innerWidth > 1024) {
       if (url.includes('tmdb.org') || url.includes('themoviedb')) {
         return url.replace(/w[0-9]+/, 'original');
@@ -336,11 +321,9 @@ export default function Movies() {
         return url.includes('?') ? `${url}&q_auto:best&c_fill&g_auto` : `${url}?q_auto:best&c_fill&g_auto`;
       }
     }
-
     return url;
   }, []);
 
-  // ✅ Load translators whenever movies change
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -348,7 +331,6 @@ export default function Movies() {
       try {
         const list = await getTranslatorsWithProfiles(movies);
         if (!cancelled) {
-          // Only keep translators that actually have at least 1 movie
           setTranslators((list || []).filter(t => t.total > 0));
         }
       } catch (e) {
@@ -406,6 +388,7 @@ export default function Movies() {
             translator: series.translator || '',
             category: series.category,
             nation: series.nation,
+            totalSeasons: series.totalSeasons || 0,
             created_at: series.created_at || new Date().toISOString()
           };
         }
@@ -414,6 +397,12 @@ export default function Movies() {
           const dateB = b?.created_at ? new Date(b.created_at) : new Date(0);
           return dateB - dateA;
         })[0];
+
+        const uniqueSeasons = new Set(
+          seriesEpisodes.map(ep => parseInt(ep.seasonNumber) || 1)
+        );
+        const computedTotalSeasons = series.totalSeasons || uniqueSeasons.size;
+
         return {
           id: series.id,
           title: series.title,
@@ -426,6 +415,7 @@ export default function Movies() {
           translator: series.translator || '',
           category: series.category,
           nation: series.nation,
+          totalSeasons: computedTotalSeasons,
           latestEpisode: {
             id: latestEpisode.id,
             title: latestEpisode.title,
@@ -453,7 +443,6 @@ export default function Movies() {
     return allContent.slice(0, 10);
   }, [movies, episodes]);
 
-  // ===== 3 LATEST MOVIES FOR HERO RIGHT-SIDE CARDS =====
   const heroLatestCards = useMemo(() => {
     const allContent = [
       ...movies.filter(m => m?.type === "movie"),
@@ -480,6 +469,7 @@ export default function Movies() {
         translator: item.translator || '',
         category: item.category || item.genre || '',
         year: item.year || (item.release_date || item.first_air_date || '').split('-')[0],
+        totalSeasons: item.totalSeasons || 0,
         created_at: item.created_at || item.uploaded_at
       }));
   }, [movies]);
@@ -545,32 +535,33 @@ export default function Movies() {
       .slice(0, 15);
   }, [movies]);
 
+  // ✅ Category colors kept vibrant (they SHOULD contrast with emerald brand)
   const getCategoryIconAndColor = (categoryName) => {
     const categoryLower = categoryName.toLowerCase();
 
     const iconMap = {
       action: { icon: <FaBolt className="text-orange-500" />, color: "from-orange-600 to-red-600", bgColor: "bg-orange-900/20", borderColor: "border-orange-500/30" },
       horror: { icon: <FaSkull className="text-red-500" />, color: "from-red-600 to-pink-600", bgColor: "bg-red-900/20", borderColor: "border-red-500/30" },
-      comedy: { icon: <FaLaugh className="text-green-500" />, color: "from-green-600 to-teal-600", bgColor: "bg-green-900/20", borderColor: "border-green-500/30" },
-      drama: { icon: <FaTheaterMasks className="text-purple-500" />, color: "from-purple-600 to-pink-600", bgColor: "bg-purple-900/20", borderColor: "border-purple-500/30" },
+      comedy: { icon: <FaLaugh className="text-yellow-500" />, color: "from-yellow-600 to-amber-600", bgColor: "bg-yellow-900/20", borderColor: "border-yellow-500/30" },
+      drama: { icon: <FaTheaterMasks className="text-purple-500" />, color: "from-purple-600 to-indigo-600", bgColor: "bg-purple-900/20", borderColor: "border-purple-500/30" },
       romance: { icon: <FaHeartIcon className="text-pink-500" />, color: "from-pink-600 to-rose-600", bgColor: "bg-pink-900/20", borderColor: "border-pink-500/30" },
       scifi: { icon: <FaRocket className="text-cyan-500" />, color: "from-cyan-600 to-blue-600", bgColor: "bg-cyan-900/20", borderColor: "border-cyan-500/30" },
       fantasy: { icon: <FaMagic className="text-indigo-500" />, color: "from-indigo-600 to-purple-600", bgColor: "bg-indigo-900/20", borderColor: "border-indigo-500/30" },
-      thriller: { icon: <FaMask className="text-yellow-500" />, color: "from-yellow-600 to-orange-600", bgColor: "bg-yellow-900/20", borderColor: "border-yellow-500/30" },
+      thriller: { icon: <FaMask className="text-amber-500" />, color: "from-amber-600 to-orange-600", bgColor: "bg-amber-900/20", borderColor: "border-amber-500/30" },
       cartoon: { icon: <FaBabyCarriage className="text-yellow-400" />, color: "from-yellow-500 to-orange-500", bgColor: "bg-yellow-900/20", borderColor: "border-yellow-500/30" },
       animation: { icon: <FaBabyCarriage className="text-blue-400" />, color: "from-blue-500 to-cyan-500", bgColor: "bg-blue-900/20", borderColor: "border-blue-500/30" },
-      adventure: { icon: <FaGlobe className="text-green-400" />, color: "from-green-500 to-emerald-500", bgColor: "bg-green-900/20", borderColor: "border-green-500/30" },
-      mystery: { icon: <FaGhost className="text-purple-400" />, color: "from-purple-500 to-indigo-500", bgColor: "bg-purple-900/20", borderColor: "border-purple-500/30" },
+      adventure: { icon: <FaGlobe className="text-emerald-400" />, color: "from-emerald-500 to-teal-500", bgColor: "bg-emerald-900/20", borderColor: "border-emerald-500/30" },
+      mystery: { icon: <FaGhost className="text-violet-400" />, color: "from-violet-500 to-purple-500", bgColor: "bg-violet-900/20", borderColor: "border-violet-500/30" },
       crime: { icon: <FaGavel className="text-red-400" />, color: "from-red-500 to-orange-500", bgColor: "bg-red-900/20", borderColor: "border-red-500/30" },
       documentary: { icon: <FaCamera className="text-cyan-400" />, color: "from-cyan-500 to-teal-500", bgColor: "bg-cyan-900/20", borderColor: "border-cyan-500/30" },
       music: { icon: <FaMusic className="text-pink-400" />, color: "from-pink-500 to-rose-500", bgColor: "bg-pink-900/20", borderColor: "border-pink-500/30" },
-      sport: { icon: <FaFootballBall className="text-green-400" />, color: "from-green-500 to-lime-500", bgColor: "bg-green-900/20", borderColor: "border-green-500/30" },
+      sport: { icon: <FaFootballBall className="text-lime-400" />, color: "from-lime-500 to-green-500", bgColor: "bg-lime-900/20", borderColor: "border-lime-500/30" },
       science: { icon: <FaBrain className="text-blue-400" />, color: "from-blue-500 to-indigo-500", bgColor: "bg-blue-900/20", borderColor: "border-blue-500/30" },
       space: { icon: <FaSpaceShuttle className="text-cyan-400" />, color: "from-cyan-500 to-blue-500", bgColor: "bg-cyan-900/20", borderColor: "border-cyan-500/30" },
       nature: { icon: <FaTree className="text-green-400" />, color: "from-green-500 to-emerald-500", bgColor: "bg-green-900/20", borderColor: "border-green-500/30" }
     };
 
-    const defaultStyle = { icon: <FaFilm className="text-gray-400" />, color: "from-gray-600 to-gray-500", bgColor: "bg-gray-900/20", borderColor: "border-gray-500/30" };
+    const defaultStyle = { icon: <FaFilm className="text-emerald-400" />, color: "from-emerald-500 to-teal-500", bgColor: "bg-emerald-900/20", borderColor: "border-emerald-500/30" };
 
     return iconMap[categoryLower] || defaultStyle;
   };
@@ -743,9 +734,7 @@ export default function Movies() {
     }
   }, [handleMovieClick, handleSeriesClick]);
 
-  // ✅ Handle clicking a translator → open their page filtered
   const handleTranslatorClick = useCallback((translator) => {
-    // Navigate to /translator and auto-open this one via state
     navigate('/translator', { state: { openTranslator: translator.name } });
   }, [navigate]);
 
@@ -784,24 +773,15 @@ export default function Movies() {
     return filteredMovies.slice(0, displayCount);
   }, [filteredMovies, displayCount]);
 
-  useEffect(() => {
-    if (!loaderRef.current) return;
+  const handleLoadMore = useCallback(() => {
+    if (isLoadingMore) return;
+    if (displayCount >= filteredMovies.length) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore && displayCount < filteredMovies.length) {
-          setIsLoadingMore(true);
-          setTimeout(() => {
-            setDisplayCount(prev => Math.min(prev + 24, filteredMovies.length));
-            setIsLoadingMore(false);
-          }, 500);
-        }
-      },
-      { threshold: 0.1, rootMargin: "100px" }
-    );
-
-    observer.observe(loaderRef.current);
-    return () => observer.disconnect();
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setDisplayCount(prev => Math.min(prev + 24, filteredMovies.length));
+      setIsLoadingMore(false);
+    }, 400);
   }, [displayCount, filteredMovies.length, isLoadingMore]);
 
   useEffect(() => {
@@ -847,8 +827,8 @@ export default function Movies() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black pt-20">
-      {/* Hero Slider Section */}
+    <main className="min-h-screen bg-gradient-to-b from-[#060d0a] via-black to-[#060d0a] pt-20">
+      {/* Hero Slider */}
       {heroContent.length > 0 && (
         <HeroSlider
           items={heroContent}
@@ -864,11 +844,10 @@ export default function Movies() {
         <section className="container mx-auto px-4 py-6 sm:py-8">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-              <FaTv className="text-purple-500 text-sm sm:text-base" />
-              <span className="hidden xs:inline">Latest Series</span>
-              <span className="xs:hidden">Latest Series</span>
+              <FaTv className="text-emerald-400 text-sm sm:text-base" />
+              <span>Latest Series</span>
             </h2>
-            <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded-full">
+            <span className="text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-900/40 px-2 py-1 rounded-full">
               {latestSeriesOnly.length}
             </span>
           </div>
@@ -880,7 +859,7 @@ export default function Movies() {
                 className="cursor-pointer group relative transform transition-transform duration-300 hover:scale-105"
               >
                 <div className="absolute top-2 left-2 z-10">
-                  <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full flex items-center gap-1 shadow-lg">
+                  <span className="px-2 py-1 bg-emerald-500 text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-lg shadow-emerald-500/40">
                     <FaPlusCircle className="text-[10px]" />
                     S{series.latestEpisode.seasonNumber}:E{series.latestEpisode.episodeNumber}
                   </span>
@@ -897,7 +876,7 @@ export default function Movies() {
                 className="flex-none w-[130px] sm:w-[150px] relative transform transition-transform duration-300 active:scale-95"
               >
                 <div className="absolute top-1 left-1 z-10">
-                  <span className="px-1.5 py-0.5 bg-purple-600 text-white text-[10px] rounded-full shadow-lg">
+                  <span className="px-1.5 py-0.5 bg-emerald-500 text-black text-[10px] font-bold rounded-full shadow-lg shadow-emerald-500/40">
                     S{series.latestEpisode.seasonNumber}:E{series.latestEpisode.episodeNumber}
                   </span>
                 </div>
@@ -913,11 +892,10 @@ export default function Movies() {
         <section className="container mx-auto px-4 py-6 sm:py-8">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-              <FaFilm className="text-green-500 text-sm sm:text-base" />
-              <span className="hidden xs:inline">Latest Movies</span>
-              <span className="xs:hidden">Latest Movies</span>
+              <FaFilm className="text-emerald-400 text-sm sm:text-base" />
+              <span>Latest Movies</span>
             </h2>
-            <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded-full">
+            <span className="text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-900/40 px-2 py-1 rounded-full">
               {latestMoviesOnly.length}
             </span>
           </div>
@@ -930,7 +908,7 @@ export default function Movies() {
                 onClick={() => handleMovieClick(movie)}
               >
                 <div className="absolute top-2 left-2 z-10">
-                  <span className="px-2 py-1 bg-green-600 text-white text-xs rounded-full flex items-center gap-1 shadow-lg">
+                  <span className="px-2 py-1 bg-emerald-500 text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-lg shadow-emerald-500/40">
                     <FaUpload className="text-[10px]" />
                     New
                   </span>
@@ -948,7 +926,7 @@ export default function Movies() {
                 onClick={() => handleMovieClick(movie)}
               >
                 <div className="absolute top-1 left-1 z-10">
-                  <span className="px-1.5 py-0.5 bg-green-600 text-white text-[10px] rounded-full shadow-lg">
+                  <span className="px-1.5 py-0.5 bg-emerald-500 text-black text-[10px] font-bold rounded-full shadow-lg shadow-emerald-500/40">
                     NEW
                   </span>
                 </div>
@@ -959,24 +937,22 @@ export default function Movies() {
         </section>
       )}
 
-      {/* ✅ NEW: TRANSLATORS SECTION (horizontal slider) */}
+      {/* TRANSLATORS SECTION */}
       {!translatorsLoading && translators.length > 0 && (
         <section className="container mx-auto px-4 py-6 sm:py-8">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-              <FaLanguage className="text-pink-500 text-sm sm:text-base" />
-              <span className="hidden xs:inline">Our Translators</span>
-              <span className="xs:hidden">Translators</span>
+              <FaLanguage className="text-emerald-400 text-sm sm:text-base" />
+              <span>Our Translators</span>
             </h2>
             <button
               onClick={() => navigate('/translator')}
-              className="text-xs text-gray-400 hover:text-pink-400 transition-colors flex items-center gap-1"
+              className="text-xs text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1"
             >
               View All <FaChevronRight className="text-[8px]" />
             </button>
           </div>
 
-          {/* Horizontal sliding row */}
           <div
             className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 px-1 scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-1"
             style={{
@@ -988,14 +964,13 @@ export default function Movies() {
               <button
                 key={t.name}
                 onClick={() => handleTranslatorClick(t)}
-                className="group flex-shrink-0 flex flex-col items-center text-center bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-2xl border border-gray-700/50 p-3 sm:p-4 w-[110px] xs:w-[120px] sm:w-[140px] hover:border-pink-500/50 hover:scale-105 transition-all duration-300"
+                className="group flex-shrink-0 flex flex-col items-center text-center bg-gradient-to-br from-[#0a1614] to-[#060d0a] rounded-2xl border border-emerald-900/40 p-3 sm:p-4 w-[110px] xs:w-[120px] sm:w-[140px] hover:border-emerald-500/60 hover:scale-105 transition-all duration-300"
                 style={{ scrollSnapAlign: 'start' }}
                 title={`${t.total} translation${t.total === 1 ? '' : 's'}`}
               >
-                {/* Circular photo */}
                 <div className="relative mb-2">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-600 to-purple-600 blur-md opacity-0 group-hover:opacity-70 transition-opacity" />
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-3 border-pink-500/40 group-hover:border-pink-500/80 transition-colors bg-gray-800">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 blur-md opacity-0 group-hover:opacity-70 transition-opacity" />
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-3 border-emerald-500/40 group-hover:border-emerald-400/80 transition-colors bg-[#060d0a]">
                     {t.photo_url ? (
                       <img
                         src={t.photo_url}
@@ -1004,21 +979,19 @@ export default function Movies() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-600">
+                      <div className="w-full h-full flex items-center justify-center text-emerald-800">
                         <FaUser className="text-2xl sm:text-3xl" />
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Name */}
-                <h3 className="text-white text-[11px] sm:text-xs font-semibold line-clamp-1 group-hover:text-pink-400 transition-colors w-full">
+                <h3 className="text-white text-[11px] sm:text-xs font-semibold line-clamp-1 group-hover:text-emerald-400 transition-colors w-full">
                   {t.display_name || t.name}
                 </h3>
 
-                {/* Count icon + number */}
                 <div className="flex items-center gap-1 mt-1.5">
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-pink-600/20 text-pink-400 rounded-full text-[9px] sm:text-[10px]">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[9px] sm:text-[10px] border border-emerald-500/30">
                     <FaFilm className="text-[7px] sm:text-[8px]" />
                     {t.total}
                   </span>
@@ -1092,9 +1065,8 @@ export default function Movies() {
         <section className="container mx-auto px-4 mb-4 sm:mb-6">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-              <FaFire className="text-purple-500 text-sm sm:text-base" />
-              <span className="hidden xs:inline">Featured Movies</span>
-              <span className="xs:hidden">Featured</span>
+              <FaFire className="text-emerald-400 text-sm sm:text-base" />
+              <span>Featured Movies</span>
             </h2>
           </div>
 
@@ -1126,20 +1098,20 @@ export default function Movies() {
 
       {/* Filter Bar */}
       <div className="container mx-auto px-4 py-4">
-        <div className="bg-gray-900/80 rounded-xl border border-gray-800 p-3 sm:p-4">
+        <div className="bg-[#0a1614]/80 rounded-xl border border-emerald-900/40 p-3 sm:p-4">
           <div className="flex flex-col md:flex-row gap-2 sm:gap-3">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white text-xs sm:text-sm"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-900/40 text-white text-xs sm:text-sm transition-colors"
             >
-              <FaFilter className={showFilters ? 'text-purple-400' : ''} />
+              <FaFilter className={showFilters ? 'text-emerald-400' : ''} />
               Filters
             </button>
 
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 sm:px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs sm:text-sm focus:outline-none focus:border-purple-500"
+              className="px-3 sm:px-4 py-2 rounded-lg bg-emerald-950/60 border border-emerald-900/40 text-white text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
             >
               <option value="popular">Popular</option>
               <option value="rating">Top Rated</option>
@@ -1149,27 +1121,27 @@ export default function Movies() {
 
             <button
               onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white"
+              className="p-2 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-900/40 text-white transition-colors"
             >
               {sortOrder === "desc" ? <FaSortAmountDown className="text-xs sm:text-sm" /> : <FaSortAmountUp className="text-xs sm:text-sm" />}
             </button>
           </div>
 
           {showFilters && (
-            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gray-800/50 rounded-lg">
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-emerald-950/40 rounded-lg border border-emerald-900/30">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                 <div>
-                  <label className="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1 sm:mb-2">Categories</label>
+                  <label className="block text-[10px] sm:text-xs font-medium text-emerald-300/80 mb-1 sm:mb-2">Categories</label>
                   <div className="space-y-1 max-h-48 overflow-y-auto">
                     <button
                       onClick={() => setSelectedCategory("all")}
-                      className={`w-full text-left px-2 py-1 rounded text-[8px] sm:text-xs ${selectedCategory === "all" ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300'}`}
+                      className={`w-full text-left px-2 py-1 rounded text-[8px] sm:text-xs transition-colors ${selectedCategory === "all" ? 'bg-emerald-500 text-black font-bold' : 'bg-emerald-950/60 text-gray-300 hover:bg-emerald-900/40'}`}
                     >
                       All
                     </button>
                     <button
                       onClick={() => setSelectedCategory("featured")}
-                      className={`w-full text-left px-2 py-1 rounded text-[8px] sm:text-xs flex items-center gap-1 ${selectedCategory === "featured" ? 'bg-orange-600 text-white' : 'bg-gray-800 text-gray-300'}`}
+                      className={`w-full text-left px-2 py-1 rounded text-[8px] sm:text-xs flex items-center gap-1 transition-colors ${selectedCategory === "featured" ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold' : 'bg-emerald-950/60 text-gray-300 hover:bg-emerald-900/40'}`}
                     >
                       <FaFire className="text-[6px] sm:text-xs" /> Featured
                     </button>
@@ -1179,7 +1151,7 @@ export default function Movies() {
                         <button
                           key={cat.id}
                           onClick={() => setSelectedCategory(cat.id)}
-                          className={`w-full text-left px-2 py-1 rounded text-[8px] sm:text-xs flex items-center gap-1 ${selectedCategory === cat.id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300'}`}
+                          className={`w-full text-left px-2 py-1 rounded text-[8px] sm:text-xs flex items-center gap-1 transition-colors ${selectedCategory === cat.id ? 'bg-emerald-500 text-black font-bold' : 'bg-emerald-950/60 text-gray-300 hover:bg-emerald-900/40'}`}
                         >
                           {catIcon}
                           <span className="capitalize">{cat.name}</span>
@@ -1199,14 +1171,14 @@ export default function Movies() {
       <section className="container mx-auto px-4 pb-8 sm:pb-12">
         <div className="flex items-center justify-between mb-4 sm:mb-5">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
-              <FaFilm className="text-white text-sm" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/40">
+              <FaFilm className="text-black text-sm" />
             </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
               All Movies
             </h2>
           </div>
-          <span className="text-xs text-gray-400 bg-gray-800 px-2 sm:px-3 py-1 rounded-full">
+          <span className="text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-900/40 px-2 sm:px-3 py-1 rounded-full">
             {filteredMovies.length}
           </span>
         </div>
@@ -1215,8 +1187,8 @@ export default function Movies() {
           <button
             onClick={() => setSelectedCategory("all")}
             className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-300 ${selectedCategory === "all"
-              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold shadow-lg shadow-emerald-500/40'
+              : 'bg-emerald-950/40 border border-emerald-900/40 text-gray-300 hover:bg-emerald-900/40'
               }`}
           >
             All
@@ -1224,8 +1196,8 @@ export default function Movies() {
           <button
             onClick={() => setSelectedCategory("featured")}
             className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-1 whitespace-nowrap transition-all duration-300 ${selectedCategory === "featured"
-              ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg'
-              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold shadow-lg shadow-amber-500/40'
+              : 'bg-emerald-950/40 border border-emerald-900/40 text-gray-300 hover:bg-emerald-900/40'
               }`}
           >
             <FaFire className="text-xs" /> Featured
@@ -1238,7 +1210,7 @@ export default function Movies() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-1 whitespace-nowrap transition-all duration-300 ${selectedCategory === category.id
                   ? `bg-gradient-to-r ${color} text-white shadow-lg`
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  : 'bg-emerald-950/40 border border-emerald-900/40 text-gray-300 hover:bg-emerald-900/40'
                   }`}
               >
                 {catIcon}
@@ -1249,7 +1221,7 @@ export default function Movies() {
         </div>
 
         {filteredMovies.length === 0 ? (
-          <div className="text-center py-12 sm:py-16 bg-gray-900/30 rounded-xl">
+          <div className="text-center py-12 sm:py-16 bg-emerald-950/20 rounded-xl border border-emerald-900/30">
             <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🎬</div>
             <h3 className="text-base sm:text-lg font-bold text-white mb-2">No movies found</h3>
             <p className="text-xs sm:text-sm text-gray-400 mb-4">
@@ -1270,28 +1242,50 @@ export default function Movies() {
               ))}
             </div>
 
-            {displayCount < filteredMovies.length && (
-              <div ref={loaderRef} className="flex justify-center items-center py-8">
-                {isLoadingMore ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <FaSpinner className="text-purple-500 text-xl animate-spin" />
-                    <span className="text-xs text-gray-400">Loading more movies...</span>
-                  </div>
-                ) : (
-                  <div className="text-xs text-gray-500">Scroll for more</div>
-                )}
+            {displayCount < filteredMovies.length ? (
+              <div className="flex flex-col items-center justify-center mt-10 gap-3">
+                <p className="text-xs text-emerald-300/70">
+                  Showing <span className="text-emerald-400 font-bold">{displayCount}</span> of <span className="text-emerald-400 font-bold">{filteredMovies.length}</span> movies
+                </p>
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="group relative px-10 py-3.5 rounded-full font-bold text-sm sm:text-base text-black
+                             bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500
+                             hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600
+                             shadow-xl shadow-emerald-500/40 hover:shadow-emerald-500/60
+                             transform hover:scale-105 active:scale-95
+                             disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100
+                             transition-all duration-300
+                             flex items-center gap-2"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <FaSpinner className="animate-spin text-sm" />
+                      <span>Loading…</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaChevronDown className="text-sm group-hover:translate-y-0.5 transition-transform" />
+                      <span>Load More Movies</span>
+                    </>
+                  )}
+                </button>
               </div>
-            )}
-
-            {displayCount >= filteredMovies.length && filteredMovies.length > 0 && (
-              <div className="text-center py-8">
-                <p className="text-xs text-gray-500">✨ You've reached the end ✨</p>
-                <p className="text-[10px] text-gray-600 mt-1">{filteredMovies.length} movies loaded</p>
+            ) : (
+              <div className="text-center py-10">
+                <div className="inline-flex items-center gap-2 px-5 py-2 bg-emerald-950/40 border border-emerald-900/40 rounded-full">
+                  <span className="text-emerald-400">✨</span>
+                  <p className="text-xs text-emerald-300/80">You've reached the end — {filteredMovies.length} movies</p>
+                </div>
               </div>
             )}
           </>
         )}
       </section>
+
+      {/* Latest News / Trending Section */}
+      <NewsTicker />
 
       {/* Quick View Modal */}
       {showQuickView && quickViewMovie && (
@@ -1300,7 +1294,7 @@ export default function Movies() {
           onClick={() => setShowQuickView(false)}
         >
           <div
-            className="w-full md:max-w-2xl bg-gray-900 rounded-t-2xl md:rounded-2xl border border-gray-800"
+            className="w-full md:max-w-2xl bg-[#0a1614] rounded-t-2xl md:rounded-2xl border border-emerald-900/40 shadow-2xl shadow-emerald-950/50"
             onClick={e => e.stopPropagation()}
           >
             <div className="relative h-32 md:h-56">
@@ -1314,20 +1308,20 @@ export default function Movies() {
                   }
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a1614] via-transparent to-transparent" />
               <button
                 onClick={() => setShowQuickView(false)}
-                className="absolute top-2 right-2 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-all duration-300"
+                className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center hover:bg-emerald-900/60 transition-all duration-300 border border-emerald-900/40"
               >
                 <FaTimes className="text-white text-xs sm:text-sm" />
               </button>
 
               {quickViewMovie.latestEpisode && (
                 <div className="absolute top-2 left-2 flex gap-1">
-                  <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full">
+                  <span className="px-2 py-1 bg-emerald-500 text-black text-xs font-bold rounded-full">
                     Latest
                   </span>
-                  <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+                  <span className="px-2 py-1 bg-teal-500 text-black text-xs font-bold rounded-full">
                     S{quickViewMovie.latestEpisode.seasonNumber}:E{quickViewMovie.latestEpisode.episodeNumber}
                   </span>
                 </div>
@@ -1337,24 +1331,24 @@ export default function Movies() {
               <h2 className="text-base sm:text-xl font-bold text-white mb-1">{quickViewMovie?.title}</h2>
 
               {quickViewMovie.latestEpisode && (
-                <h3 className="text-sm text-purple-400 mb-1 line-clamp-1">
+                <h3 className="text-sm text-emerald-400 mb-1 line-clamp-1">
                   {quickViewMovie.latestEpisode.title}
                 </h3>
               )}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-400 mb-3">
                 {quickViewMovie?.rating && (
                   <span className="flex items-center gap-1">
-                    <FaStar className="text-yellow-500 text-xs" /> {quickViewMovie.rating}
+                    <FaStar className="text-amber-400 text-xs" /> {quickViewMovie.rating}
                   </span>
                 )}
                 {quickViewMovie?.year && <span>{quickViewMovie.year}</span>}
                 {quickViewMovie.lastUpdated && (
-                  <span className="text-green-400">
+                  <span className="text-emerald-400">
                     {formatDate(quickViewMovie.lastUpdated)}
                   </span>
                 )}
                 {quickViewMovie.episodeCount && (
-                  <span className="text-purple-400">
+                  <span className="text-teal-400">
                     {quickViewMovie.episodeCount} eps
                   </span>
                 )}
@@ -1374,13 +1368,13 @@ export default function Movies() {
                     }
                     setShowQuickView(false);
                   }}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-2 rounded-lg text-white text-sm font-semibold flex items-center justify-center gap-1 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 active:scale-95"
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 py-2 rounded-lg text-black text-sm font-bold flex items-center justify-center gap-1 transition-all duration-300 active:scale-95 shadow-lg shadow-emerald-500/40"
                 >
                   <FaPlay className="text-xs" /> {quickViewMovie.latestEpisode ? 'Watch Latest' : 'Watch'}
                 </button>
                 <button
                   onClick={() => setShowQuickView(false)}
-                  className="flex-1 bg-gray-800 py-2 rounded-lg text-white text-sm font-semibold hover:bg-gray-700 transition-all duration-300"
+                  className="flex-1 bg-emerald-950/60 border border-emerald-900/40 py-2 rounded-lg text-white text-sm font-semibold hover:bg-emerald-900/40 transition-all duration-300"
                 >
                   Close
                 </button>

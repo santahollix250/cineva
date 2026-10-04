@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FiSearch, FiX, FiFilm, FiTv } from 'react-icons/fi';
@@ -246,22 +247,22 @@ export default function Navbar() {
     const hasRecent = recentSearches && recentSearches.length > 0 && !search.trim();
 
     return (
-      <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-purple-600/30 rounded-xl shadow-2xl overflow-hidden z-50 max-h-96 overflow-y-auto">
+      <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-emerald-600/30 rounded-xl shadow-2xl overflow-hidden z-50 max-h-96 overflow-y-auto">
         {hasRecent && (
           <>
-            <div className="px-3 py-2 text-xs text-gray-400 border-b border-purple-600/30 flex items-center gap-2 sticky top-0 bg-gray-900">
+            <div className="px-3 py-2 text-xs text-gray-400 border-b border-emerald-600/30 flex items-center gap-2 sticky top-0 bg-gray-900">
               <span>🕒 Recent Searches</span>
             </div>
             {recentSearches.slice(0, 5).map((recent, index) => (
               <button
                 key={index}
                 onClick={() => handleRecentSearchClick(recent)}
-                className={`w-full px-4 py-2 text-left hover:bg-purple-600/20 transition-colors flex items-center gap-3 ${selectedIndex === index ? 'bg-purple-600/30' : ''}`}
+                className={`w-full px-4 py-2 text-left hover:bg-emerald-600/20 transition-colors flex items-center gap-3 ${selectedIndex === index ? 'bg-emerald-600/30' : ''}`}
               >
                 <span className="text-gray-400 text-sm">🕒</span>
                 <span className="text-white flex-1 text-sm truncate">{recent.query || 'All Content'}</span>
                 {recent.genre && (
-                  <span className="text-xs px-2 py-0.5 bg-purple-600/20 text-purple-400 rounded-full">
+                  <span className="text-xs px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full">
                     {recent.genre}
                   </span>
                 )}
@@ -272,7 +273,7 @@ export default function Navbar() {
 
         {hasSuggestions && (
           <>
-            <div className="px-3 py-2 text-xs text-gray-400 border-b border-purple-600/30 sticky top-0 bg-gray-900">
+            <div className="px-3 py-2 text-xs text-gray-400 border-b border-emerald-600/30 sticky top-0 bg-gray-900">
               Suggestions
             </div>
             {suggestions.map((item, index) => {
@@ -281,12 +282,12 @@ export default function Navbar() {
                 <button
                   key={`${item.type}-${item.id || item.title}`}
                   onClick={() => handleSuggestionClick(item)}
-                  className={`w-full flex items-center gap-3 p-3 hover:bg-purple-600/20 transition-colors border-b border-purple-600/10 last:border-0 ${selectedIndex === displayIndex ? 'bg-purple-600/30' : ''}`}
+                  className={`w-full flex items-center gap-3 p-3 hover:bg-emerald-600/20 transition-colors border-b border-emerald-600/10 last:border-0 ${selectedIndex === displayIndex ? 'bg-emerald-600/30' : ''}`}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center flex-shrink-0">
-                    {item.type === 'movie' && <FiFilm className="text-purple-400 text-sm" />}
-                    {item.type === 'episode' && <FiTv className="text-pink-400 text-sm" />}
-                    {item.type === 'category' && <span className="text-blue-400 text-sm">#</span>}
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-600/30 to-teal-600/30 flex items-center justify-center flex-shrink-0">
+                    {item.type === 'movie' && <FiFilm className="text-emerald-400 text-sm" />}
+                    {item.type === 'episode' && <FiTv className="text-teal-400 text-sm" />}
+                    {item.type === 'category' && <span className="text-cyan-400 text-sm">#</span>}
                   </div>
 
                   <div className="flex-1 text-left">
@@ -313,7 +314,7 @@ export default function Navbar() {
         {search.trim() && (
           <button
             onClick={handleSearchSubmit}
-            className="w-full p-3 text-center text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-600/10 border-t border-purple-600/30 transition-colors"
+            className="w-full p-3 text-center text-sm text-emerald-400 hover:text-emerald-300 hover:bg-emerald-600/10 border-t border-emerald-600/30 transition-colors"
           >
             Search for "{search}"
           </button>
@@ -329,7 +330,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 z-50 w-full bg-black/95 backdrop-blur-sm border-b border-purple-600/30 shadow-lg">
+    <nav className="fixed top-0 z-50 w-full bg-black/95 backdrop-blur-sm border-b border-emerald-600/30 shadow-lg">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
 
@@ -346,12 +347,12 @@ export default function Navbar() {
           >
             <div className="relative">
               <div className="relative">
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 animate-ping opacity-75" style={{ animationDuration: '1.5s' }}></div>
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse opacity-50"></div>
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 animate-ping opacity-75" style={{ animationDuration: '1.5s' }}></div>
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse opacity-50"></div>
 
-                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 animate-spin-slow opacity-75"></div>
+                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 animate-spin-slow opacity-75"></div>
 
-                <div className="relative h-10 w-10 md:h-12 md:w-12 rounded-lg overflow-hidden ring-2 ring-purple-600/30 group-hover:ring-purple-500 transition-all duration-300 group-hover:scale-105 bg-black">
+                <div className="relative h-10 w-10 md:h-12 md:w-12 rounded-lg overflow-hidden ring-2 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-300 group-hover:scale-105 bg-black">
                   <img
                     src={logo}
                     alt="agasobanuyecineva Logo"
@@ -359,8 +360,8 @@ export default function Navbar() {
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.parentElement.innerHTML = `
-                        <div class="h-full w-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                          <span class="text-white font-bold text-xl animate-pulse">A</span>
+                        <div class="h-full w-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                          <span class="text-black font-bold text-xl animate-pulse">A</span>
                         </div>
                       `;
                     }}
@@ -368,12 +369,12 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
             </div>
 
             <div className="flex flex-col">
               <h1 className="text-sm md:text-lg lg:text-xl font-bold">
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+                <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
                   agasobanuyecineva
                 </span>
               </h1>
@@ -387,8 +388,8 @@ export default function Navbar() {
               to="/"
               onClick={() => setIsOpen(false)}
               className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${location.pathname === '/'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'text-gray-300 hover:bg-purple-600/20 hover:text-white'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30'
+                : 'text-gray-300 hover:bg-emerald-600/20 hover:text-white'
                 }`}
             >
               <span className="flex items-center gap-1">
@@ -399,8 +400,8 @@ export default function Navbar() {
               to="/category"
               onClick={() => setIsOpen(false)}
               className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${location.pathname === '/category'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-gray-300 hover:bg-blue-600/20 hover:text-white'
+                ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-600/30'
+                : 'text-gray-300 hover:bg-teal-600/20 hover:text-white'
                 }`}
             >
               <span className="flex items-center gap-1">
@@ -411,8 +412,8 @@ export default function Navbar() {
               to="/series"
               onClick={() => setIsOpen(false)}
               className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${location.pathname === '/series'
-                ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/30'
-                : 'text-gray-300 hover:bg-pink-600/20 hover:text-white'
+                ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-lg shadow-emerald-600/30'
+                : 'text-gray-300 hover:bg-emerald-600/20 hover:text-white'
                 }`}
             >
               <span className="flex items-center gap-1">
@@ -423,7 +424,7 @@ export default function Navbar() {
               to="/translator"
               onClick={() => setIsOpen(false)}
               className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${location.pathname === '/translator'
-                ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-600/30'
                 : 'text-gray-300 hover:bg-green-600/20 hover:text-white'
                 }`}
             >
@@ -435,7 +436,7 @@ export default function Navbar() {
               to="/nation"
               onClick={() => setIsOpen(false)}
               className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${location.pathname === '/nation'
-                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
+                ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-600/30'
                 : 'text-gray-300 hover:bg-cyan-600/20 hover:text-white'
                 }`}
             >
@@ -463,7 +464,7 @@ export default function Navbar() {
                     }
                   }}
                   placeholder="Search movies, series..."
-                  className="pl-7 pr-7 py-1.5 w-56 lg:w-64 text-xs rounded-lg bg-gray-800 border border-purple-600/30 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                  className="pl-7 pr-7 py-1.5 w-56 lg:w-64 text-xs rounded-lg bg-gray-800 border border-emerald-600/30 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                 />
                 {search && (
                   <button
@@ -482,7 +483,7 @@ export default function Navbar() {
             <Link
               to="/admin"
               onClick={() => setIsOpen(false)}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-600 hover:via-orange-600 hover:to-red-600 rounded-lg text-white shadow-lg shadow-yellow-600/30 transition-all duration-300 hover:scale-105 animate-pulse-slow"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-600 rounded-lg text-black font-bold shadow-lg shadow-amber-600/30 transition-all duration-300 hover:scale-105 animate-pulse-slow"
             >
               <FaGem className="text-xs" />
               VIP Access
@@ -502,7 +503,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-purple-600/30">
+        <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-emerald-600/30">
           <div className="px-4 py-3 space-y-2">
             {/* Mobile Search */}
             <div className="relative" ref={searchRef}>
@@ -519,7 +520,7 @@ export default function Navbar() {
                     }
                   }}
                   placeholder="Search movies, series..."
-                  className="w-full pl-7 pr-7 py-2 text-sm rounded-lg bg-gray-800 border border-purple-600/30 text-white placeholder-gray-400"
+                  className="w-full pl-7 pr-7 py-2 text-sm rounded-lg bg-gray-800 border border-emerald-600/30 text-white placeholder-gray-400"
                 />
                 {search && (
                   <button
@@ -543,7 +544,7 @@ export default function Navbar() {
               to="/"
               onClick={() => setIsOpen(false)}
               className={`block px-3 py-2 text-sm rounded-lg transition-colors ${location.pathname === '/'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
             >
@@ -555,7 +556,7 @@ export default function Navbar() {
               to="/category"
               onClick={() => setIsOpen(false)}
               className={`block px-3 py-2 text-sm rounded-lg transition-colors ${location.pathname === '/category'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
             >
@@ -567,7 +568,7 @@ export default function Navbar() {
               to="/series"
               onClick={() => setIsOpen(false)}
               className={`block px-3 py-2 text-sm rounded-lg transition-colors ${location.pathname === '/series'
-                ? 'bg-pink-600 text-white'
+                ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
             >
@@ -579,7 +580,7 @@ export default function Navbar() {
               to="/translator"
               onClick={() => setIsOpen(false)}
               className={`block px-3 py-2 text-sm rounded-lg transition-colors ${location.pathname === '/translator'
-                ? 'bg-green-600 text-white'
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
             >
@@ -591,7 +592,7 @@ export default function Navbar() {
               to="/nation"
               onClick={() => setIsOpen(false)}
               className={`block px-3 py-2 text-sm rounded-lg transition-colors ${location.pathname === '/nation'
-                ? 'bg-cyan-600 text-white'
+                ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
             >
@@ -604,7 +605,7 @@ export default function Navbar() {
             <Link
               to="/admin"
               onClick={() => setIsOpen(false)}
-              className="block px-3 py-2 text-sm bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-lg text-white font-medium flex items-center gap-2"
+              className="block px-3 py-2 text-sm bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 rounded-lg text-black font-bold flex items-center gap-2"
             >
               <FaGem className="text-sm" /> VIP Access
             </Link>
@@ -612,7 +613,6 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* ✅ FIXED: removed `jsx` attribute */}
       <style>{`
         @keyframes spin-slow {
           0% { transform: rotate(0deg); }

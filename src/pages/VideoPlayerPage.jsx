@@ -1,4 +1,4 @@
-// src/pages/VideoPlayerPage.jsx
+// src/pages/VideoPlayerPage.jsx - Updated with Midnight Emerald
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -126,7 +126,6 @@ const VideoPlayerPage = () => {
         }
     };
 
-    // Get download link
     const getDownloadLink = () => {
         if (!videoData) {
             return '';
@@ -312,7 +311,7 @@ const VideoPlayerPage = () => {
             return (
                 <div className="absolute inset-0 flex items-center justify-center bg-black">
                     <div className="text-center p-8">
-                        <FaExclamationCircle className="text-red-500 text-6xl mx-auto mb-4" />
+                        <FaExclamationCircle className="text-emerald-500 text-6xl mx-auto mb-4" />
                         <h3 className="text-2xl font-bold text-white mb-2">No Video URL Provided</h3>
                         <p className="text-gray-400">Please add a video URL in the admin panel</p>
                     </div>
@@ -361,7 +360,7 @@ const VideoPlayerPage = () => {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-white text-xl">Loading video...</p>
                 </div>
             </div>
@@ -372,7 +371,7 @@ const VideoPlayerPage = () => {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="text-center p-8 max-w-md">
-                    <FaExclamationCircle className="text-red-500 text-6xl mx-auto mb-4" />
+                    <FaExclamationCircle className="text-emerald-500 text-6xl mx-auto mb-4" />
                     <h1 className="text-2xl text-white mb-4">{error || 'Video not found'}</h1>
                     <div className="flex gap-4 justify-center">
                         <button
@@ -383,7 +382,7 @@ const VideoPlayerPage = () => {
                         </button>
                         <button
                             onClick={() => navigate('/')}
-                            className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white transition-colors"
+                            className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-semibold transition-colors"
                         >
                             Go Home
                         </button>
@@ -411,7 +410,7 @@ const VideoPlayerPage = () => {
             <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/80 to-transparent p-4 flex justify-between items-center">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-white hover:text-red-400 transition-colors"
+                    className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors"
                 >
                     <FaArrowLeft className="text-xl" />
                     <span className="hidden sm:inline">Back</span>
@@ -421,7 +420,7 @@ const VideoPlayerPage = () => {
                 </h1>
                 <button
                     onClick={() => navigate('/')}
-                    className="text-white hover:text-red-400 transition-colors"
+                    className="text-white hover:text-emerald-400 transition-colors"
                 >
                     <FaHome className="text-xl" />
                 </button>
@@ -441,7 +440,7 @@ const VideoPlayerPage = () => {
                     {buffering && !isYouTube && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                             <div className="text-center">
-                                <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                                 <p className="text-white text-sm">Buffering...</p>
                             </div>
                         </div>
@@ -450,7 +449,7 @@ const VideoPlayerPage = () => {
                     {error && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/90">
                             <div className="text-center p-8 max-w-md">
-                                <FaExclamationCircle className="text-red-500 text-6xl mx-auto mb-4" />
+                                <FaExclamationCircle className="text-emerald-500 text-6xl mx-auto mb-4" />
                                 <h3 className="text-2xl font-bold text-white mb-2">Unable to play video</h3>
                                 <p className="text-gray-300 mb-4">{error}</p>
                                 {videoUrl && (
@@ -496,7 +495,7 @@ const VideoPlayerPage = () => {
                                         const newTime = parseFloat(e.target.value);
                                         handleSeekTo(newTime / duration);
                                     }}
-                                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:cursor-pointer"
+                                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:cursor-pointer"
                                 />
                                 <div className="flex justify-between text-xs text-gray-300 mt-1">
                                     <span>{formatTime(currentTime)}</span>
@@ -510,7 +509,7 @@ const VideoPlayerPage = () => {
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={togglePlayPause}
-                                        className="text-white hover:text-red-400 transition-colors"
+                                        className="text-white hover:text-emerald-400 transition-colors"
                                     >
                                         {playing ? (
                                             <FaPause className="text-lg" />
@@ -522,7 +521,7 @@ const VideoPlayerPage = () => {
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={toggleMute}
-                                            className="text-white hover:text-red-400 transition-colors"
+                                            className="text-white hover:text-emerald-400 transition-colors"
                                         >
                                             {muted ? (
                                                 <FaVolumeMute className="text-lg" />
@@ -538,7 +537,7 @@ const VideoPlayerPage = () => {
                                                 step={0.1}
                                                 value={volume}
                                                 onChange={handleVolumeChange}
-                                                className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                                                className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500"
                                             />
                                         </div>
                                     </div>
@@ -552,7 +551,7 @@ const VideoPlayerPage = () => {
                                             href={downloadLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-white hover:text-blue-400 transition-colors flex items-center gap-2"
+                                            className="text-white hover:text-emerald-400 transition-colors flex items-center gap-2"
                                             title="Download Video"
                                         >
                                             <FaDownload className="text-lg" />
@@ -565,7 +564,7 @@ const VideoPlayerPage = () => {
                                     {/* Fullscreen */}
                                     <button
                                         onClick={toggleFullscreen}
-                                        className="text-white hover:text-red-400 transition-colors"
+                                        className="text-white hover:text-emerald-400 transition-colors"
                                         title="Fullscreen"
                                     >
                                         {fullscreen ? <FaCompress className="text-lg" /> : <FaExpand className="text-lg" />}
@@ -581,11 +580,11 @@ const VideoPlayerPage = () => {
             {showDownloadSection && (
                 <div className="w-full px-4 mt-4 mb-8">
                     <div className="max-w-7xl mx-auto">
-                        <div className="bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-700/30 rounded-xl p-6">
+                        <div className="bg-gradient-to-r from-emerald-900/30 to-teal-900/20 border border-emerald-700/30 rounded-xl p-6">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-blue-600/20 rounded-lg">
-                                        <FaCloudDownloadAlt className="text-blue-400 text-2xl" />
+                                    <div className="p-3 bg-emerald-600/20 rounded-lg">
+                                        <FaCloudDownloadAlt className="text-emerald-400 text-2xl" />
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-semibold text-white">Download This Video</h3>
@@ -599,7 +598,7 @@ const VideoPlayerPage = () => {
                                         href={downloadLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium flex items-center justify-center gap-3 transition-colors group"
+                                        className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-semibold flex items-center justify-center gap-3 transition-colors group"
                                     >
                                         <FaFileDownload className="text-lg group-hover:animate-bounce" />
                                         <span>Download Now</span>
@@ -622,18 +621,18 @@ const VideoPlayerPage = () => {
 
                             {/* Download Info */}
                             {downloadLink && (
-                                <div className="mt-4 pt-4 border-t border-blue-800/30">
+                                <div className="mt-4 pt-4 border-t border-emerald-800/30">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                             <span className="text-gray-300 text-sm">High Quality</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                             <span className="text-gray-300 text-sm">Fast Download</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                             <span className="text-gray-300 text-sm">No Ads</span>
                                         </div>
                                     </div>
@@ -654,7 +653,7 @@ const VideoPlayerPage = () => {
                             <div className="flex flex-wrap items-center gap-3 text-gray-300 mb-4">
                                 {videoData.rating && (
                                     <span className="flex items-center gap-1">
-                                        <FaStar className="text-yellow-500" /> {videoData.rating}
+                                        <FaStar className="text-amber-500" /> {videoData.rating}
                                     </span>
                                 )}
                                 {videoData.year && (
@@ -702,13 +701,13 @@ const VideoPlayerPage = () => {
                         {(videoData.nation || videoData.translator) && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                                 {videoData.nation && (
-                                    <div className="bg-gray-900/50 rounded-xl p-4">
+                                    <div className="bg-gray-900/50 rounded-xl p-4 border border-emerald-900/30">
                                         <h4 className="text-sm text-gray-400 mb-1">Country</h4>
                                         <p className="text-white font-medium">{videoData.nation}</p>
                                     </div>
                                 )}
                                 {videoData.translator && (
-                                    <div className="bg-gray-900/50 rounded-xl p-4">
+                                    <div className="bg-gray-900/50 rounded-xl p-4 border border-emerald-900/30">
                                         <h4 className="text-sm text-gray-400 mb-1">Translator/Network</h4>
                                         <p className="text-white font-medium">{videoData.translator}</p>
                                     </div>
@@ -720,12 +719,12 @@ const VideoPlayerPage = () => {
                     {/* Right Column - Actions & Info */}
                     <div className="space-y-6">
                         {/* Action Buttons */}
-                        <div className="bg-gray-900/50 rounded-xl p-6">
+                        <div className="bg-gray-900/50 rounded-xl p-6 border border-emerald-900/30">
                             <div className="space-y-4">
                                 {!isYouTube && (
                                     <button
                                         onClick={togglePlayPause}
-                                        className="w-full py-4 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold flex items-center justify-center gap-3 transition-colors"
+                                        className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-semibold flex items-center justify-center gap-3 transition-colors"
                                     >
                                         {playing ? (
                                             <>
@@ -742,7 +741,7 @@ const VideoPlayerPage = () => {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => setIsLiked(!isLiked)}
-                                        className={`py-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${isLiked ? 'bg-pink-900/30 text-pink-400' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
+                                        className={`py-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${isLiked ? 'bg-emerald-900/30 text-emerald-400' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
                                     >
                                         <FaHeart /> {isLiked ? 'LIKED' : 'LIKE'}
                                     </button>
@@ -757,7 +756,7 @@ const VideoPlayerPage = () => {
                                         href={downloadLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium flex items-center justify-center gap-3 transition-colors group"
+                                        className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-medium flex items-center justify-center gap-3 transition-colors group"
                                     >
                                         <FaDownload className="group-hover:animate-bounce" /> DOWNLOAD VIDEO
                                     </a>
@@ -770,7 +769,7 @@ const VideoPlayerPage = () => {
                         </div>
 
                         {/* Video Details */}
-                        <div className="bg-gray-900/50 rounded-xl p-6">
+                        <div className="bg-gray-900/50 rounded-xl p-6 border border-emerald-900/30">
                             <h3 className="text-lg font-semibold text-white mb-4">Details</h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between py-2 border-b border-gray-800">

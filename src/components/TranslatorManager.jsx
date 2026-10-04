@@ -15,7 +15,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
   const [translators, setTranslators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [editingName, setEditingName] = useState(null); // original name being edited
+  const [editingName, setEditingName] = useState(null);
   const [editValue, setEditValue] = useState({ display_name: "", photo_url: "" });
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -38,7 +38,6 @@ export default function TranslatorManager({ movies = [], addNotification, update
       display_name: t.display_name || t.name,
       photo_url: t.photo_url || "",
     });
-    // Scroll to edit card
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -113,9 +112,9 @@ export default function TranslatorManager({ movies = [], addNotification, update
     <div className="space-y-5">
       {/* ===== EDIT CARD (only when editing) ===== */}
       {editingName && (
-        <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/30 backdrop-blur-lg rounded-2xl border border-purple-500/40 p-4 sm:p-6">
+        <div className="bg-gradient-to-br from-emerald-900/40 to-teal-900/30 backdrop-blur-lg rounded-2xl border border-emerald-500/40 p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
-            <FaEdit className="text-purple-400" />
+            <FaEdit className="text-emerald-400" />
             <h2 className="text-lg sm:text-xl font-bold">
               Edit "{editingName}"
             </h2>
@@ -124,7 +123,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Photo */}
             <div className="flex flex-col items-center gap-3">
-              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50 bg-gray-900">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-500/50 bg-gray-900">
                 {editValue.photo_url ? (
                   <img
                     src={editValue.photo_url}
@@ -151,7 +150,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center gap-1 disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs bg-cyan-600 hover:bg-cyan-700 rounded-lg flex items-center gap-1 disabled:opacity-50 text-black font-semibold"
                 >
                   <FaCloudUploadAlt /> Upload Photo
                 </button>
@@ -169,7 +168,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
               {uploading && (
                 <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-600 transition-all"
+                    className="h-full bg-emerald-600 transition-all"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -209,7 +208,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleSave}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-black"
                 >
                   <FaSave /> Save
                 </button>
@@ -229,7 +228,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
-            <FaLanguage className="text-purple-400" />
+            <FaLanguage className="text-emerald-400" />
             All Translators ({translators.length})
           </h3>
           <div className="relative">
@@ -246,7 +245,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
 
         {loading ? (
           <div className="text-center py-10 text-gray-400">
-            <div className="w-10 h-10 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             Loading translators…
           </div>
         ) : filtered.length === 0 ? (
@@ -262,10 +261,10 @@ export default function TranslatorManager({ movies = [], addNotification, update
             {filtered.map((t) => (
               <div
                 key={t.name}
-                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700/50 p-3 flex gap-3 items-center hover:border-purple-500/40 transition-colors"
+                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-emerald-900/30 p-3 flex gap-3 items-center hover:border-emerald-500/40 transition-colors"
               >
                 {/* Avatar */}
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-500/40 flex-shrink-0 bg-gray-800">
+                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-emerald-500/40 flex-shrink-0 bg-gray-800">
                   {t.photo_url ? (
                     <img
                       src={t.photo_url}
@@ -286,19 +285,19 @@ export default function TranslatorManager({ movies = [], addNotification, update
                     </h4>
                     <button
                       onClick={() => startEdit(t)}
-                      className="p-1.5 bg-blue-600/20 hover:bg-blue-600/40 rounded flex-shrink-0"
+                      className="p-1.5 bg-cyan-600/20 hover:bg-cyan-600/40 rounded flex-shrink-0"
                       title="Edit photo & name"
                     >
-                      <FaEdit className="text-blue-400 text-xs" />
+                      <FaEdit className="text-cyan-400 text-xs" />
                     </button>
                   </div>
 
                   {/* Counts */}
                   <div className="flex flex-wrap gap-1 mt-1.5">
-                    <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded-full text-[10px] flex items-center gap-0.5">
+                    <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] flex items-center gap-0.5">
                       <FaFilm className="text-[8px]" /> {t.movies}
                     </span>
-                    <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[10px] flex items-center gap-0.5">
+                    <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] flex items-center gap-0.5">
                       <FaTv className="text-[8px]" /> {t.series}
                     </span>
                     <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-full text-[10px] flex items-center gap-0.5">
@@ -307,11 +306,11 @@ export default function TranslatorManager({ movies = [], addNotification, update
                   </div>
 
                   {t.photo_url ? (
-                    <p className="text-[10px] text-green-400/70 mt-1 flex items-center gap-1">
+                    <p className="text-[10px] text-emerald-400/70 mt-1 flex items-center gap-1">
                       <FaCheckCircle className="text-[8px]" /> Photo set
                     </p>
                   ) : (
-                    <p className="text-[10px] text-yellow-400/70 mt-1">
+                    <p className="text-[10px] text-amber-400/70 mt-1">
                       No photo yet — click ✏️ to add one
                     </p>
                   )}

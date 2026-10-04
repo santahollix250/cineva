@@ -83,9 +83,9 @@ export default function TranslatorPage() {
           </button>
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-2xl p-6 mb-8 border border-purple-500/30 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-emerald-900/30 to-teal-900/30 rounded-2xl p-6 mb-8 border border-emerald-500/30 backdrop-blur-sm">
             <div className="flex flex-col sm:flex-row items-center gap-5">
-              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-purple-500/50 shadow-2xl shadow-purple-500/30 bg-gray-800 flex-shrink-0">
+              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-emerald-500/50 shadow-2xl shadow-emerald-500/30 bg-gray-800 flex-shrink-0">
                 {selectedProfile.photo_url ? (
                   <img
                     src={selectedProfile.photo_url}
@@ -104,13 +104,13 @@ export default function TranslatorPage() {
                   {selectedProfile.display_name || selectedProfile.name}
                 </h1>
                 <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-600/20 text-red-400 rounded-full text-xs">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-cyan-600/20 text-cyan-400 rounded-full text-xs">
                     <FaFilm /> {selected.movies.length} Movies
                   </span>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-600/20 text-purple-400 rounded-full text-xs">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600/20 text-emerald-400 rounded-full text-xs">
                     <FaTv /> {selected.series.length} Series
                   </span>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-xs">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-teal-600/20 text-teal-400 rounded-full text-xs">
                     <FaCheckCircle /> Total: {allContent.length}
                   </span>
                 </div>
@@ -141,25 +141,25 @@ export default function TranslatorPage() {
                   />
                   <div className="absolute top-2 left-2 z-10">
                     {item.type === 'movie' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-[10px] font-bold rounded-lg">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-cyan-600 to-emerald-600 text-black text-[10px] font-bold rounded-lg">
                         <FaFilm className="text-[9px]" /> MOVIE
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-[10px] font-bold rounded-lg">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-black text-[10px] font-bold rounded-lg">
                         <FaTv className="text-[9px]" /> SERIES
                       </span>
                     )}
                   </div>
                   {item.rating && (
                     <div className="absolute top-2 right-2 z-10">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-sm text-yellow-400 text-[10px] font-bold rounded-lg border border-yellow-500/30">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-sm text-amber-400 text-[10px] font-bold rounded-lg border border-amber-500/30">
                         <FaStar className="text-[9px]" /> {item.rating}
                       </span>
                     </div>
                   )}
                 </div>
                 <div className="mt-2">
-                  <h3 className="text-white text-sm font-semibold line-clamp-1 group-hover:text-purple-400 transition-colors">
+                  <h3 className="text-white text-sm font-semibold line-clamp-1 group-hover:text-emerald-400 transition-colors">
                     {item.title}
                   </h3>
                   {item.year && (
@@ -179,10 +179,10 @@ export default function TranslatorPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black pt-20 pb-8">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mb-4">
-            <FaLanguage className="text-3xl text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full mb-4 shadow-lg shadow-emerald-500/30">
+            <FaLanguage className="text-3xl text-black" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-2">
             Our Translators
           </h1>
           <p className="text-gray-400">
@@ -198,14 +198,14 @@ export default function TranslatorPage() {
               placeholder="Search translator..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-gray-800/70 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-gray-800/70 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
             />
           </div>
         </div>
 
         {loading && (
           <div className="text-center py-12">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
             <p className="text-gray-400">Loading translators…</p>
           </div>
         )}
@@ -223,11 +223,11 @@ export default function TranslatorPage() {
               <button
                 key={t.name}
                 onClick={() => setSelectedName(t.name)}
-                className="group flex flex-col items-center text-center bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 p-4 hover:border-purple-500/50 hover:scale-105 transition-all duration-300"
+                className="group flex flex-col items-center text-center bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 p-4 hover:border-emerald-500/50 hover:scale-105 transition-all duration-300"
               >
                 <div className="relative mb-3">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 blur-md opacity-0 group-hover:opacity-60 transition-opacity" />
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-purple-500/40 group-hover:border-purple-500/80 transition-colors bg-gray-800">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 blur-md opacity-0 group-hover:opacity-60 transition-opacity" />
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-emerald-500/40 group-hover:border-emerald-500/80 transition-colors bg-gray-800">
                     {t.photo_url ? (
                       <img
                         src={t.photo_url}
@@ -242,22 +242,22 @@ export default function TranslatorPage() {
                   </div>
                 </div>
 
-                <h3 className="font-semibold text-white text-sm sm:text-base line-clamp-1 group-hover:text-purple-400 transition-colors">
+                <h3 className="font-semibold text-white text-sm sm:text-base line-clamp-1 group-hover:text-emerald-400 transition-colors">
                   {t.display_name || t.name}
                 </h3>
 
                 <div className="flex flex-wrap gap-1 justify-center mt-2">
                   {t.movies > 0 && (
-                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-red-600/20 text-red-400 rounded-full text-[10px]">
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-cyan-600/20 text-cyan-400 rounded-full text-[10px]">
                       <FaFilm className="text-[8px]" /> {t.movies}
                     </span>
                   )}
                   {t.series > 0 && (
-                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-purple-600/20 text-purple-400 rounded-full text-[10px]">
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full text-[10px]">
                       <FaTv className="text-[8px]" /> {t.series}
                     </span>
                   )}
-                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-green-600/20 text-green-400 rounded-full text-[10px]">
+                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-teal-600/20 text-teal-400 rounded-full text-[10px]">
                     <FaCheckCircle className="text-[8px]" /> {t.total}
                   </span>
                 </div>

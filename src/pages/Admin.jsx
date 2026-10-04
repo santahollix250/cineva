@@ -3,6 +3,7 @@ import { MoviesContext } from "../context/MoviesContext";
 import { supabase } from '../lib/supabase';
 import { getTranslatorsWithProfiles } from '../lib/translators';
 import TranslatorManager from '../components/TranslatorManager';
+import CastFetcher from '../components/CastFetcher';
 import {
   FaEdit, FaTrash, FaFilm, FaTv, FaSave, FaUndo, FaPlus,
   FaLink, FaImage, FaGlobe, FaLanguage, FaSync, FaDatabase,
@@ -13,7 +14,7 @@ import {
   FaServer, FaCopy, FaFileVideo, FaCalendar, FaStar,
   FaClosedCaptioning, FaMicrophone, FaUser, FaTag,
   FaArrowLeft, FaLayerGroup, FaPlusCircle, FaCloudUploadAlt,
-  FaMobileAlt, FaDesktop
+  FaMobileAlt, FaDesktop, FaMagic
 } from "react-icons/fa";
 
 // Country data with flags
@@ -202,7 +203,7 @@ function Admin({ onLogout }) {
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  // ✅ Translators (auto-detected from movies + joined with profiles table)
+  // Translators
   const [adminTranslators, setAdminTranslators] = useState([]);
 
   // Image upload states
@@ -230,7 +231,7 @@ function Admin({ onLogout }) {
 
   const [mainVideoUrl, setMainVideoUrl] = useState("");
 
-  // ✅ Load translators list (recomputes on movies change or tab switch)
+  // Load translators list
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -1140,7 +1141,7 @@ function Admin({ onLogout }) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black pt-20 flex items-center justify-center px-4">
         <div className="text-white text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-xl mb-2">Loading content...</p>
         </div>
       </div>
@@ -1156,7 +1157,7 @@ function Admin({ onLogout }) {
           <p className="text-gray-400 mb-4">{error}</p>
           <button
             onClick={refreshMovies}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium w-full md:w-auto"
+            className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-semibold w-full md:w-auto"
           >
             Try Again
           </button>
@@ -1180,9 +1181,9 @@ function Admin({ onLogout }) {
               } backdrop-blur-lg rounded-r-lg shadow-2xl p-3 sm:p-4 flex items-start gap-2 sm:gap-3`}
           >
             <div className="flex-shrink-0">
-              {notification.type === "success" && <FaCheckCircle className="text-green-400 text-lg sm:text-xl" />}
+              {notification.type === "success" && <FaCheckCircle className="text-emerald-400 text-lg sm:text-xl" />}
               {notification.type === "error" && <FaExclamationTriangle className="text-red-400 text-lg sm:text-xl" />}
-              {notification.type === "info" && <FaExclamationTriangle className="text-blue-400 text-lg sm:text-xl" />}
+              {notification.type === "info" && <FaExclamationTriangle className="text-cyan-400 text-lg sm:text-xl" />}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm font-medium text-white break-words">{notification.message}</p>
@@ -1201,11 +1202,11 @@ function Admin({ onLogout }) {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
               Video Admin Dashboard
             </h1>
             <p className="text-xs sm:text-sm text-gray-400 mt-1">
-              Manage content, episodes, parts, and translators
+              Manage content, episodes, parts, translators, and cast
             </p>
           </div>
 
@@ -1216,7 +1217,7 @@ function Admin({ onLogout }) {
                 refreshEpisodes();
                 addNotification("success", "Content refreshed!");
               }}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium flex items-center justify-center gap-2 text-sm"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-semibold flex items-center justify-center gap-2 text-sm"
             >
               <FaSync className="text-xs sm:text-sm" />
               <span className="hidden xs:inline">Refresh</span>
@@ -1233,23 +1234,23 @@ function Admin({ onLogout }) {
         </div>
 
         {/* Info Banner */}
-        <div className="mb-4 sm:mb-6 bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-3 sm:p-4">
+        <div className="mb-4 sm:mb-6 bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-500/30 rounded-xl p-3 sm:p-4">
           <div className="flex items-start gap-2 sm:gap-3">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <FaMobileAlt className="text-purple-400 text-sm" />
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <FaMobileAlt className="text-emerald-400 text-sm" />
               </div>
             </div>
             <div className="flex-1">
               <p className="text-xs sm:text-sm text-gray-300">
-                <span className="font-bold text-purple-400">Responsive Images:</span> On mobile devices, the hero section will automatically use the <strong className="text-green-400">Poster Image</strong> for better visibility. On desktop, it uses the <strong className="text-blue-400">Background Image</strong> for a cinematic experience.
+                <span className="font-bold text-emerald-400">Responsive Images:</span> On mobile devices, the hero section will automatically use the <strong className="text-emerald-400">Poster Image</strong> for better visibility. On desktop, it uses the <strong className="text-cyan-400">Background Image</strong> for a cinematic experience.
               </p>
               <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
                 Tip: Upload a poster that looks good on mobile (centered subject) and a wide background for desktop.
               </p>
             </div>
             <div className="flex-shrink-0">
-              <FaDesktop className="text-blue-400 text-lg sm:text-xl" />
+              <FaDesktop className="text-cyan-400 text-lg sm:text-xl" />
             </div>
           </div>
         </div>
@@ -1260,7 +1261,7 @@ function Admin({ onLogout }) {
             <button
               onClick={() => setActiveTab("series")}
               className={`px-3 sm:px-6 py-2 sm:py-3 font-medium whitespace-nowrap text-sm sm:text-base ${activeTab === "series"
-                ? "text-blue-400 border-b-2 border-blue-500"
+                ? "text-emerald-400 border-b-2 border-emerald-500"
                 : "text-gray-400 hover:text-gray-300"
                 }`}
             >
@@ -1269,7 +1270,7 @@ function Admin({ onLogout }) {
             <button
               onClick={() => setActiveTab("episodes")}
               className={`px-3 sm:px-6 py-2 sm:py-3 font-medium whitespace-nowrap text-sm sm:text-base ${activeTab === "episodes"
-                ? "text-purple-400 border-b-2 border-purple-500"
+                ? "text-teal-400 border-b-2 border-teal-500"
                 : "text-gray-400 hover:text-gray-300"
                 }`}
             >
@@ -1278,17 +1279,16 @@ function Admin({ onLogout }) {
             <button
               onClick={() => setActiveTab("parts")}
               className={`px-3 sm:px-6 py-2 sm:py-3 font-medium whitespace-nowrap text-sm sm:text-base ${activeTab === "parts"
-                ? "text-green-400 border-b-2 border-green-500"
+                ? "text-cyan-400 border-b-2 border-cyan-500"
                 : "text-gray-400 hover:text-gray-300"
                 }`}
             >
               <FaLayerGroup className="inline mr-1 sm:mr-2 text-xs sm:text-sm" /> Manage Movie Parts
             </button>
-            {/* ✅ NEW: Translators tab */}
             <button
               onClick={() => setActiveTab("translators")}
               className={`px-3 sm:px-6 py-2 sm:py-3 font-medium whitespace-nowrap text-sm sm:text-base ${activeTab === "translators"
-                ? "text-pink-400 border-b-2 border-pink-500"
+                ? "text-emerald-400 border-b-2 border-emerald-500"
                 : "text-gray-400 hover:text-gray-300"
                 }`}
             >
@@ -1301,18 +1301,18 @@ function Admin({ onLogout }) {
         {activeTab === "series" && (
           <div className="space-y-4 sm:space-y-6">
             {/* Form */}
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-gray-700/50 p-4 sm:p-6 md:p-8">
+            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-emerald-900/30 p-4 sm:p-6 md:p-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
                 <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-                  <FaPlus className="text-blue-500 text-sm sm:text-base" />
+                  <FaPlus className="text-emerald-500 text-sm sm:text-base" />
                   {editingId ? "Edit Content" : "Add New Content"}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${editingId ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
+                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${editingId ? 'bg-emerald-500/20 text-emerald-400' : 'bg-green-500/20 text-green-400'
                     }`}>
                     {editingId ? "Editing" : "Creating"}
                   </span>
-                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${form.type === 'series' ? 'bg-purple-500/20 text-purple-400' : 'bg-red-500/20 text-red-400'
+                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${form.type === 'series' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-cyan-500/20 text-cyan-400'
                     }`}>
                     {form.type === 'series' ? 'Series' : 'Movie'}
                   </span>
@@ -1324,24 +1324,24 @@ function Admin({ onLogout }) {
                 <button
                   onClick={() => setForm({ ...emptyMovie, type: "movie" })}
                   className={`p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 ${form.type === "movie"
-                    ? "bg-red-600/20 border-2 border-red-500/50"
+                    ? "bg-cyan-600/20 border-2 border-cyan-500/50"
                     : "bg-gray-800/50 border border-gray-700"
                     }`}
                 >
-                  <FaFilm className={`text-xl sm:text-2xl ${form.type === "movie" ? "text-red-400" : "text-gray-400"}`} />
-                  <span className={`text-xs sm:text-sm font-medium ${form.type === "movie" ? "text-red-300" : "text-gray-300"}`}>
+                  <FaFilm className={`text-xl sm:text-2xl ${form.type === "movie" ? "text-cyan-400" : "text-gray-400"}`} />
+                  <span className={`text-xs sm:text-sm font-medium ${form.type === "movie" ? "text-cyan-300" : "text-gray-300"}`}>
                     Movie
                   </span>
                 </button>
                 <button
                   onClick={() => setForm({ ...emptyMovie, type: "series" })}
                   className={`p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center gap-1 sm:gap-2 ${form.type === "series"
-                    ? "bg-purple-600/20 border-2 border-purple-500/50"
+                    ? "bg-emerald-600/20 border-2 border-emerald-500/50"
                     : "bg-gray-800/50 border border-gray-700"
                     }`}
                 >
-                  <FaTv className={`text-xl sm:text-2xl ${form.type === "series" ? "text-purple-400" : "text-gray-400"}`} />
-                  <span className={`text-xs sm:text-sm font-medium ${form.type === "series" ? "text-purple-300" : "text-gray-300"}`}>
+                  <FaTv className={`text-xl sm:text-2xl ${form.type === "series" ? "text-emerald-400" : "text-gray-400"}`} />
+                  <span className={`text-xs sm:text-sm font-medium ${form.type === "series" ? "text-emerald-300" : "text-gray-300"}`}>
                     Series
                   </span>
                 </button>
@@ -1406,7 +1406,7 @@ function Admin({ onLogout }) {
                             {uploadingFile ? (
                               <div className="w-full bg-gray-700 rounded-full h-1.5 sm:h-2">
                                 <div
-                                  className="bg-blue-600 h-1.5 sm:h-2 rounded-full"
+                                  className="bg-gradient-to-r from-emerald-500 to-teal-500 h-1.5 sm:h-2 rounded-full"
                                   style={{ width: `${uploadProgress}%` }}
                                 ></div>
                               </div>
@@ -1477,7 +1477,7 @@ function Admin({ onLogout }) {
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1 sm:mb-2">
                     <label className="block text-xs sm:text-sm font-medium text-gray-300 flex items-center gap-1">
-                      <FaMobileAlt className="text-purple-400 text-xs" /> Poster Image <span className="text-purple-400 text-[10px]">(Mobile Hero)</span>
+                      <FaMobileAlt className="text-emerald-400 text-xs" /> Poster Image <span className="text-emerald-400 text-[10px]">(Mobile Hero)</span>
                     </label>
                     <button
                       type="button"
@@ -1495,7 +1495,7 @@ function Admin({ onLogout }) {
                       )}
                     </button>
                   </div>
-                  <p className="text-[8px] sm:text-[10px] text-purple-400/70 mb-1">Used on mobile devices for hero background</p>
+                  <p className="text-[8px] sm:text-[10px] text-emerald-400/70 mb-1">Used on mobile devices for hero background</p>
 
                   {imageUploadMethod.poster === 'link' ? (
                     <div className="relative">
@@ -1528,7 +1528,7 @@ function Admin({ onLogout }) {
                             <div className="mt-2">
                               <div className="w-full bg-gray-700 rounded-full h-1">
                                 <div
-                                  className="bg-blue-600 h-1 rounded-full"
+                                  className="bg-gradient-to-r from-emerald-500 to-teal-500 h-1 rounded-full"
                                   style={{ width: `${posterProgress}%` }}
                                 ></div>
                               </div>
@@ -1557,7 +1557,7 @@ function Admin({ onLogout }) {
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1 sm:mb-2">
                     <label className="block text-xs sm:text-sm font-medium text-gray-300 flex items-center gap-1">
-                      <FaDesktop className="text-blue-400 text-xs" /> Background Image <span className="text-blue-400 text-[10px]">(Desktop Hero)</span>
+                      <FaDesktop className="text-cyan-400 text-xs" /> Background Image <span className="text-cyan-400 text-[10px]">(Desktop Hero)</span>
                     </label>
                     <button
                       type="button"
@@ -1575,7 +1575,7 @@ function Admin({ onLogout }) {
                       )}
                     </button>
                   </div>
-                  <p className="text-[8px] sm:text-[10px] text-blue-400/70 mb-1">Used on desktop devices for hero background</p>
+                  <p className="text-[8px] sm:text-[10px] text-cyan-400/70 mb-1">Used on desktop devices for hero background</p>
 
                   {imageUploadMethod.background === 'link' ? (
                     <div className="relative">
@@ -1608,7 +1608,7 @@ function Admin({ onLogout }) {
                             <div className="mt-2">
                               <div className="w-full bg-gray-700 rounded-full h-1">
                                 <div
-                                  className="bg-blue-600 h-1 rounded-full"
+                                  className="bg-gradient-to-r from-cyan-500 to-teal-500 h-1 rounded-full"
                                   style={{ width: `${backgroundProgress}%` }}
                                 ></div>
                               </div>
@@ -1650,7 +1650,7 @@ function Admin({ onLogout }) {
                 {/* Category */}
                 <div className="relative">
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
-                    <FaTag className="text-yellow-400" /> Category
+                    <FaTag className="text-amber-400" /> Category
                   </label>
                   <div className="relative">
                     <button
@@ -1661,7 +1661,7 @@ function Admin({ onLogout }) {
                       <div className="flex items-center gap-2">
                         {form.category ? (
                           <>
-                            <FaTag className="text-yellow-400 text-xs" />
+                            <FaTag className="text-amber-400 text-xs" />
                             <span className="truncate">{form.category}</span>
                           </>
                         ) : (
@@ -1699,7 +1699,7 @@ function Admin({ onLogout }) {
                                   onClick={() => handleCategorySelect(category)}
                                   className="w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-xs sm:text-sm"
                                 >
-                                  <FaTag className="text-yellow-400 text-xs" />
+                                  <FaTag className="text-amber-400 text-xs" />
                                   <span>{category}</span>
                                 </button>
                               ))
@@ -1715,10 +1715,10 @@ function Admin({ onLogout }) {
                   </div>
                 </div>
 
-                {/* ✅ TRANSLATOR DROPDOWN */}
+                {/* TRANSLATOR DROPDOWN */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
-                    <FaLanguage className="text-green-400" /> Translator
+                    <FaLanguage className="text-emerald-400" /> Translator
                   </label>
                   <select
                     name="translator"
@@ -1740,14 +1740,14 @@ function Admin({ onLogout }) {
                       )}
                   </select>
                   <p className="text-[10px] text-gray-500 mt-1">
-                    Translators are auto-detected from movies. Add photos in the <span className="text-pink-400">Translators</span> tab.
+                    Translators are auto-detected from movies. Add photos in the <span className="text-emerald-400">Translators</span> tab.
                   </p>
                 </div>
 
                 {/* Country */}
                 <div className="relative">
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
-                    <FaGlobe className="text-blue-400" /> Country / Nation
+                    <FaGlobe className="text-cyan-400" /> Country / Nation
                   </label>
                   <div className="relative">
                     <button
@@ -1829,10 +1829,20 @@ function Admin({ onLogout }) {
                   />
                 </div>
 
+                {/* ✅ CAST AUTO-FETCH FROM TMDB */}
+                {editingId && (
+                  <div className="sm:col-span-2 mt-2 pt-4 border-t border-gray-700">
+                    <CastFetcher
+                      movie={form}
+                      addNotification={addNotification}
+                    />
+                  </div>
+                )}
+
                 {/* Download Link */}
                 <div className="sm:col-span-2">
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
-                    <FaDownload className="text-green-400" /> Download Link (Optional)
+                    <FaDownload className="text-emerald-400" /> Download Link (Optional)
                   </label>
                   <input
                     name="download_link"
@@ -1849,7 +1859,7 @@ function Admin({ onLogout }) {
                 <button
                   onClick={handleAddOrUpdate}
                   disabled={submitting || uploadingFile || uploadingPoster || uploadingBackground}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2 text-sm text-black"
                 >
                   <FaSave className="text-xs sm:text-sm" />
                   {submitting ? "Processing..." : editingId ? "Update" : "Add"}
@@ -1869,7 +1879,7 @@ function Admin({ onLogout }) {
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-                  <FaTv className="text-blue-500 text-sm sm:text-base" />
+                  <FaTv className="text-emerald-500 text-sm sm:text-base" />
                   All Content ({movies.length})
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -1896,7 +1906,7 @@ function Admin({ onLogout }) {
               </div>
 
               {sortedMovies.length === 0 ? (
-                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-gray-700/50 p-8 sm:p-12 text-center">
+                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-emerald-900/30 p-8 sm:p-12 text-center">
                   <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">No Content Found</h2>
                   <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">Add your first item to get started</p>
                 </div>
@@ -1909,7 +1919,7 @@ function Admin({ onLogout }) {
                     const countryFlag = countries.find(c => c.name === movie.nation)?.flag || '🌍';
 
                     return (
-                      <div key={movie.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-gray-700/50 p-3 sm:p-4">
+                      <div key={movie.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-emerald-900/30 p-3 sm:p-4">
                         <div className="flex gap-2 sm:gap-3">
                           <div className="relative flex-shrink-0">
                             <img
@@ -1918,7 +1928,7 @@ function Admin({ onLogout }) {
                               className="w-16 h-20 sm:w-20 sm:h-24 object-cover rounded-lg"
                             />
                             {movie.background && (
-                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center">
                                 <FaDesktop className="text-[8px] text-white" />
                               </div>
                             )}
@@ -1929,27 +1939,27 @@ function Admin({ onLogout }) {
                               <div className="flex gap-1 flex-shrink-0">
                                 <button
                                   onClick={() => startEdit(movie)}
-                                  className="p-1 bg-blue-600/20 hover:bg-blue-600/30 rounded"
+                                  className="p-1 bg-emerald-600/20 hover:bg-emerald-600/30 rounded"
                                   title="Edit"
                                 >
-                                  <FaEdit className="text-blue-400 text-[10px] sm:text-xs" />
+                                  <FaEdit className="text-emerald-400 text-[10px] sm:text-xs" />
                                 </button>
                                 {movie.type === 'series' && (
                                   <button
                                     onClick={() => selectSeriesForEpisodes(movie)}
-                                    className="p-1 bg-purple-600/20 hover:bg-purple-600/30 rounded"
+                                    className="p-1 bg-teal-600/20 hover:bg-teal-600/30 rounded"
                                     title="Manage Episodes"
                                   >
-                                    <FaList className="text-purple-400 text-[10px] sm:text-xs" />
+                                    <FaList className="text-teal-400 text-[10px] sm:text-xs" />
                                   </button>
                                 )}
                                 {movie.type === 'movie' && (
                                   <button
                                     onClick={() => selectMovieForParts(movie)}
-                                    className="p-1 bg-green-600/20 hover:bg-green-600/30 rounded"
+                                    className="p-1 bg-cyan-600/20 hover:bg-cyan-600/30 rounded"
                                     title="Manage Parts"
                                   >
-                                    <FaLayerGroup className="text-green-400 text-[10px] sm:text-xs" />
+                                    <FaLayerGroup className="text-cyan-400 text-[10px] sm:text-xs" />
                                   </button>
                                 )}
                                 <button
@@ -1962,7 +1972,7 @@ function Admin({ onLogout }) {
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-1 mb-1">
-                              <span className={`px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] ${movie.type === 'series' ? 'bg-purple-500/20 text-purple-400' : 'bg-red-500/20 text-red-400'
+                              <span className={`px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] ${movie.type === 'series' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-cyan-500/20 text-cyan-400'
                                 }`}>
                                 {movie.type === 'series' ? 'Series' : 'Movie'}
                               </span>
@@ -1976,7 +1986,7 @@ function Admin({ onLogout }) {
                                 {platform.name}
                               </span>
                               {movie.category && (
-                                <span className="px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] bg-yellow-600/20 text-yellow-400 flex items-center gap-0.5">
+                                <span className="px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] bg-amber-600/20 text-amber-400 flex items-center gap-0.5">
                                   <FaTag className="text-[6px] sm:text-[8px]" /> {movie.category}
                                 </span>
                               )}
@@ -1986,12 +1996,12 @@ function Admin({ onLogout }) {
                                 </span>
                               )}
                               {movie.nation && (
-                                <span className="px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] bg-blue-600/20 text-blue-400 flex items-center gap-0.5">
+                                <span className="px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] bg-cyan-600/20 text-cyan-400 flex items-center gap-0.5">
                                   <span className="text-[10px] sm:text-xs">{countryFlag}</span> {movie.nation}
                                 </span>
                               )}
                               {movie.type === 'series' && episodeCount > 0 && (
-                                <span className="px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] bg-blue-500/20 text-blue-400">
+                                <span className="px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] bg-teal-500/20 text-teal-400">
                                   {episodeCount} eps
                                 </span>
                               )}
@@ -2016,7 +2026,7 @@ function Admin({ onLogout }) {
         {/* ============ EPISODES TAB ============ */}
         {activeTab === "episodes" && (
           <div className="space-y-4 sm:space-y-6">
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-gray-700/50 p-4 sm:p-6">
+            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-emerald-900/30 p-4 sm:p-6">
               {!selectedSeries ? (
                 <div className="text-center py-8 sm:py-12">
                   <h3 className="text-base sm:text-xl font-bold mb-2 sm:mb-3">Select a Series</h3>
@@ -2048,7 +2058,7 @@ function Admin({ onLogout }) {
                       <FaArrowLeft className="text-xs" /> Back to Series
                     </button>
                     <div className="text-center sm:text-right">
-                      <h3 className="text-sm sm:text-lg font-bold text-purple-400 truncate max-w-[200px] sm:max-w-none">{selectedSeries.title}</h3>
+                      <h3 className="text-sm sm:text-lg font-bold text-teal-400 truncate max-w-[200px] sm:max-w-none">{selectedSeries.title}</h3>
                       <p className="text-[10px] sm:text-xs text-gray-400">Managing episodes</p>
                     </div>
                   </div>
@@ -2059,16 +2069,16 @@ function Admin({ onLogout }) {
                         {editingEpisode ? "Edit Episode" : "Add New Episode"}
                       </h3>
 
-                      <div className="mb-4 p-3 bg-blue-900/20 rounded-lg border border-blue-500/30">
+                      <div className="mb-4 p-3 bg-teal-900/20 rounded-lg border border-teal-500/30">
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={episodeForm.useMainVideo}
                             onChange={toggleUseMainVideoForEpisode}
-                            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-emerald-600 focus:ring-emerald-500"
                           />
                           <div className="flex-1">
-                            <span className="text-sm font-medium text-blue-300 flex items-center gap-2">
+                            <span className="text-sm font-medium text-teal-300 flex items-center gap-2">
                               <FaVideo className="text-xs" /> Use Main Series Video
                             </span>
                             <p className="text-[10px] text-gray-400 mt-1 break-all">
@@ -2165,7 +2175,7 @@ function Admin({ onLogout }) {
                           <button
                             onClick={handleAddOrUpdateEpisode}
                             disabled={submitting}
-                            className="w-full sm:flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold disabled:opacity-50 text-xs sm:text-sm"
+                            className="w-full sm:flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl font-semibold disabled:opacity-50 text-xs sm:text-sm text-black"
                           >
                             {submitting ? 'Processing...' : (editingEpisode ? 'Update Episode' : 'Add Episode')}
                           </button>
@@ -2196,7 +2206,7 @@ function Admin({ onLogout }) {
                           });
                           setShowEpisodeForm(true);
                         }}
-                        className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-xs sm:text-sm"
+                        className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-xs sm:text-sm text-black"
                       >
                         <FaPlus className="text-xs" /> Add New Episode
                       </button>
@@ -2218,7 +2228,7 @@ function Admin({ onLogout }) {
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div className="flex-1">
                                   <div className="flex items-center flex-wrap gap-1 sm:gap-2 mb-1">
-                                    <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 rounded-full text-[10px] sm:text-xs">
+                                    <span className="px-2 py-0.5 bg-teal-600/20 text-teal-400 rounded-full text-[10px] sm:text-xs">
                                       S{episode.seasonNumber}E{episode.episodeNumber}
                                     </span>
                                     <h4 className="font-medium text-xs sm:text-sm">{episode.title}</h4>
@@ -2232,7 +2242,7 @@ function Admin({ onLogout }) {
                                       {platform.name}
                                     </span>
                                     {episode.download_link && (
-                                      <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-full text-[8px] sm:text-[10px] flex items-center gap-0.5">
+                                      <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[8px] sm:text-[10px] flex items-center gap-0.5">
                                         <FaDownload className="text-[6px] sm:text-[8px]" /> DL
                                       </span>
                                     )}
@@ -2246,10 +2256,10 @@ function Admin({ onLogout }) {
                                 <div className="flex gap-1 self-end sm:self-center">
                                   <button
                                     onClick={() => startEditEpisode(episode)}
-                                    className="p-1.5 bg-blue-600/20 hover:bg-blue-600/30 rounded"
+                                    className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 rounded"
                                     title="Edit episode"
                                   >
-                                    <FaEdit className="text-blue-400 text-xs" />
+                                    <FaEdit className="text-emerald-400 text-xs" />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteEpisode(episode.id, episode.title)}
@@ -2275,7 +2285,7 @@ function Admin({ onLogout }) {
         {/* ============ PARTS TAB ============ */}
         {activeTab === "parts" && (
           <div className="space-y-4 sm:space-y-6">
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-gray-700/50 p-4 sm:p-6">
+            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-emerald-900/30 p-4 sm:p-6">
               {!selectedMovieForParts ? (
                 <div className="text-center py-8 sm:py-12">
                   <h3 className="text-base sm:text-xl font-bold mb-2 sm:mb-3">Select a Movie</h3>
@@ -2295,7 +2305,7 @@ function Admin({ onLogout }) {
                             <FaFilm className="text-xs" />
                             <span className="truncate max-w-[150px]">{movie.title}</span>
                             {partsCount > 0 && (
-                              <span className="ml-1 px-1.5 py-0.5 bg-green-600/20 text-green-400 rounded-full text-[8px] sm:text-[10px]">
+                              <span className="ml-1 px-1.5 py-0.5 bg-cyan-600/20 text-cyan-400 rounded-full text-[8px] sm:text-[10px]">
                                 {partsCount}
                               </span>
                             )}
@@ -2315,7 +2325,7 @@ function Admin({ onLogout }) {
                       <FaArrowLeft className="text-xs" /> Back to Movies
                     </button>
                     <div className="text-center sm:text-right">
-                      <h3 className="text-sm sm:text-lg font-bold text-green-400 truncate max-w-[200px] sm:max-w-none">{selectedMovieForParts.title}</h3>
+                      <h3 className="text-sm sm:text-lg font-bold text-cyan-400 truncate max-w-[200px] sm:max-w-none">{selectedMovieForParts.title}</h3>
                       <p className="text-[10px] sm:text-xs text-gray-400">Managing parts</p>
                     </div>
                   </div>
@@ -2326,16 +2336,16 @@ function Admin({ onLogout }) {
                         {editingPart ? `Edit Part ${editingPart.partNumber}` : "Add New Part"}
                       </h3>
 
-                      <div className="mb-4 p-3 bg-blue-900/20 rounded-lg border border-blue-500/30">
+                      <div className="mb-4 p-3 bg-cyan-900/20 rounded-lg border border-cyan-500/30">
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={partForm.useMainVideo}
                             onChange={toggleUseMainVideoForPart}
-                            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500"
                           />
                           <div className="flex-1">
-                            <span className="text-sm font-medium text-blue-300 flex items-center gap-2">
+                            <span className="text-sm font-medium text-cyan-300 flex items-center gap-2">
                               <FaVideo className="text-xs" /> Use Main Movie Video
                             </span>
                             <p className="text-[10px] text-gray-400 mt-1 break-all">
@@ -2385,7 +2395,7 @@ function Admin({ onLogout }) {
                           <button
                             onClick={handleAddOrUpdatePart}
                             disabled={submitting}
-                            className="w-full sm:flex-1 py-2.5 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 rounded-xl font-semibold disabled:opacity-50 text-xs sm:text-sm"
+                            className="w-full sm:flex-1 py-2.5 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 rounded-xl font-semibold disabled:opacity-50 text-xs sm:text-sm text-black"
                           >
                             {submitting ? 'Processing...' : (editingPart ? 'Update Part' : 'Add Part')}
                           </button>
@@ -2411,7 +2421,7 @@ function Admin({ onLogout }) {
                           });
                           setShowPartForm(true);
                         }}
-                        className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-xs sm:text-sm"
+                        className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-xs sm:text-sm text-black"
                       >
                         <FaPlusCircle className="text-xs" /> Add New Part
                       </button>
@@ -2435,7 +2445,7 @@ function Admin({ onLogout }) {
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                               <div className="flex-1">
                                 <div className="flex items-center flex-wrap gap-1 sm:gap-2 mb-1">
-                                  <span className="px-2 py-0.5 bg-green-600/20 text-green-400 rounded-full text-[10px] sm:text-xs font-bold">
+                                  <span className="px-2 py-0.5 bg-cyan-600/20 text-cyan-400 rounded-full text-[10px] sm:text-xs font-bold">
                                     Part {part.partNumber}
                                   </span>
                                   <h4 className="font-medium text-xs sm:text-sm">{part.title}</h4>
@@ -2444,10 +2454,10 @@ function Admin({ onLogout }) {
                               <div className="flex gap-1 self-end sm:self-center">
                                 <button
                                   onClick={() => startEditPart(part)}
-                                  className="p-1.5 bg-blue-600/20 hover:bg-blue-600/30 rounded"
+                                  className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 rounded"
                                   title="Edit part"
                                 >
-                                  <FaEdit className="text-blue-400 text-xs" />
+                                  <FaEdit className="text-emerald-400 text-xs" />
                                 </button>
                                 <button
                                   onClick={() => handleDeletePart(part.partNumber, part.title)}
@@ -2469,7 +2479,7 @@ function Admin({ onLogout }) {
           </div>
         )}
 
-        {/* ============ ✅ TRANSLATORS TAB ============ */}
+        {/* ============ TRANSLATORS TAB ============ */}
         {activeTab === "translators" && (
           <TranslatorManager
             movies={movies}
