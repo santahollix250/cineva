@@ -4,8 +4,129 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FiSearch, FiX, FiFilm, FiTv } from 'react-icons/fi';
 import { FaShieldAlt, FaLanguage, FaGlobe, FaGem } from 'react-icons/fa';
 import { MoviesContext } from '../context/MoviesContext';
-import logo from '../assets/Newlogo.png';
 
+/* ═══════════════════════════════════════════════════════════
+   🎨 LOGO — "Emerald C Play"
+   - Bold stylized "C" made from an arc
+   - Cinema reel dots around it
+   - Play triangle nested inside
+   - Emerald → teal gradient, glow, sparkle
+═══════════════════════════════════════════════════════════ */
+const EmeraldCPlayLogo = ({ size = 48 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="cBg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#064e3b" />
+        <stop offset="55%" stopColor="#065f46" />
+        <stop offset="100%" stopColor="#0f172a" />
+      </linearGradient>
+
+      <linearGradient id="cArc" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#6ee7b7" />
+        <stop offset="45%" stopColor="#34d399" />
+        <stop offset="100%" stopColor="#14b8a6" />
+      </linearGradient>
+
+      <linearGradient id="cPlay" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#a7f3d0" />
+        <stop offset="100%" stopColor="#34d399" />
+      </linearGradient>
+
+      <radialGradient id="cGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#34d399" stopOpacity="0.35" />
+        <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
+    {/* Background rounded square */}
+    <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#cBg)" />
+    <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#cGlow)" />
+
+    {/* Subtle outer ring */}
+    <rect
+      x="2"
+      y="2"
+      width="60"
+      height="60"
+      rx="16"
+      fill="none"
+      stroke="url(#cArc)"
+      strokeWidth="1.5"
+      opacity="0.7"
+    />
+
+    {/* Cinema reel perforation dots */}
+    {[
+      { x: 12, y: 32 },
+      { x: 15, y: 20 },
+      { x: 22, y: 12 },
+      { x: 32, y: 8 },
+      { x: 42, y: 12 },
+      { x: 49, y: 20 },
+      { x: 52, y: 32 },
+      { x: 49, y: 44 },
+      { x: 42, y: 52 },
+      { x: 32, y: 56 },
+      { x: 22, y: 52 },
+      { x: 15, y: 44 },
+    ].map((dot, i) => (
+      <circle
+        key={i}
+        cx={dot.x}
+        cy={dot.y}
+        r="1.2"
+        fill="url(#cArc)"
+        opacity={i % 2 === 0 ? 0.9 : 0.55}
+      />
+    ))}
+
+    {/* The big "C" arc */}
+    <path
+      d="M 44 20 A 16 16 0 1 0 44 44"
+      stroke="url(#cArc)"
+      strokeWidth="8"
+      strokeLinecap="round"
+      fill="none"
+    />
+
+    {/* Highlight on top-left of the C */}
+    <path
+      d="M 42 20 A 16 16 0 0 0 26 15"
+      stroke="#a7f3d0"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      fill="none"
+      opacity="0.75"
+    />
+
+    {/* Play triangle inside the C */}
+    <path
+      d="M 26 24 L 40 32 L 26 40 Z"
+      fill="url(#cPlay)"
+      stroke="#065f46"
+      strokeWidth="1.2"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M 28 27 L 28 37 L 35 32 Z"
+      fill="#ecfdf5"
+      opacity="0.35"
+    />
+
+    {/* Sparkle accent */}
+    <circle cx="20" cy="18" r="1" fill="#a7f3d0" opacity="0.9" />
+  </svg>
+);
+
+/* ═══════════════════════════════════════════════════════════
+   Navbar
+═══════════════════════════════════════════════════════════ */
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -19,7 +140,6 @@ export default function Navbar() {
   const location = useLocation();
   const searchTimeout = useRef(null);
 
-  // Get context values
   const {
     globalSearchQuery,
     globalSearchFilters,
@@ -43,16 +163,13 @@ export default function Navbar() {
         setSelectedIndex(-1);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Get suggestions as user types
   useEffect(() => {
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
     if (search.trim().length >= 2) {
       searchTimeout.current = setTimeout(() => {
@@ -62,19 +179,15 @@ export default function Navbar() {
       }, 300);
     } else {
       setSuggestions([]);
-      if (!search.trim()) {
-        setShowResults(false);
-      }
+      if (!search.trim()) setShowResults(false);
     }
 
     return () => {
-      if (searchTimeout.current) {
-        clearTimeout(searchTimeout.current);
-      }
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
     };
   }, [search, getSuggestions]);
 
-  // Handle keyboard navigation
+  // Keyboard navigation
   const handleKeyDown = (e) => {
     if (!showResults) return;
 
@@ -113,7 +226,6 @@ export default function Navbar() {
     }
   };
 
-  // Handle search submission
   const handleSearchSubmit = () => {
     if (search.trim()) {
       const searchData = {
@@ -155,7 +267,6 @@ export default function Navbar() {
       if (searchData.type && searchData.type !== 'all') params.set('type', searchData.type);
 
       navigate(`/search?${params.toString()}`);
-
       setIsOpen(false);
       setShowResults(false);
     }
@@ -184,7 +295,7 @@ export default function Navbar() {
           }
         });
         break;
-      case 'category':
+      case 'category': {
         const params = new URLSearchParams();
         params.set('genre', suggestion.title);
         navigate(`/category?${params.toString()}`);
@@ -193,6 +304,7 @@ export default function Navbar() {
           type: 'all'
         });
         break;
+      }
       default:
         break;
     }
@@ -260,7 +372,9 @@ export default function Navbar() {
                 className={`w-full px-4 py-2 text-left hover:bg-emerald-600/20 transition-colors flex items-center gap-3 ${selectedIndex === index ? 'bg-emerald-600/30' : ''}`}
               >
                 <span className="text-gray-400 text-sm">🕒</span>
-                <span className="text-white flex-1 text-sm truncate">{recent.query || 'All Content'}</span>
+                <span className="text-white flex-1 text-sm truncate">
+                  {recent.query || 'All Content'}
+                </span>
                 {recent.genre && (
                   <span className="text-xs px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full">
                     {recent.genre}
@@ -334,51 +448,37 @@ export default function Navbar() {
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
 
-          {/* Logo with Infinity Animation */}
+          {/* ═════════════════ LOGO ═════════════════ */}
           <Link
             to="/"
             onClick={() => {
               setIsOpen(false);
-              if (location.pathname === '/search') {
-                clearGlobalSearch();
-              }
+              if (location.pathname === '/search') clearGlobalSearch();
             }}
-            className="flex items-center gap-2 group"
+            className="flex items-center gap-2.5 group"
           >
             <div className="relative">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 animate-ping opacity-75" style={{ animationDuration: '1.5s' }}></div>
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse opacity-50"></div>
+              {/* Soft glow behind the logo */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 blur-md opacity-40 group-hover:opacity-70 transition-opacity duration-300" />
 
-                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 animate-spin-slow opacity-75"></div>
+              {/* Rotating accent ring */}
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 animate-spin-slow opacity-60" />
 
-                <div className="relative h-10 w-10 md:h-12 md:w-12 rounded-lg overflow-hidden ring-2 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-300 group-hover:scale-105 bg-black">
-                  <img
-                    src={logo}
-                    alt="agasobanuyecineva Logo"
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `
-                        <div class="h-full w-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                          <span class="text-black font-bold text-xl animate-pulse">A</span>
-                        </div>
-                      `;
-                    }}
-                  />
-                </div>
+              {/* The C Play logo */}
+              <div className="relative rounded-2xl overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                <EmeraldCPlayLogo size={48} />
               </div>
-
-              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
             </div>
 
             <div className="flex flex-col">
               <h1 className="text-sm md:text-lg lg:text-xl font-bold">
                 <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
-                  agasobanuyecineva
+                  cineva
                 </span>
               </h1>
-              <span className="text-[8px] md:text-[10px] text-gray-500 -mt-0.5 animate-pulse-slow">Premium Streaming</span>
+              <span className="text-[8px] md:text-[10px] text-emerald-500/70 -mt-0.5 animate-pulse-slow">
+                Premium Streaming
+              </span>
             </div>
           </Link>
 
@@ -448,7 +548,6 @@ export default function Navbar() {
 
           {/* Right Side - Search & VIP Access */}
           <div className="flex items-center gap-2">
-            {/* Desktop Search */}
             <div className="hidden md:block relative" ref={searchRef}>
               <form onSubmit={handleFormSubmit} className="relative">
                 <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
@@ -479,7 +578,6 @@ export default function Navbar() {
               {showResults && renderSuggestions()}
             </div>
 
-            {/* VIP Access Button */}
             <Link
               to="/admin"
               onClick={() => setIsOpen(false)}
@@ -489,7 +587,6 @@ export default function Navbar() {
               VIP Access
             </Link>
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="md:hidden p-1.5 text-gray-300 hover:text-white transition-colors"
@@ -505,7 +602,6 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-emerald-600/30">
           <div className="px-4 py-3 space-y-2">
-            {/* Mobile Search */}
             <div className="relative" ref={searchRef}>
               <form onSubmit={handleFormSubmit}>
                 <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
@@ -539,7 +635,6 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile Navigation Links */}
             <Link
               to="/"
               onClick={() => setIsOpen(false)}
@@ -601,7 +696,6 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {/* VIP Access Button - Mobile */}
             <Link
               to="/admin"
               onClick={() => setIsOpen(false)}
@@ -618,29 +712,18 @@ export default function Navbar() {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        
         @keyframes gradient {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-        
         @keyframes pulse-slow {
           0%, 100% { opacity: 0.7; }
           50% { opacity: 1; }
         }
-        
-        .animate-spin-slow {
-          animation: spin-slow 3s linear infinite;
-        }
-        
-        .animate-gradient {
-          animation: gradient 3s ease infinite;
-        }
-        
-        .animate-pulse-slow {
-          animation: pulse-slow 2s ease-in-out infinite;
-        }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+        .animate-gradient { animation: gradient 3s ease infinite; }
+        .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
       `}</style>
     </nav>
   );

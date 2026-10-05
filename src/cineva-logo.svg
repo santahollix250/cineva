@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="55%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="arc" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6ee7b7"/>
+      <stop offset="45%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#14b8a6"/>
+    </linearGradient>
+    <linearGradient id="play" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="16" y="16" width="480" height="480" rx="128" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="480" rx="128" fill="url(#glow)"/>
+
+  <!-- Subtle outer ring -->
+  <rect x="16" y="16" width="480" height="480" rx="128" fill="none"
+        stroke="url(#arc)" stroke-width="12" opacity="0.7"/>
+
+  <!-- Cinema reel perforations (12 dots around the C) -->
+  <g fill="url(#arc)">
+    <circle cx="96"  cy="256" r="9.6" opacity="0.9"/>
+    <circle cx="120" cy="160" r="9.6" opacity="0.55"/>
+    <circle cx="176" cy="96"  r="9.6" opacity="0.9"/>
+    <circle cx="256" cy="64"  r="9.6" opacity="0.55"/>
+    <circle cx="336" cy="96"  r="9.6" opacity="0.9"/>
+    <circle cx="392" cy="160" r="9.6" opacity="0.55"/>
+    <circle cx="416" cy="256" r="9.6" opacity="0.9"/>
+    <circle cx="392" cy="352" r="9.6" opacity="0.55"/>
+    <circle cx="336" cy="416" r="9.6" opacity="0.9"/>
+    <circle cx="256" cy="448" r="9.6" opacity="0.55"/>
+    <circle cx="176" cy="416" r="9.6" opacity="0.9"/>
+    <circle cx="120" cy="352" r="9.6" opacity="0.55"/>
+  </g>
+
+  <!-- The big "C" arc -->
+  <path d="M 352 160 A 128 128 0 1 0 352 352"
+        stroke="url(#arc)" stroke-width="64" stroke-linecap="round" fill="none"/>
+
+  <!-- Bright highlight on top-left of the C -->
+  <path d="M 336 160 A 128 128 0 0 0 208 120"
+        stroke="#a7f3d0" stroke-width="20" stroke-linecap="round"
+        fill="none" opacity="0.75"/>
+
+  <!-- Play triangle inside the C -->
+  <path d="M 208 192 L 320 256 L 208 320 Z"
+        fill="url(#play)" stroke="#065f46" stroke-width="9.6" stroke-linejoin="round"/>
+
+  <!-- Shine on play button -->
+  <path d="M 224 216 L 224 296 L 280 256 Z" fill="#ecfdf5" opacity="0.35"/>
+
+  <!-- Small sparkle accent -->
+  <circle cx="160" cy="144" r="8" fill="#a7f3d0" opacity="0.9"/>
+</svg>
