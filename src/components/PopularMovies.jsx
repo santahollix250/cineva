@@ -90,8 +90,7 @@ const EmeraldCPlayLogo = ({ size = 110 }) => (
 );
 
 /* ═══════════════════════════════════════════════════════════
-   🎬 NEW SPLASH — CINEVA Cinematic Loading
-   (This replaces the old red/pink "MovieStream" splash)
+   🎬 Cinematic splash
 ═══════════════════════════════════════════════════════════ */
 const CinematicLoading = () => {
   const [progress, setProgress] = useState(0);
@@ -140,19 +139,12 @@ const CinematicLoading = () => {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-[#060d0a] overflow-hidden flex items-center justify-center">
-      {/* Radial background */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#0a2218_0%,_#060d0a_45%,_#000_100%)]" />
-
-      {/* Big emerald glow */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-[520px] h-[520px] bg-emerald-500/15 rounded-full blur-[120px] animate-pulse-slow" />
       </div>
-
-      {/* Teal + cyan blobs */}
       <div className="absolute bottom-[-15%] right-[-10%] w-[380px] h-[380px] bg-teal-500/10 rounded-full blur-[120px] animate-blob" />
       <div className="absolute top-[-15%] left-[-10%] w-[380px] h-[380px] bg-cyan-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000" />
-
-      {/* Film grain */}
       <div
         className="absolute inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none"
         style={{
@@ -162,14 +154,9 @@ const CinematicLoading = () => {
           animation: "grain 8s steps(10) infinite",
         }}
       />
-
-      {/* Vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.9)_100%)] pointer-events-none" />
 
-      {/* ───────── Content ───────── */}
       <div className="relative z-10 text-center px-6 w-full max-w-md">
-
-        {/* Logo with rings */}
         <div
           className={`relative mx-auto mb-8 flex items-center justify-center transition-all duration-1000 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
@@ -186,17 +173,14 @@ const CinematicLoading = () => {
             style={{ animationDuration: "2.5s" }}
           />
           <div className="absolute w-[140px] h-[140px] bg-emerald-500/40 rounded-full blur-3xl animate-pulse-slow" />
-
           <div className="relative drop-shadow-[0_0_25px_rgba(52,211,153,0.5)]">
             <EmeraldCPlayLogo size={110} />
           </div>
-
           <div className="absolute w-[180px] h-[180px] animate-orbit">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
           </div>
         </div>
 
-        {/* Brand */}
         <div
           className={`transition-all duration-1000 delay-200 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -218,7 +202,6 @@ const CinematicLoading = () => {
           </p>
         </div>
 
-        {/* Divider */}
         <div
           className={`mt-6 mb-6 mx-auto h-px max-w-[220px] transition-all duration-1000 delay-400 ${
             mounted ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
@@ -226,7 +209,6 @@ const CinematicLoading = () => {
           style={{ background: "linear-gradient(90deg, transparent, #10b981 40%, #14b8a6 60%, transparent)" }}
         />
 
-        {/* Progress */}
         <div
           className={`transition-all duration-1000 delay-500 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -253,7 +235,6 @@ const CinematicLoading = () => {
           </div>
         </div>
 
-        {/* Feature chips */}
         <div
           className={`mt-8 grid grid-cols-3 gap-2 max-w-[340px] mx-auto transition-all duration-1000 delay-700 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -271,7 +252,6 @@ const CinematicLoading = () => {
           ))}
         </div>
 
-        {/* Bottom strip */}
         <div
           className={`mt-10 text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-emerald-700/70 transition-all duration-1000 delay-1000 ${
             mounted ? "opacity-100" : "opacity-0"
@@ -281,7 +261,6 @@ const CinematicLoading = () => {
         </div>
       </div>
 
-      {/* Animations */}
       <style>{`
         @keyframes grain {
           0%, 100% { transform: translate(0, 0); }
@@ -330,7 +309,7 @@ const CinematicLoading = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════
-   ⬇️ Rest of Movies component unchanged
+   Main Movies component
 ═══════════════════════════════════════════════════════════ */
 export default function Movies() {
   const {
@@ -849,26 +828,13 @@ export default function Movies() {
 
           <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-5">
             {latestSeriesOnly.map(series => (
-              <div key={series?.id} className="relative transform transition-transform duration-300 hover:scale-105">
-                <div className="absolute top-2 left-2 z-10">
-                  <span className="px-2 py-1 bg-emerald-500 text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-lg shadow-emerald-500/40">
-                    <FaPlusCircle className="text-[10px]" />
-                    S{series.latestEpisode.seasonNumber}:E{series.latestEpisode.episodeNumber}
-                  </span>
-                </div>
-                <MovieCard movie={series} onSeriesClick={handleUpdatedSeriesClick} />
-              </div>
+              <MovieCard key={series?.id} movie={series} onSeriesClick={handleUpdatedSeriesClick} />
             ))}
           </div>
 
           <div className="flex md:hidden gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
             {latestSeriesOnly.map(series => (
-              <div key={series?.id} className="flex-none w-[150px] relative transform transition-transform duration-300 active:scale-95">
-                <div className="absolute top-2 left-2 z-10">
-                  <span className="px-2 py-1 bg-emerald-500 text-black text-[10px] font-bold rounded-full shadow-lg shadow-emerald-500/40">
-                    S{series.latestEpisode.seasonNumber}:E{series.latestEpisode.episodeNumber}
-                  </span>
-                </div>
+              <div key={series?.id} className="flex-none w-[150px]">
                 <MovieCard movie={series} onSeriesClick={handleUpdatedSeriesClick} />
               </div>
             ))}
@@ -891,25 +857,13 @@ export default function Movies() {
 
           <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-5">
             {latestMoviesOnly.map(movie => (
-              <div key={movie?.id} className="relative transform transition-transform duration-300 hover:scale-105" onClick={() => handleMovieClick(movie)}>
-                <div className="absolute top-2 left-2 z-10">
-                  <span className="px-2 py-1 bg-emerald-500 text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-lg shadow-emerald-500/40">
-                    <FaUpload className="text-[10px]" /> New
-                  </span>
-                </div>
-                <MovieCard movie={movie} />
-              </div>
+              <MovieCard key={movie?.id} movie={movie} />
             ))}
           </div>
 
           <div className="flex md:hidden gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
             {latestMoviesOnly.map(movie => (
-              <div key={movie?.id} className="flex-none w-[150px] relative transform transition-transform duration-300 active:scale-95" onClick={() => handleMovieClick(movie)}>
-                <div className="absolute top-2 left-2 z-10">
-                  <span className="px-2 py-1 bg-emerald-500 text-black text-[10px] font-bold rounded-full shadow-lg shadow-emerald-500/40">
-                    NEW
-                  </span>
-                </div>
+              <div key={movie?.id} className="flex-none w-[150px]">
                 <MovieCard movie={movie} />
               </div>
             ))}
@@ -990,18 +944,13 @@ export default function Movies() {
 
             <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-5">
               {categoryMovies.slice(0, 12).map(movie => (
-                <div key={movie?.id} className="transform transition-all duration-300 hover:scale-105 hover:z-10" onClick={() => handleMovieClick(movie)}>
-                  <div className="relative group">
-                    <div className={`absolute inset-0 bg-gradient-to-r ${color} rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-md`} />
-                    <MovieCard movie={movie} />
-                  </div>
-                </div>
+                <MovieCard key={movie?.id} movie={movie} />
               ))}
             </div>
 
             <div className="flex md:hidden gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
               {categoryMovies.slice(0, 8).map(movie => (
-                <div key={movie?.id} className="flex-none w-[150px] transform transition-transform duration-300 active:scale-95" onClick={() => handleMovieClick(movie)}>
+                <div key={movie?.id} className="flex-none w-[150px]">
                   <MovieCard movie={movie} />
                 </div>
               ))}
@@ -1022,15 +971,13 @@ export default function Movies() {
 
           <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-5">
             {featuredMovies.slice(0, 12).map(movie => (
-              <div key={movie?.id} className="transform transition-transform duration-300 hover:scale-105" onClick={() => handleMovieClick(movie)}>
-                <MovieCard movie={movie} />
-              </div>
+              <MovieCard key={movie?.id} movie={movie} />
             ))}
           </div>
 
           <div className="flex md:hidden gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
             {featuredMovies.slice(0, 8).map(movie => (
-              <div key={movie?.id} className="flex-none w-[150px] transform transition-transform duration-300 active:scale-95" onClick={() => handleMovieClick(movie)}>
+              <div key={movie?.id} className="flex-none w-[150px]">
                 <MovieCard movie={movie} />
               </div>
             ))}
@@ -1136,9 +1083,7 @@ export default function Movies() {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-4 md:gap-5 lg:gap-6">
               {displayedMovies.map(movie => (
-                <div key={movie?.id} className="transform transition-all duration-300 hover:scale-105 hover:z-10" onClick={() => handleMovieClick(movie)}>
-                  <MovieCard movie={movie} />
-                </div>
+                <MovieCard key={movie?.id} movie={movie} />
               ))}
             </div>
 

@@ -39,6 +39,20 @@ export default function MovieCard({ movie, onSeriesClick }) {
   const year = movie?.year || movie?.release_date?.split('-')[0] || '';
   const category = movie?.category?.split(',')[0]?.trim() || '';
 
+  // ── Is this a "new" upload? (uploaded in the last 14 days) ──
+  const uploadedDateStr = movie?.created_at || movie?.uploaded_at || movie?.timestamp;
+  const isNewUpload = (() => {
+    if (!uploadedDateStr) return false;
+    try {
+      const uploaded = new Date(uploadedDateStr);
+      const now = new Date();
+      const diffDays = (now - uploaded) / (1000 * 60 * 60 * 24);
+      return diffDays >= 0 && diffDays <= 14;
+    } catch (e) {
+      return false;
+    }
+  })();
+
   const formatUploadedTime = (dateString) => {
     if (!dateString) return null;
     try {
@@ -58,7 +72,7 @@ export default function MovieCard({ movie, onSeriesClick }) {
     } catch (e) { return null; }
   };
 
-  const uploadedTime = formatUploadedTime(movie?.created_at || movie?.uploaded_at || movie?.timestamp);
+  const uploadedTime = formatUploadedTime(uploadedDateStr);
 
   const handleWatchNow = (e) => {
     e?.preventDefault();
@@ -114,7 +128,7 @@ export default function MovieCard({ movie, onSeriesClick }) {
   return (
     <div
       className={`group relative cursor-pointer transition-all duration-300 ease-out
-        w-[130px] xs:w-[140px] sm:w-[155px] md:w-[175px] lg:w-[195px] xl:w-[215px]
+        w-full
         ${isHovered ? 'sm:-translate-y-1' : ''}
       `}
       onMouseEnter={() => setIsHovered(true)}
@@ -157,54 +171,79 @@ export default function MovieCard({ movie, onSeriesClick }) {
           )}
         </div>
 
-        {/* ─── TOP-LEFT: Type pill (tiny, text only) ─── */}
-        <span
-          className={`absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[8px] sm:text-[9px]
-            font-black tracking-wider uppercase backdrop-blur-sm shadow
-            ${isSeries
-              ? 'bg-emerald-500/95 text-black'
-              : 'bg-cyan-500/95 text-black'
-            }`}
-        >
-          {isSeries ? 'Series' : 'Movie'}
-        </span>
+        {/* ═══════════ TOP ROW: Type + NEW on left, Rating on right ═══════════ */}
+        <div className="absolute top-1.5 left-1.5 right-1.5 flex items-start justify-between gap-1 z-10">
 
-        {/* ─── TOP-RIGHT: Rating (only if exists) ─── */}
-        {rating && (
-          <span className="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5
-            px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold
-            bg-black/70 backdrop-blur-sm border border-amber-400/40 text-amber-300 shadow">
-            <FaStar className="text-[7px] text-amber-400" />
-            {rating}
-          </span>
-        )}
+          {/* Left cluster: Type + optional NEW */}
+          <div className="flex items-center gap-1 min-w-0">
+            <span
+              className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px]
+                font-black tracking-wider uppercase backdrop-blur-sm shadow flex-shrink-0
+                ${isSeries
+                  ? 'bg-emerald-500/95 text-black'
+                  : 'bg-cyan-500/95 text-black'
+                }`}
+            >
+              {isSeries ? 'Series' : 'Movie'}
+            </span>
 
-        {/* ─── BOTTOM-LEFT: Year ─── */}
-        {year && (
-          <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded
-            text-[8px] sm:text-[9px] font-semibold text-white/90
-            bg-black/60 backdrop-blur-sm">
-            {year}
-          </span>
-        )}
+            {isNewUpload && (
+              <span
+                className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px]
+                  font-black tracking-wider uppercase backdrop-blur-sm shadow flex-shrink-0
+                  bg-gradient-to-r from-amber-400 to-yellow-400 text-black
+                  animate-pulse"
+                style={{ animationDuration: '2s' }}
+              >
+                New
+              </span>
+            )}
+          </div>
 
-        {/* ─── BOTTOM-RIGHT: Like button ─── */}
-        <button
-          onClick={toggleLike}
-          aria-label="Like"
-          className={`absolute bottom-1.5 right-1.5 w-6 h-6 sm:w-7 sm:h-7 rounded-full
-            flex items-center justify-center transition-all duration-200
-            ${liked
-              ? 'bg-emerald-500 shadow-md shadow-emerald-500/50'
-              : 'bg-black/60 backdrop-blur-sm hover:bg-black/80'
-            }`}
-        >
-          {liked ? (
-            <FaHeart className="text-black text-[10px] sm:text-xs" />
-          ) : (
-            <FaRegHeart className="text-white text-[10px] sm:text-xs" />
+          {/* Right cluster: Rating only */}
+          {rating && (
+            <span className="inline-flex items-center gap-0.5
+              px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold
+              bg-black/70 backdrop-blur-sm border border-amber-400/40 text-amber-300 shadow
+              flex-shrink-0">
+              <FaStar className="text-[7px] text-amber-400" />
+              {rating}
+            </span>
           )}
-        </button>
+        </div>
+
+        {/* ═══════════ BOTTOM ROW: Year on left, Like on right ═══════════ */}
+        <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between gap-1 z-10">
+
+          {/* Year pill (or empty spacer so like stays right) */}
+          {year ? (
+            <span className="px-1.5 py-0.5 rounded
+              text-[8px] sm:text-[9px] font-semibold text-white/90
+              bg-black/60 backdrop-blur-sm">
+              {year}
+            </span>
+          ) : (
+            <span />
+          )}
+
+          {/* Like button */}
+          <button
+            onClick={toggleLike}
+            aria-label="Like"
+            className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex-shrink-0
+              flex items-center justify-center transition-all duration-200
+              ${liked
+                ? 'bg-emerald-500 shadow-md shadow-emerald-500/50'
+                : 'bg-black/60 backdrop-blur-sm hover:bg-black/80'
+              }`}
+          >
+            {liked ? (
+              <FaHeart className="text-black text-[10px] sm:text-xs" />
+            ) : (
+              <FaRegHeart className="text-white text-[10px] sm:text-xs" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* ═══════════ INFO BELOW POSTER ═══════════ */}

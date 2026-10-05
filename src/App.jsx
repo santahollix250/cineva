@@ -1,4 +1,4 @@
-// App.jsx - Updated with Midnight Emerald VIP-style Admin Form
+// App.jsx - Updated with Midnight Emerald VIP-style Admin Form + PWA Install
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { MoviesProvider } from './context/MoviesContext';
@@ -9,6 +9,7 @@ import Series from './pages/Series';
 import Admin from './pages/Admin';
 import Player from "./components/Player";
 import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
+import PwaInstallButton from './components/PwaInstallButton';   // ⬅️ NEW
 import SeriesPlayer from './components/SeriesPlayer';
 import TranslatorPage from './pages/TranslatorPage';
 import NationPage from './pages/NationPage';
@@ -45,7 +46,11 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+
+        {/* ⬇️ Floating buttons (PWA install sits above WhatsApp) */}
+        <PwaInstallButton />
         <WhatsAppFloatingButton />
+
         <Footer />
       </div>
     </MoviesProvider>
