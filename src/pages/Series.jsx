@@ -24,7 +24,8 @@ export default function Series() {
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [favorites, setFavorites] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
-  const [sortBy, setSortBy] = useState("popular");
+  // ⭐ DEFAULT SORT: NEWEST FIRST
+  const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
   const [activeTab, setActiveTab] = useState("all");
   const [isDragging, setIsDragging] = useState(false);
@@ -166,7 +167,6 @@ export default function Series() {
     return episodeCount * 10 + rating * 20;
   };
 
-  // Get latest seasons for slideshow
   const latestSeasons = useMemo(() => {
     if (!allSeries.length) return [];
 
@@ -200,7 +200,13 @@ export default function Series() {
       case "rating":
         return series.sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
       case "newest":
-        return series.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        // ⭐ Newest first via created_at (fallbacks included)
+        return series.sort((a, b) => {
+          const aTime = new Date(a.created_at || a.createdAt || 0).getTime() || 0;
+          const bTime = new Date(b.created_at || b.createdAt || 0).getTime() || 0;
+          if (bTime !== aTime) return bTime - aTime;
+          return (a.title || "").localeCompare(b.title || "");
+        });
       case "episodes":
         return series.sort((a, b) => getEpisodesForSeries(b.id).length - getEpisodesForSeries(a.id).length);
       case "title":
@@ -483,13 +489,11 @@ export default function Series() {
   // ========== RENDER ==========
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900 pt-0 pb-0">
-      {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-40 md:w-80 h-40 md:h-80 bg-emerald-600/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-20 -left-20 w-40 md:w-80 h-40 md:h-80 bg-teal-600/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Scroll Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-800/30">
         <div
           className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300 ease-out"
@@ -497,7 +501,6 @@ export default function Series() {
         ></div>
       </div>
 
-      {/* Scroll to Top Button */}
       <button
         onClick={scrollToTop}
         className={`fixed bottom-6 right-6 z-50 p-3 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full text-black shadow-lg shadow-emerald-500/40 hover:scale-110 transition-all duration-300 ${showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
@@ -738,9 +741,9 @@ export default function Series() {
               onChange={(e) => setSortBy(e.target.value)}
               className="flex-1 px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm transition-all focus:border-emerald-500"
             >
+              <option value="newest">Newest</option>
               <option value="popular">Popular</option>
               <option value="rating">Top Rated</option>
-              <option value="newest">Newest</option>
               <option value="episodes">Most Episodes</option>
             </select>
             <select
@@ -788,9 +791,9 @@ export default function Series() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-3 bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-2xl text-white focus:outline-none focus:border-emerald-500/50 transition-all"
               >
+                <option value="newest">Newest</option>
                 <option value="popular">Most Popular</option>
                 <option value="rating">Top Rated</option>
-                <option value="newest">Newest</option>
                 <option value="episodes">Most Episodes</option>
               </select>
             </div>
@@ -820,7 +823,6 @@ export default function Series() {
 
         {/* Series Grid/List */}
         <div className="mb-0">
-          {/* Desktop Title */}
           <div className="hidden md:flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white animate-fadeIn">
               {activeTab === "all" ? "All Series" : activeTab.charAt(0).toUpperCase() + activeTab.slice(1) + " Series"}
@@ -1048,7 +1050,6 @@ export default function Series() {
             )}
           </div>
 
-          {/* Auto Load More Trigger */}
           {visible < filteredSeries.length && (
             <div
               ref={loadMoreTriggerRef}
@@ -1061,7 +1062,6 @@ export default function Series() {
             </div>
           )}
 
-          {/* End of content message */}
           {visible >= filteredSeries.length && filteredSeries.length > 0 && (
             <div className="text-center mt-8 md:mt-12 py-8 animate-fadeIn">
               <div className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800/30 rounded-full">
@@ -1073,74 +1073,29 @@ export default function Series() {
         </div>
       </div>
 
-      {/* Add animation styles */}
       <style jsx>{`
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-        
         @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        
         @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        
         @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
         }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
-        }
-        
-        .animate-slideUp {
-          animation: slideUp 0.5s ease-out forwards;
-        }
-        
-        .animate-slideDown {
-          animation: slideDown 0.5s ease-out forwards;
-        }
-        
-        .animate-slideIn {
-          animation: slideIn 0.5s ease-out forwards;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-slideUp { animation: slideUp 0.5s ease-out forwards; }
+        .animate-slideDown { animation: slideDown 0.5s ease-out forwards; }
+        .animate-slideIn { animation: slideIn 0.5s ease-out forwards; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );

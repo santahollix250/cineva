@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { MoviesContext } from "../context/MoviesContext";
 import { supabase } from '../lib/supabase';
 import { getTranslatorsWithProfiles } from '../lib/translators';
+import { saveCastForMovie } from '../lib/tmdb';
 import TranslatorManager from '../components/TranslatorManager';
 import CastFetcher from '../components/CastFetcher';
 import {
@@ -17,7 +18,6 @@ import {
   FaMobileAlt, FaDesktop, FaMagic
 } from "react-icons/fa";
 
-// Country data with flags
 const countries = [
   { code: "US", name: "United States", flag: "🇺🇸" },
   { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
@@ -182,7 +182,6 @@ function Admin({ onLogout }) {
     useMainVideo: true
   };
 
-  // States
   const [form, setForm] = useState(emptyMovie);
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -203,10 +202,10 @@ function Admin({ onLogout }) {
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  // Translators
   const [adminTranslators, setAdminTranslators] = useState([]);
 
-  // Image upload states
+  const [stagedCast, setStagedCast] = useState([]);
+
   const [uploadingPoster, setUploadingPoster] = useState(false);
   const [uploadingBackground, setUploadingBackground] = useState(false);
   const [posterPreview, setPosterPreview] = useState("");
@@ -218,20 +217,23 @@ function Admin({ onLogout }) {
     background: 'link'
   });
 
-  // Parts management states
   const [selectedMovieForParts, setSelectedMovieForParts] = useState(null);
   const [movieParts, setMovieParts] = useState([]);
   const [partForm, setPartForm] = useState(emptyPart);
   const [editingPart, setEditingPart] = useState(null);
   const [showPartForm, setShowPartForm] = useState(false);
 
-  // Episode editing states
   const [editingEpisode, setEditingEpisode] = useState(null);
   const [showEpisodeForm, setShowEpisodeForm] = useState(false);
 
   const [mainVideoUrl, setMainVideoUrl] = useState("");
 
-  // Load translators list
+  // ⭐ NEW: parts added inside the "Add/Edit Content" form.
+  // Same shape as movieParts so both writers/readers stay in sync.
+  const [formParts, setFormParts] = useState([]);          // list of saved-in-form parts
+  const [formPartForm, setFormPartForm] = useState(emptyPart); // the mini "add part" form
+  const [editingFormPart, setEditingFormPart] = useState(null); // part being edited in-form
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -608,6 +610,12 @@ function Admin({ onLogout }) {
     setPartForm((f) => ({ ...f, [name]: value }));
   }
 
+  // ⭐ NEW: form part change handler (mirrors handlePartChange but for the in-form mini form)
+  function handleFormPartChange(e) {
+    const { name, value } = e.target;
+    setFormPartForm((f) => ({ ...f, [name]: value }));
+  }
+
   function toggleUseMainVideoForEpisode() {
     setEpisodeForm(prev => ({
       ...prev,
@@ -617,6 +625,14 @@ function Admin({ onLogout }) {
 
   function toggleUseMainVideoForPart() {
     setPartForm(prev => ({
+      ...prev,
+      useMainVideo: !prev.useMainVideo
+    }));
+  }
+
+  // ⭐ NEW: toggle for form part's "use main video"
+  function toggleUseMainVideoForFormPart() {
+    setFormPartForm(prev => ({
       ...prev,
       useMainVideo: !prev.useMainVideo
     }));
@@ -643,6 +659,81 @@ function Admin({ onLogout }) {
     }
   }
 
+  // ⭐ NEW: in-form parts — add / update / delete / edit
+  function handleAddOrUpdateFormPart() {
+    if (!formPartForm.title) {
+      addNotification("error", "Part title is required");
+      return;
+    }
+
+    let finalVideoUrl = "";
+    if (formPartForm.useMainVideo) {
+      finalVideoUrl = mainVideoUrl || form.videoUrl;
+      if (!finalVideoUrl) {
+        addNotification("error", "No main video URL yet. Add the main video URL first, or uncheck 'Use Main Video'.");
+        return;
+      }
+    }
+
+    setFormParts(prev => {
+      const data = {
+        partNumber: parseInt(formPartForm.partNumber) || (prev.length + 1),
+        title: formPartForm.title,
+        download_link: formPartForm.download_link || "",
+        videoUrl: finalVideoUrl
+      };
+
+      let updated;
+      if (editingFormPart) {
+        updated = prev.map(p => p.partNumber === editingFormPart.partNumber ? { ...p, ...data } : p);
+        addNotification("success", `Part ${data.partNumber} updated`);
+      } else {
+        updated = [...prev, data];
+        addNotification("success", `Part ${data.partNumber} added`);
+      }
+      return updated.sort((a, b) => a.partNumber - b.partNumber);
+    });
+
+    setFormPartForm({
+      ...emptyPart,
+      partNumber: (formParts.length + 2),
+      useMainVideo: true
+    });
+    setEditingFormPart(null);
+  }
+
+  function handleEditFormPart(part) {
+    setEditingFormPart(part);
+    setFormPartForm({
+      partNumber: part.partNumber,
+      title: part.title,
+      download_link: part.download_link || "",
+      useMainVideo: false
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleCancelEditFormPart() {
+    setEditingFormPart(null);
+    setFormPartForm({
+      ...emptyPart,
+      partNumber: formParts.length + 1,
+      useMainVideo: true
+    });
+  }
+
+  function handleDeleteFormPart(partNumber, partTitle) {
+    if (!window.confirm(`Remove part ${partNumber} - "${partTitle}"?`)) return;
+    setFormParts(prev => {
+      const filtered = prev.filter(p => p.partNumber !== partNumber);
+      return filtered.map((p, i) => ({ ...p, partNumber: i + 1 }));
+    });
+    if (editingFormPart && editingFormPart.partNumber === partNumber) {
+      handleCancelEditFormPart();
+    }
+    addNotification("success", `Part ${partNumber} removed`);
+  }
+
   function startEdit(movie) {
     if (!movie) return;
 
@@ -655,25 +746,36 @@ function Admin({ onLogout }) {
         } else if (parsed && parsed.parts) {
           parts = parsed.parts;
         }
-      } catch (e) {
-        // Not JSON, keep as is
-      }
+      } catch (e) { /* ignore */ }
     }
 
     setEditingId(movie.id);
     setForm({
       ...emptyMovie,
       ...movie,
+      videoUrl: movie.videoUrl || "",
+      streamLink: movie.streamLink || "",
+      videoId: movie.videoId || "",
+      embedCode: movie.embedCode || "",
+      videoType: movie.videoType || detectPlatform(movie.videoUrl || ""),
       category: movie.category || "",
       nation: movie.nation || "",
       translator: movie.translator || "",
       parts: parts
     });
 
-    if (movie.videoUrl) {
-      setMainVideoUrl(movie.videoUrl);
-    }
+    // ⭐ Load existing parts into the in-form list so they can be edited
+    setFormParts(parts.sort((a, b) => a.partNumber - b.partNumber));
+    setFormPartForm({
+      ...emptyPart,
+      partNumber: parts.length + 1,
+      useMainVideo: true
+    });
+    setEditingFormPart(null);
 
+    if (movie.videoUrl) setMainVideoUrl(movie.videoUrl);
+
+    setStagedCast([]);
     setPreview(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
     addNotification("info", `Editing: ${movie.title}`);
@@ -725,6 +827,12 @@ function Admin({ onLogout }) {
     setCountrySearchTerm("");
     setShowCategoryDropdown(false);
     setCategorySearchTerm("");
+    setStagedCast([]);
+
+    // ⭐ Reset in-form parts
+    setFormParts([]);
+    setFormPartForm(emptyPart);
+    setEditingFormPart(null);
 
     if (posterPreview) {
       URL.revokeObjectURL(posterPreview);
@@ -746,14 +854,22 @@ function Admin({ onLogout }) {
       return;
     }
 
-    if (!form.videoUrl && !form.videoFile) {
+    const existing = editingId ? movies.find(m => m.id === editingId) : null;
+
+    const effectiveVideoUrl = form.videoUrl || existing?.videoUrl || "";
+    const effectiveVideoType =
+      form.videoUrl
+        ? form.videoType
+        : (existing?.videoType || form.videoType);
+
+    if (!effectiveVideoUrl && !form.videoFile) {
       addNotification("error", "Video URL is required");
       return;
     }
 
-    if (form.videoUrl) {
-      const validation = validateVideoUrl(form.videoUrl, form.videoType);
-      if (!validation.valid && form.videoType !== VIDEO_PLATFORMS.DIRECT) {
+    if (effectiveVideoUrl && effectiveVideoType !== VIDEO_PLATFORMS.DIRECT) {
+      const validation = validateVideoUrl(effectiveVideoUrl, effectiveVideoType);
+      if (!validation.valid) {
         addNotification("error", validation.message);
         return;
       }
@@ -762,13 +878,30 @@ function Admin({ onLogout }) {
     let videoId = '';
     let streamLink = '';
 
-    if (form.videoType === VIDEO_PLATFORMS.YOUTUBE && form.videoUrl) {
-      videoId = extractYoutubeId(form.videoUrl);
+    if (effectiveVideoType === VIDEO_PLATFORMS.YOUTUBE && effectiveVideoUrl) {
+      videoId = extractYoutubeId(effectiveVideoUrl) || existing?.videoId || '';
       streamLink = generateEmbedUrl(videoId);
-    } else if (form.videoType === VIDEO_PLATFORMS.DIRECT) {
-      videoId = form.videoUrl;
-      streamLink = form.videoUrl;
+    } else if (effectiveVideoType === VIDEO_PLATFORMS.DIRECT) {
+      videoId = effectiveVideoUrl;
+      streamLink = effectiveVideoUrl;
     }
+
+    // ⭐ Parts added in the create/edit form → stored in download JSON,
+    // exactly like Manage Movie Parts does. Only if the admin actually added parts;
+    // otherwise preserve whatever the movie already had in DB.
+    const cleanedFormParts = formParts
+      .filter(p => p && (p.title || "").trim() !== "")
+      .map((p, i) => ({
+        partNumber: i + 1,
+        title: p.title,
+        download_link: p.download_link || "",
+        videoUrl: p.videoUrl || ""
+      }));
+
+    const downloadPayload =
+      cleanedFormParts.length > 0
+        ? JSON.stringify(cleanedFormParts)
+        : (existing?.download || form.download || "");
 
     const finalData = {
       title: form.title,
@@ -777,14 +910,14 @@ function Admin({ onLogout }) {
       background: form.background || form.poster || "",
       category: form.category || "",
       type: form.type,
-      videoUrl: form.videoUrl || "",
-      streamLink: streamLink,
+      videoUrl: effectiveVideoUrl,
+      streamLink: streamLink || existing?.streamLink || "",
       download_link: form.download_link || "",
       nation: form.nation || "",
       translator: form.translator || "",
-      videoType: form.videoType,
-      videoId: videoId,
-      embedCode: form.embedCode || "",
+      videoType: effectiveVideoType,
+      videoId: videoId || existing?.videoId || "",
+      embedCode: form.embedCode || existing?.embedCode || "",
       duration: form.duration || "",
       quality: form.quality || "HD",
       year: form.year || "",
@@ -792,7 +925,7 @@ function Admin({ onLogout }) {
       imdbRating: form.imdbRating || null,
       status: form.status || "completed",
       views: parseInt(form.views) || 0,
-      download: form.download || ""
+      download: downloadPayload
     };
 
     if (form.type === "series") {
@@ -804,10 +937,42 @@ function Admin({ onLogout }) {
     try {
       if (editingId) {
         await updateMovie(editingId, finalData);
+
+        if (stagedCast.length > 0) {
+          try {
+            await saveCastForMovie(editingId, stagedCast);
+            addNotification("success", `Cast updated (${stagedCast.length})`);
+          } catch (castErr) {
+            console.warn('Cast save failed:', castErr);
+            addNotification("error", "Movie saved but cast update failed");
+          }
+        }
+
         addNotification("success", `${form.type === 'series' ? 'Series' : 'Movie'} updated`);
       } else {
-        await addMovie(finalData);
+        const created = await addMovie(finalData);
         addNotification("success", `${form.type === 'series' ? 'Series' : 'Movie'} added`);
+
+        let newId = created?.id || created?.[0]?.id;
+        if (!newId) {
+          await refreshMovies();
+          const found = (movies || []).find(m => m.title === finalData.title);
+          newId = found?.id;
+        }
+
+        if (stagedCast.length > 0) {
+          if (newId) {
+            try {
+              await saveCastForMovie(newId, stagedCast);
+              addNotification("success", `Cast attached (${stagedCast.length})`);
+            } catch (castErr) {
+              console.warn('Cast attach failed:', castErr);
+              addNotification("error", "Movie saved but cast attach failed");
+            }
+          } else {
+            addNotification("info", "Cast staged but could not attach — open the movie and re-fetch");
+          }
+        }
       }
 
       refreshMovies();
@@ -1119,7 +1284,10 @@ function Admin({ onLogout }) {
   });
 
   const sortedMovies = [...filteredMovies].sort((a, b) => {
-    return a.title.localeCompare(b.title);
+    const aTime = new Date(a.created_at || a.createdAt || 0).getTime() || 0;
+    const bTime = new Date(b.created_at || b.createdAt || 0).getTime() || 0;
+    if (bTime !== aTime) return bTime - aTime;
+    return (a.title || "").localeCompare(b.title || "");
   });
 
   const seriesOnly = movies.filter(m => m.type === "series");
@@ -1358,7 +1526,10 @@ function Admin({ onLogout }) {
                       <button
                         key={key}
                         type="button"
-                        onClick={() => setForm(prev => ({ ...prev, videoType: key, videoUrl: '' }))}
+                        onClick={() => setForm(prev => {
+                          if (prev.videoType === key) return prev;
+                          return { ...prev, videoType: key, videoUrl: '' };
+                        })}
                         className={`p-2 sm:p-3 rounded-xl flex items-center gap-2 sm:gap-3 ${isActive
                           ? 'border-2'
                           : 'border border-gray-700'
@@ -1473,7 +1644,7 @@ function Admin({ onLogout }) {
                   />
                 </div>
 
-                {/* POSTER UPLOAD */}
+                {/* POSTER */}
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1 sm:mb-2">
                     <label className="block text-xs sm:text-sm font-medium text-gray-300 flex items-center gap-1">
@@ -1485,13 +1656,9 @@ function Admin({ onLogout }) {
                       className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 flex items-center gap-1 self-start"
                     >
                       {imageUploadMethod.poster === 'link' ? (
-                        <>
-                          <FaUpload className="text-[8px] sm:text-xs" /> Switch to Upload
-                        </>
+                        <><FaUpload className="text-[8px] sm:text-xs" /> Switch to Upload</>
                       ) : (
-                        <>
-                          <FaLink className="text-[8px] sm:text-xs" /> Switch to Link
-                        </>
+                        <><FaLink className="text-[8px] sm:text-xs" /> Switch to Link</>
                       )}
                     </button>
                   </div>
@@ -1553,7 +1720,7 @@ function Admin({ onLogout }) {
                   )}
                 </div>
 
-                {/* BACKGROUND UPLOAD */}
+                {/* BACKGROUND */}
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1 sm:mb-2">
                     <label className="block text-xs sm:text-sm font-medium text-gray-300 flex items-center gap-1">
@@ -1565,13 +1732,9 @@ function Admin({ onLogout }) {
                       className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 flex items-center gap-1 self-start"
                     >
                       {imageUploadMethod.background === 'link' ? (
-                        <>
-                          <FaUpload className="text-[8px] sm:text-xs" /> Switch to Upload
-                        </>
+                        <><FaUpload className="text-[8px] sm:text-xs" /> Switch to Upload</>
                       ) : (
-                        <>
-                          <FaLink className="text-[8px] sm:text-xs" /> Switch to Link
-                        </>
+                        <><FaLink className="text-[8px] sm:text-xs" /> Switch to Link</>
                       )}
                     </button>
                   </div>
@@ -1715,7 +1878,7 @@ function Admin({ onLogout }) {
                   </div>
                 </div>
 
-                {/* TRANSLATOR DROPDOWN */}
+                {/* Translator */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
                     <FaLanguage className="text-emerald-400" /> Translator
@@ -1829,28 +1992,168 @@ function Admin({ onLogout }) {
                   />
                 </div>
 
-                {/* ✅ CAST AUTO-FETCH FROM TMDB */}
-                {editingId && (
-                  <div className="sm:col-span-2 mt-2 pt-4 border-t border-gray-700">
-                    <CastFetcher
-                      movie={form}
-                      addNotification={addNotification}
-                    />
-                  </div>
-                )}
-
-                {/* Download Link */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
-                    <FaDownload className="text-emerald-400" /> Download Link (Optional)
-                  </label>
-                  <input
-                    name="download_link"
-                    value={form.download_link}
-                    onChange={handleChange}
-                    placeholder="https://example.com/download/movie.mp4"
-                    className="w-full p-2 sm:p-3 bg-gray-800/70 border border-gray-700 rounded-xl text-xs sm:text-sm"
+                {/* CAST — always visible for create + edit */}
+                <div className="sm:col-span-2 mt-2 pt-4 border-t border-gray-700">
+                  <CastFetcher
+                    movie={form}
+                    addNotification={addNotification}
+                    stagedCast={stagedCast}
+                    onCastStaged={setStagedCast}
                   />
+                </div>
+
+                {/* ⭐ PARTS — same features as Manage Movie Parts, right inside the form */}
+                <div className="sm:col-span-2 mt-2 pt-4 border-t border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-xs sm:text-sm font-semibold text-gray-200 flex items-center gap-2">
+                      <FaLayerGroup className="text-cyan-400 text-xs" />
+                      Movie Parts / Download Links
+                      <span className="text-[10px] font-normal text-gray-500">(optional)</span>
+                    </label>
+                    <span className="text-[10px] sm:text-xs px-2 py-0.5 bg-cyan-600/20 text-cyan-300 rounded-full">
+                      {formParts.length} part(s)
+                    </span>
+                  </div>
+
+                  {/* Mini "Add / Edit Part" form — mirrors Manage Movie Parts exactly */}
+                  <div className="mb-4 p-3 sm:p-4 bg-cyan-900/15 rounded-xl border border-cyan-500/30">
+                    <h4 className="text-xs sm:text-sm font-bold mb-3 text-cyan-300">
+                      {editingFormPart ? `Edit Part ${editingFormPart.partNumber}` : "Add New Part"}
+                    </h4>
+
+                    <div className="mb-3 p-2 sm:p-3 bg-cyan-900/20 rounded-lg border border-cyan-500/30">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formPartForm.useMainVideo}
+                          onChange={toggleUseMainVideoForFormPart}
+                          className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[11px] sm:text-xs font-medium text-cyan-300 flex items-center gap-2">
+                            <FaVideo className="text-[10px]" /> Use Main Movie Video
+                          </span>
+                          <p className="text-[9px] sm:text-[10px] text-gray-400 mt-0.5 break-all">
+                            Main video URL: {(mainVideoUrl || form.videoUrl) || "No main video set yet"}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                      <div>
+                        <label className="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">Part Number</label>
+                        <input
+                          name="partNumber"
+                          value={formPartForm.partNumber}
+                          onChange={handleFormPartChange}
+                          type="number"
+                          min="1"
+                          className="w-full p-2 bg-gray-800/70 border border-gray-700 rounded-lg text-xs"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">Part Title *</label>
+                        <input
+                          name="title"
+                          value={formPartForm.title}
+                          onChange={handleFormPartChange}
+                          placeholder="e.g., Part 1: The Beginning"
+                          className="w-full p-2 bg-gray-800/70 border border-gray-700 rounded-lg text-xs"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1 flex items-center gap-1">
+                          <FaDownload className="text-[9px]" /> Download Link (Optional)
+                        </label>
+                        <input
+                          name="download_link"
+                          value={formPartForm.download_link}
+                          onChange={handleFormPartChange}
+                          placeholder="https://example.com/download/part1.mp4"
+                          className="w-full p-2 bg-gray-800/70 border border-gray-700 rounded-lg text-xs"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2">
+                        <button
+                          type="button"
+                          onClick={handleAddOrUpdateFormPart}
+                          className="w-full sm:flex-1 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 rounded-lg font-semibold text-xs text-black flex items-center justify-center gap-1"
+                        >
+                          <FaPlusCircle className="text-[10px]" />
+                          {editingFormPart ? "Update Part" : "Add Part"}
+                        </button>
+                        {editingFormPart && (
+                          <button
+                            type="button"
+                            onClick={handleCancelEditFormPart}
+                            className="w-full sm:w-auto px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold text-xs"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* List of parts added in this form */}
+                  {formParts.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[10px] sm:text-xs text-cyan-300 font-medium">
+                        Parts added to this movie ({formParts.length}):
+                      </p>
+                      {formParts.map((part) => (
+                        <div
+                          key={part.partNumber}
+                          className="bg-gray-800/40 rounded-lg p-2.5 hover:bg-gray-800/60 transition-colors border border-gray-800"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center flex-wrap gap-1 sm:gap-2 mb-0.5">
+                                <span className="px-2 py-0.5 bg-cyan-600/20 text-cyan-400 rounded-full text-[10px] font-bold">
+                                  Part {part.partNumber}
+                                </span>
+                                <h4 className="font-medium text-xs truncate">{part.title}</h4>
+                                {part.download_link && (
+                                  <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[8px] flex items-center gap-0.5">
+                                    <FaDownload className="text-[6px]" /> Link
+                                  </span>
+                                )}
+                                {part.videoUrl && (
+                                  <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[8px] flex items-center gap-0.5">
+                                    <FaVideo className="text-[6px]" /> Video
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-1 self-end sm:self-center">
+                              <button
+                                type="button"
+                                onClick={() => handleEditFormPart(part)}
+                                className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 rounded"
+                                title="Edit part"
+                              >
+                                <FaEdit className="text-emerald-400 text-xs" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteFormPart(part.partNumber, part.title)}
+                                className="p-1.5 bg-red-600/20 hover:bg-red-600/30 rounded"
+                                title="Delete part"
+                              >
+                                <FaTrash className="text-red-400 text-xs" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-3">
+                    These parts are saved with the movie and appear in the same place as the ones you add in <span className="text-cyan-400">Manage Movie Parts</span>.
+                  </p>
                 </div>
               </div>
 
@@ -1881,6 +2184,7 @@ function Admin({ onLogout }) {
                 <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
                   <FaTv className="text-emerald-500 text-sm sm:text-base" />
                   All Content ({movies.length})
+                  <span className="text-[10px] sm:text-xs font-normal text-emerald-400 ml-1">newest first</span>
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative">
@@ -2282,7 +2586,7 @@ function Admin({ onLogout }) {
           </div>
         )}
 
-        {/* ============ PARTS TAB ============ */}
+        {/* ============ PARTS TAB (unchanged) ============ */}
         {activeTab === "parts" && (
           <div className="space-y-4 sm:space-y-6">
             <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-lg rounded-xl border border-emerald-900/30 p-4 sm:p-6">

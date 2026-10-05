@@ -1,13 +1,21 @@
 // src/components/CastFetcher.jsx
 import { useState, useEffect } from 'react';
 import {
-  FaMagic, FaSearch, FaUser, FaSpinner, FaInfoCircle
+  FaMagic, FaSearch, FaUser, FaSpinner, FaInfoCircle, FaCheckCircle
 } from 'react-icons/fa';
 import {
   searchTmdb, fetchTmdbCredits, saveCastForMovie, loadCastForMovie, tmdbImage,
 } from '../lib/tmdb';
 
-export default function CastFetcher({ movie, onCastSaved, addNotification }) {
+export default function CastFetcher({
+  movie,
+  onCastSaved,
+  addNotification,
+  // New staging props:
+  stagedCast = [],
+  onCastStaged,
+}) {
+  const isStaging = !movie?.id;
   const [open, setOpen] = useState(false);
   const [searchTitle, setSearchTitle] = useState('');
   const [searchYear, setSearchYear] = useState('');
@@ -16,11 +24,15 @@ export default function CastFetcher({ movie, onCastSaved, addNotification }) {
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState(null);
   const [fetchingCast, setFetchingCast] = useState(false);
-  const [currentCast, setCurrentCast] = useState([]);
+  const [currentCast, setCurrentCast] = useState([]); // DB cast (edit mode)
   const [loading, setLoading] = useState(false);
 
+  // Load existing cast from DB when editing
   useEffect(() => {
-    if (!movie?.id) return;
+    if (!movie?.id) {
+      setCurrentCast([]);
+      return;
+    }
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -33,11 +45,15 @@ export default function CastFetcher({ movie, onCastSaved, addNotification }) {
     return () => { cancelled = true; };
   }, [movie?.id]);
 
+  // Sync search fields with the movie form
   useEffect(() => {
     if (movie?.title) setSearchTitle(movie.title);
     if (movie?.year) setSearchYear(String(movie.year));
     if (movie?.type) setSearchType(movie.type === 'series' ? 'tv' : 'movie');
   }, [movie?.title, movie?.year, movie?.type]);
+
+  // The cast we display: DB cast when editing, staged cast when creating
+  const displayCast = isStaging ? stagedCast : currentCast;
 
   const handleSearch = async () => {
     if (!searchTitle.trim()) {
@@ -65,13 +81,22 @@ export default function CastFetcher({ movie, onCastSaved, addNotification }) {
       if (cast.length === 0) {
         addNotification?.('info', 'No cast found');
         setFetchingCast(false);
+        setSelected(null);
         return;
       }
-      await saveCastForMovie(movie.id, cast);
-      const fresh = await loadCastForMovie(movie.id);
-      setCurrentCast(fresh);
-      onCastSaved?.(fresh);
-      addNotification?.('success', `Saved ${cast.length} cast members`);
+
+      if (isStaging) {
+        // Staging: don't write to DB — just hand it up to Admin
+        onCastStaged?.(cast);
+        addNotification?.('success', `${cast.length} cast members staged — save the movie to persist`);
+      } else {
+        // Editing: save straight to DB
+        await saveCastForMovie(movie.id, cast);
+        const fresh = await loadCastForMovie(movie.id);
+        setCurrentCast(fresh);
+        onCastSaved?.(fresh);
+        addNotification?.('success', `Saved ${cast.length} cast members`);
+      }
     } catch (err) {
       addNotification?.('error', err.message || 'Failed to fetch cast');
     } finally {
@@ -82,6 +107,11 @@ export default function CastFetcher({ movie, onCastSaved, addNotification }) {
 
   const handleClearCast = async () => {
     if (!window.confirm('Remove all cast for this movie?')) return;
+    if (isStaging) {
+      onCastStaged?.([]);
+      addNotification?.('success', 'Staged cast cleared');
+      return;
+    }
     try {
       await saveCastForMovie(movie.id, []);
       setCurrentCast([]);
@@ -92,23 +122,19 @@ export default function CastFetcher({ movie, onCastSaved, addNotification }) {
     }
   };
 
-  if (!movie?.id) {
-    return (
-      <div className="p-3 bg-amber-900/20 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center gap-2">
-        <FaInfoCircle />
-        Save this movie first, then you can add its cast.
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold flex items-center gap-2 text-emerald-400">
-          <FaMagic /> Cast ({currentCast.length})
+          <FaMagic /> Cast ({displayCast.length})
+          {isStaging && displayCast.length > 0 && (
+            <span className="text-[10px] font-normal text-amber-400 flex items-center gap-1">
+              <FaCheckCircle className="text-[9px]" /> staged
+            </span>
+          )}
         </h3>
         <div className="flex gap-2">
-          {currentCast.length > 0 && (
+          {displayCast.length > 0 && (
             <button
               type="button"
               onClick={handleClearCast}
@@ -128,15 +154,22 @@ export default function CastFetcher({ movie, onCastSaved, addNotification }) {
         </div>
       </div>
 
-      {loading ? (
+      {isStaging && displayCast.length === 0 && (
+        <div className="p-2 bg-cyan-900/20 border border-cyan-500/30 rounded-lg text-[11px] text-cyan-300 flex items-center gap-2">
+          <FaInfoCircle className="flex-shrink-0" />
+          You can fetch cast now — it will be attached automatically when you save.
+        </div>
+      )}
+
+      {!isStaging && loading ? (
         <div className="text-center py-4 text-gray-400 text-xs">
           <FaSpinner className="animate-spin inline mr-1" /> Loading cast…
         </div>
-      ) : currentCast.length > 0 ? (
+      ) : displayCast.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          {currentCast.map((c) => (
+          {displayCast.map((c, idx) => (
             <div
-              key={c.id || `${c.name}-${c.order_index}`}
+              key={c.id || c.tmdb_person_id || `${c.name}-${idx}`}
               className="flex items-center gap-2 bg-gray-800/60 border border-emerald-900/30 rounded-lg px-2 py-1.5 min-w-[150px]"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-900 flex-shrink-0">
@@ -207,7 +240,7 @@ export default function CastFetcher({ movie, onCastSaved, addNotification }) {
           {results.length > 0 && (
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               <p className="text-[10px] text-gray-400">
-                Pick the correct title — cast will be saved automatically.
+                Pick the correct title — cast will be {isStaging ? 'staged' : 'saved automatically'}.
               </p>
               {results.map((r) => (
                 <button
