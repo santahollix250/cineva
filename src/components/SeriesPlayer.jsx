@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useContext, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
     FaPlay, FaPause, FaVolumeUp, FaVolumeMute, FaExpand, FaCompress,
@@ -7,11 +7,62 @@ import {
     FaSpinner, FaExclamationTriangle, FaCloudDownloadAlt, FaFileDownload,
     FaChevronDown, FaChevronUp, FaLink, FaHdd, FaFilm, FaList, FaChevronLeft, FaChevronRight,
     FaBookmark, FaEllipsisV, FaCalendar, FaClock, FaEye, FaThumbsUp, FaShare, FaInfoCircle,
-    FaLanguage, FaTv, FaPlayCircle, FaListUl, FaArrowCircleRight, FaArrowCircleLeft
+    FaLanguage, FaTv, FaPlayCircle, FaListUl, FaArrowCircleRight, FaArrowCircleLeft, FaMagic,
+    FaUser
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import { MoviesContext } from '../context/MoviesContext';
 import MovieCast from './MovieCast';
+import { getTranslatorsWithProfiles } from '../lib/translators';
+
+/* ------------------------------------------------------------------
+   Translator Badge — avatar + name
+------------------------------------------------------------------- */
+const TranslatorBadge = ({ name, profile, isMobile = false }) => {
+    if (!name) return null;
+
+    const displayName = profile?.display_name || profile?.name || name;
+    const photoUrl = profile?.photo_url;
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 rounded-full
+                bg-black/60 backdrop-blur-sm border border-emerald-500/40
+                shadow-lg shadow-emerald-500/10
+                ${isMobile ? 'pl-0.5 pr-2.5 py-0.5' : 'pl-1 pr-3 py-1'}
+            `}
+            title={displayName}
+        >
+            <span
+                className={`relative flex-shrink-0 rounded-full overflow-hidden
+                    ring-1 ring-emerald-400/60 bg-emerald-950
+                    ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}
+                `}
+            >
+                {photoUrl ? (
+                    <img
+                        src={photoUrl}
+                        alt={displayName}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                ) : (
+                    <span className="w-full h-full flex items-center justify-center">
+                        <FaUser className={`text-emerald-400 ${isMobile ? 'text-[8px]' : 'text-[10px]'}`} />
+                    </span>
+                )}
+            </span>
+            <span
+                className={`text-emerald-200 font-semibold truncate
+                    ${isMobile ? 'text-[10px] max-w-[80px]' : 'text-xs md:text-sm max-w-[140px]'}
+                `}
+            >
+                {displayName}
+            </span>
+        </span>
+    );
+};
 
 const SeriesPlayer = () => {
     const navigate = useNavigate();
@@ -28,6 +79,9 @@ const SeriesPlayer = () => {
     const [selectedSeason, setSelectedSeason] = useState(1);
     const [seasons, setSeasons] = useState([]);
     const [showEpisodeList, setShowEpisodeList] = useState(true);
+
+    // ⭐ Translator profiles map
+    const [translatorProfiles, setTranslatorProfiles] = useState({});
 
     // ========== REFS ==========
     const videoRef = useRef(null);
@@ -111,6 +165,49 @@ const SeriesPlayer = () => {
         });
         return Array.from(seasonSet).sort((a, b) => a - b);
     };
+
+    // ⭐ Scroll to top when the player mounts (fixes "opens from bottom")
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, []);
+
+    // ⭐ Scroll to top whenever the series changes
+    useEffect(() => {
+        if (series?.id) {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+    }, [series?.id]);
+
+    // ⭐ Scroll to top whenever the episode changes
+    useEffect(() => {
+        if (currentEpisode?.id) {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+    }, [currentEpisode?.id]);
+
+    // ⭐ Load translator profiles once
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const list = await getTranslatorsWithProfiles(movies || []);
+                if (cancelled || !Array.isArray(list)) return;
+                const map = {};
+                list.forEach((t) => {
+                    if (t?.name) {
+                        map[t.name] = {
+                            display_name: t.display_name || t.name,
+                            photo_url: t.photo_url || ''
+                        };
+                    }
+                });
+                setTranslatorProfiles(map);
+            } catch (err) {
+                console.warn('SeriesPlayer: failed to load translator profiles', err);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [movies]);
 
     useEffect(() => {
         if (!series && id && movies.length > 0) {
@@ -1103,6 +1200,116 @@ const SeriesPlayer = () => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, [showMobileMenu]);
 
+    // ========== RECOMMENDATIONS ("You May Also Like") ==========
+    const recommendations = useMemo(() => {
+        if (!movies || movies.length === 0) return [];
+
+        const allSeries = movies.filter(m => m && m.type === 'series' && m.id !== series?.id);
+
+        const currentCategories = (series?.category || '')
+            .split(',')
+            .map(c => c.trim().toLowerCase())
+            .filter(Boolean);
+
+        const currentTranslator = (series?.translator || '').trim().toLowerCase();
+        const currentNation = (series?.nation || '').trim().toLowerCase();
+
+        const scored = allSeries.map((s) => {
+            const cats = (s.category || '')
+                .split(',')
+                .map(c => c.trim().toLowerCase())
+                .filter(Boolean);
+
+            let score = 0;
+
+            const catOverlap = cats.filter(c => currentCategories.includes(c)).length;
+            score += catOverlap * 100;
+
+            if (currentTranslator && (s.translator || '').trim().toLowerCase() === currentTranslator) {
+                score += 30;
+            }
+
+            if (currentNation && (s.nation || '').trim().toLowerCase() === currentNation) {
+                score += 15;
+            }
+
+            const ratingA = parseFloat(series?.rating) || 0;
+            const ratingB = parseFloat(s.rating) || 0;
+            if (ratingA > 0 && ratingB > 0 && Math.abs(ratingA - ratingB) <= 1) {
+                score += 10;
+            }
+
+            if (s.created_at) {
+                const days = (Date.now() - new Date(s.created_at).getTime()) / (1000 * 60 * 60 * 24);
+                if (days < 30) score += 5;
+            }
+
+            return { ...s, _score: score };
+        });
+
+        const ranked = scored.sort((a, b) => {
+            if (b._score !== a._score) return b._score - a._score;
+            const ra = parseFloat(a.rating) || 0;
+            const rb = parseFloat(b.rating) || 0;
+            if (rb !== ra) return rb - ra;
+            return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        });
+
+        const withScore = ranked.filter(r => r._score > 0);
+        const withoutScore = ranked.filter(r => r._score === 0);
+
+        const finalList = [...withScore, ...withoutScore].slice(0, 12);
+
+        return finalList.map((s) => {
+            const eps = typeof getEpisodesBySeries === 'function'
+                ? (getEpisodesBySeries(s.id) || [])
+                : episodes.filter(ep => ep.seriesId === s.id);
+
+            const sortedEps = sortEpisodes(eps);
+            const latestEp = sortedEps.length > 0 ? sortedEps[sortedEps.length - 1] : null;
+
+            return {
+                ...s,
+                _episodeCount: sortedEps.length,
+                _latestEpisode: latestEp,
+                _thumb: latestEp?.thumbnail || s.poster || s.background,
+            };
+        });
+    }, [movies, episodes, series, getEpisodesBySeries]);
+
+    const handleOpenRecommended = useCallback((rec) => {
+        if (!rec) return;
+
+        const eps = typeof getEpisodesBySeries === 'function'
+            ? (getEpisodesBySeries(rec.id) || [])
+            : episodes.filter(ep => ep.seriesId === rec.id);
+
+        if (eps.length === 0) {
+            navigate(`/series-player/${rec.id}`, { state: { series: rec } });
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            return;
+        }
+
+        const sortedEps = sortEpisodes(eps);
+        const targetEp = sortedEps[0];
+        const episodeIndex = sortedEps.findIndex(ep => ep.id === targetEp.id);
+
+        navigate(`/series-player/${rec.id}`, {
+            state: {
+                series: rec,
+                episode: targetEp,
+                episodes: sortedEps,
+                episodeIndex: episodeIndex >= 0 ? episodeIndex : 0,
+            },
+        });
+
+        setSeries(rec);
+        setEpisodesList(sortedEps);
+        setCurrentEpisode(targetEp);
+        setCurrentEpisodeIndex(episodeIndex >= 0 ? episodeIndex : 0);
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, [navigate, episodes, getEpisodesBySeries]);
+
     // ========== RENDER FUNCTIONS ==========
 
     const renderVideoPlayer = () => {
@@ -1515,6 +1722,95 @@ const SeriesPlayer = () => {
         </div>
     );
 
+    const renderRecommendations = () => {
+        if (!recommendations || recommendations.length === 0) return null;
+
+        return (
+            <div className="mt-10 bg-gradient-to-br from-gray-900/80 to-gray-950/80 rounded-2xl p-5 md:p-6 border border-gray-800 shadow-xl">
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                        <FaMagic className="text-emerald-500 text-xl md:text-2xl" />
+                        You May Also Like
+                    </h3>
+                    <span className="text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-900/40 px-2 py-1 rounded-full">
+                        {recommendations.length}
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                    {recommendations.map((rec) => {
+                        const poster = rec._thumb || rec.poster || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400';
+                        const rating = rec.rating ? parseFloat(rec.rating).toFixed(1) : null;
+                        const latest = rec._latestEpisode;
+
+                        return (
+                            <button
+                                key={rec.id}
+                                onClick={() => handleOpenRecommended(rec)}
+                                className="group text-left rounded-xl overflow-hidden border border-gray-800 hover:border-emerald-500/60 transition-all duration-300 hover:-translate-y-1 bg-gradient-to-b from-gray-900 to-black"
+                            >
+                                <div className="relative aspect-[2/3] w-full overflow-hidden">
+                                    <img
+                                        src={poster}
+                                        alt={rec.title}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+
+                                    <div className="absolute top-1.5 left-1.5 right-1.5 flex items-start justify-between gap-1">
+                                        <span className="px-1.5 py-0.5 rounded text-[8px] font-black tracking-wider uppercase bg-emerald-500/95 text-black shadow">
+                                            Series
+                                        </span>
+                                        {rating && (
+                                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold bg-black/70 backdrop-blur-sm border border-amber-400/40 text-amber-300">
+                                                <FaStar className="text-[7px] text-amber-400" />
+                                                {rating}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="absolute bottom-1.5 left-1.5 right-1.5 text-[9px] text-white/90 flex items-center justify-between">
+                                        <span className="px-1.5 py-0.5 bg-black/60 backdrop-blur-sm rounded">
+                                            {rec._episodeCount} EP
+                                        </span>
+                                        {rec.year && (
+                                            <span className="px-1.5 py-0.5 bg-black/60 backdrop-blur-sm rounded">
+                                                {rec.year}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-2xl shadow-emerald-500/60 ring-2 ring-white/40">
+                                            <FaPlay className="text-black text-sm ml-0.5" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-2">
+                                    <h4 className="text-white text-[11px] sm:text-xs font-semibold line-clamp-2 leading-snug group-hover:text-emerald-400 transition-colors">
+                                        {rec.title}
+                                    </h4>
+                                    {rec.translator && (
+                                        <p className="mt-1 text-[9px] text-emerald-400/90 truncate" title={rec.translator}>
+                                            {rec.translator}
+                                        </p>
+                                    )}
+                                    {latest && (
+                                        <p className="mt-0.5 text-[9px] text-cyan-400/90 truncate" title={latest.title}>
+                                            ▶ {latest.title}
+                                        </p>
+                                    )}
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
     const shouldShowCustomControls = !isVimeoVideo && !isDailyMotionVideo && !useEmbed;
 
     if (loading) {
@@ -1572,41 +1868,16 @@ const SeriesPlayer = () => {
 
     const getPlayerTypeInfo = () => {
         if (useEmbed) {
-            return {
-                color: 'text-amber-400',
-                bgColor: 'bg-amber-600',
-                label: 'Embed',
-                text: 'text-amber-300'
-            };
+            return { color: 'text-amber-400', bgColor: 'bg-amber-600', label: 'Embed', text: 'text-amber-300' };
         }
         if (isDailyMotionVideo) {
-            return {
-                color: 'text-teal-400',
-                bgColor: 'bg-teal-600',
-                label: 'DailyMotion',
-                text: 'text-teal-300'
-            };
+            return { color: 'text-teal-400', bgColor: 'bg-teal-600', label: 'DailyMotion', text: 'text-teal-300' };
         } else if (isVimeoVideo) {
-            return {
-                color: 'text-cyan-400',
-                bgColor: 'bg-cyan-600',
-                label: 'Vimeo',
-                text: 'text-cyan-300'
-            };
+            return { color: 'text-cyan-400', bgColor: 'bg-cyan-600', label: 'Vimeo', text: 'text-cyan-300' };
         } else if (videoType === 'youtube') {
-            return {
-                color: 'text-red-400',
-                bgColor: 'bg-red-600',
-                label: 'YouTube',
-                text: 'text-red-300'
-            };
+            return { color: 'text-red-400', bgColor: 'bg-red-600', label: 'YouTube', text: 'text-red-300' };
         } else {
-            return {
-                color: 'text-emerald-400',
-                bgColor: 'bg-emerald-600',
-                label: 'Custom Player',
-                text: 'text-emerald-300'
-            };
+            return { color: 'text-emerald-400', bgColor: 'bg-emerald-600', label: 'Custom Player', text: 'text-emerald-300' };
         }
     };
 
@@ -1614,6 +1885,11 @@ const SeriesPlayer = () => {
     const hasDownload = (ep) => ep?.download || ep?.download_link || ep?.videoUrl || ep?.streamLink;
     const isFavorite = favorites.includes(currentEpisode?.id);
     const inWatchlist = watchlist.includes(currentEpisode?.id);
+
+    // ⭐ Translator profile for the current series
+    const currentTranslatorProfile = series?.translator
+        ? translatorProfiles[series.translator]
+        : null;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black text-white">
@@ -1716,8 +1992,7 @@ const SeriesPlayer = () => {
                                     <div className="p-3 space-y-1 max-h-[80vh] overflow-y-auto">
                                         <button
                                             onClick={toggleFavorite}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${isFavorite ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-300 hover:bg-gray-800'
-                                                }`}
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${isFavorite ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-300 hover:bg-gray-800'}`}
                                         >
                                             <FaHeart size={18} />
                                             <span className="text-sm">{isFavorite ? 'Remove from favorites' : 'Add to favorites'}</span>
@@ -1725,8 +2000,7 @@ const SeriesPlayer = () => {
 
                                         <button
                                             onClick={toggleWatchlist}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${inWatchlist ? 'text-cyan-500 bg-cyan-500/10' : 'text-gray-300 hover:bg-gray-800'
-                                                }`}
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${inWatchlist ? 'text-cyan-500 bg-cyan-500/10' : 'text-gray-300 hover:bg-gray-800'}`}
                                         >
                                             <FaBookmark size={18} />
                                             <span className="text-sm">{inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}</span>
@@ -2092,10 +2366,13 @@ const SeriesPlayer = () => {
                                         </span>
                                     )}
 
+                                    {/* ⭐ TRANSLATOR BADGE */}
                                     {series?.translator && (
-                                        <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center gap-1 text-xs md:text-sm font-medium text-black">
-                                            <FaLanguage className="text-black" /> {series.translator}
-                                        </span>
+                                        <TranslatorBadge
+                                            name={series.translator}
+                                            profile={currentTranslatorProfile}
+                                            isMobile={isMobile}
+                                        />
                                     )}
 
                                     {hasDownload(currentEpisode) && (
@@ -2136,7 +2413,7 @@ const SeriesPlayer = () => {
                                 </div>
                             </div>
 
-                            {/* ✅ CAST STRIP FOR THE SERIES */}
+                            {/* CAST STRIP */}
                             <MovieCast movieId={series?.id} />
 
                             {/* Season Selector */}
@@ -2233,7 +2510,10 @@ const SeriesPlayer = () => {
                                 </div>
                             )}
 
-                            {/* Comments Section */}
+                            {/* YOU MAY ALSO LIKE */}
+                            {renderRecommendations()}
+
+                            {/* Comments */}
                             {renderCommentsSection()}
                         </div>
 
@@ -2268,7 +2548,14 @@ const SeriesPlayer = () => {
                                         <p><span className="text-gray-400">Language:</span> <span className="text-white">{series.language}</span></p>
                                     )}
                                     {series?.translator && (
-                                        <p className="flex items-center gap-1"><span className="text-gray-400">Translator:</span> <span className="text-emerald-400">{series.translator}</span></p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-400">Translator:</span>
+                                            <TranslatorBadge
+                                                name={series.translator}
+                                                profile={currentTranslatorProfile}
+                                                isMobile={true}
+                                            />
+                                        </div>
                                     )}
                                     <p><span className="text-gray-400">Total Episodes:</span> <span className="text-white">{episodesList.length}</span></p>
                                     <p><span className="text-gray-400">Seasons:</span> <span className="text-white">{seasons.length}</span></p>
@@ -2289,23 +2576,19 @@ const SeriesPlayer = () => {
                 </div>
             )}
 
-            {/* Custom scrollbar styles */}
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
                     height: 6px;
                 }
-                
                 .custom-scrollbar::-webkit-scrollbar-track {
                     background: #1f2937;
                     border-radius: 3px;
                 }
-                
                 .custom-scrollbar::-webkit-scrollbar-thumb {
                     background: #10b981;
                     border-radius: 3px;
                 }
-                
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                     background: #34d399;
                 }

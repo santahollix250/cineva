@@ -2,7 +2,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   FaUser, FaSearch, FaCloudUploadAlt, FaTimes, FaFilm,
-  FaTv, FaCheckCircle, FaEdit, FaSave, FaUndo, FaLanguage
+  FaTv, FaCheckCircle, FaEdit, FaSave, FaUndo, FaLanguage,
+  FaPlusCircle, FaMagic, FaLink
 } from "react-icons/fa";
 import {
   getTranslatorsWithProfiles,
@@ -11,33 +12,63 @@ import {
   renameTranslatorInMovies,
 } from "../lib/translators";
 
-export default function TranslatorManager({ movies = [], addNotification, updateMovie, refreshMovies }) {
+export default function TranslatorManager({
+  movies = [],
+  addNotification,
+  updateMovie,
+  refreshMovies,
+}) {
   const [translators, setTranslators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  // EDIT state
   const [editingName, setEditingName] = useState(null);
   const [editValue, setEditValue] = useState({ display_name: "", photo_url: "" });
+
+  // ADD state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addValue, setAddValue] = useState({
+    display_name: "",
+    photo_url: "",
+  });
+
+  // Image method (upload vs link)
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const fileInputRef = useRef(null);
+  const [imageMethod, setImageMethod] = useState({ edit: "upload", add: "upload" });
 
-  // Load merged list
+  const editFileRef = useRef(null);
+  const addFileRef = useRef(null);
+
+  // ---- Load merged list ----
   const load = useCallback(async () => {
     setLoading(true);
-    const list = await getTranslatorsWithProfiles(movies);
-    setTranslators(list);
-    setLoading(false);
-  }, [movies]);
+    try {
+      const list = await getTranslatorsWithProfiles(movies);
+      setTranslators(list);
+    } catch (e) {
+      console.error(e);
+      addNotification?.("error", "Failed to load translators");
+    } finally {
+      setLoading(false);
+    }
+  }, [movies, addNotification]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  // Start editing → prefill with current data
+  // ================================================================
+  //  EDIT EXISTING TRANSLATOR
+  // ================================================================
   const startEdit = (t) => {
     setEditingName(t.name);
     setEditValue({
       display_name: t.display_name || t.name,
       photo_url: t.photo_url || "",
     });
+    setImageMethod((m) => ({ ...m, edit: "upload" }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -47,7 +78,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
     setProgress(0);
   };
 
-  const handlePhotoUpload = async (file) => {
+  const handleEditPhotoUpload = async (file) => {
     if (!file) return;
     try {
       setUploading(true);
@@ -72,20 +103,25 @@ export default function TranslatorManager({ movies = [], addNotification, update
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveEdit = async () => {
     if (!editingName) return;
     try {
-      // 1. Save profile (photo + display_name)
       await upsertTranslatorProfile(editingName, {
         photo_url: editValue.photo_url || null,
         display_name: editValue.display_name?.trim() || editingName,
       });
 
-      // 2. If name changed → rename across all movies
       const newName = editValue.display_name?.trim();
-      if (newName && newName !== editingName && typeof updateMovie === 'function') {
+      if (
+        newName &&
+        newName !== editingName &&
+        typeof updateMovie === "function"
+      ) {
         const count = await renameTranslatorInMovies(
-          movies, editingName, newName, updateMovie
+          movies,
+          editingName,
+          newName,
+          updateMovie
         );
         addNotification?.(
           "success",
@@ -104,13 +140,219 @@ export default function TranslatorManager({ movies = [], addNotification, update
     }
   };
 
+  // ================================================================
+  //  ADD NEW TRANSLATOR  (no slug field — auto-generated from display name)
+  // ================================================================
+  const handleAddPhotoUpload = async (file) => {
+    if (!file) return;
+    try {
+      setUploading(true);
+      setProgress(10);
+      const interval = setInterval(() => {
+        setProgress((p) => Math.min(p + 12, 90));
+      }, 180);
+
+      const url = await uploadTranslatorPhoto(file);
+
+      clearInterval(interval);
+      setProgress(100);
+      setAddValue((v) => ({ ...v, photo_url: url }));
+      addNotification?.("success", "Photo uploaded");
+    } catch (err) {
+      addNotification?.("error", err.message || "Upload failed");
+    } finally {
+      setTimeout(() => {
+        setUploading(false);
+        setProgress(0);
+      }, 400);
+    }
+  };
+
+  const handleSaveNew = async () => {
+    const displayName = (addValue.display_name || "").trim();
+    if (!displayName) {
+      addNotification?.("error", "Translator name is required");
+      return;
+    }
+    if (!addValue.photo_url) {
+      addNotification?.("error", "Translator photo is required");
+      return;
+    }
+
+    // Auto-generate slug from display name
+    const slug = displayName.toLowerCase().replace(/\s+/g, "_");
+
+    try {
+      await upsertTranslatorProfile(slug, {
+        photo_url: addValue.photo_url,
+        display_name: displayName,
+      });
+
+      addNotification?.("success", `Translator "${displayName}" saved`);
+
+      // Reset form
+      setAddValue({ display_name: "", photo_url: "" });
+      setImageMethod((m) => ({ ...m, add: "upload" }));
+      setShowAddForm(false);
+
+      // Reload list — new translator should now appear
+      load();
+    } catch (err) {
+      console.error(err);
+      addNotification?.("error", err.message || "Save failed");
+    }
+  };
+
+  const cancelAdd = () => {
+    setAddValue({ display_name: "", photo_url: "" });
+    setImageMethod((m) => ({ ...m, add: "upload" }));
+    setProgress(0);
+    setShowAddForm(false);
+  };
+
+  // ================================================================
+  //  FILTER
+  // ================================================================
   const filtered = translators.filter((t) =>
     (t.display_name || t.name).toLowerCase().includes(search.toLowerCase())
   );
 
+  // ================================================================
+  //  RENDER
+  // ================================================================
   return (
     <div className="space-y-5">
-      {/* ===== EDIT CARD (only when editing) ===== */}
+      {/* ========== ADD NEW FORM ========== */}
+      {showAddForm && (
+        <div className="bg-gradient-to-br from-emerald-900/40 to-teal-900/30 backdrop-blur-lg rounded-2xl border border-emerald-500/40 p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FaMagic className="text-emerald-400" />
+            <h2 className="text-lg sm:text-xl font-bold">Add New Translator</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Photo */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-500/50 bg-gray-900">
+                {addValue.photo_url ? (
+                  <img
+                    src={addValue.photo_url}
+                    alt="preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-600">
+                    <FaUser className="text-4xl" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setImageMethod((m) => ({
+                      ...m,
+                      add: m.add === "upload" ? "link" : "upload",
+                    }))
+                  }
+                  className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center gap-1"
+                >
+                  {imageMethod.add === "upload" ? (
+                    <><FaLink /> Use Link</>
+                  ) : (
+                    <><FaCloudUploadAlt /> Use Upload</>
+                  )}
+                </button>
+                {addValue.photo_url && (
+                  <button
+                    type="button"
+                    onClick={() => setAddValue((v) => ({ ...v, photo_url: "" }))}
+                    className="px-3 py-1.5 text-xs bg-red-600/30 hover:bg-red-600/50 rounded-lg"
+                  >
+                    <FaTimes className="inline" /> Clear
+                  </button>
+                )}
+              </div>
+
+              {imageMethod.add === "upload" ? (
+                <>
+                  <input
+                    ref={addFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleAddPhotoUpload(e.target.files?.[0])}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => addFileRef.current?.click()}
+                    disabled={uploading}
+                    className="px-3 py-1.5 text-xs bg-cyan-600 hover:bg-cyan-700 rounded-lg flex items-center gap-1 disabled:opacity-50 text-black font-semibold"
+                  >
+                    <FaCloudUploadAlt /> Upload Photo
+                  </button>
+                </>
+              ) : (
+                <input
+                  type="text"
+                  value={addValue.photo_url}
+                  onChange={(e) =>
+                    setAddValue((v) => ({ ...v, photo_url: e.target.value }))
+                  }
+                  placeholder="Paste image URL"
+                  className="w-full p-2 text-xs bg-gray-800/70 border border-gray-700 rounded-lg"
+                />
+              )}
+
+              {uploading && (
+                <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-600 transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Name + actions */}
+            <div className="md:col-span-2 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Translator Name *
+                </label>
+                <input
+                  type="text"
+                  value={addValue.display_name}
+                  onChange={(e) =>
+                    setAddValue((v) => ({ ...v, display_name: e.target.value }))
+                  }
+                  placeholder="e.g., Netflix Subtitles"
+                  className="w-full p-2.5 bg-gray-800/70 border border-gray-700 rounded-lg text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={handleSaveNew}
+                  disabled={uploading}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-black disabled:opacity-50"
+                >
+                  <FaSave /> Save Translator
+                </button>
+                <button
+                  onClick={cancelAdd}
+                  className="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl font-semibold flex items-center gap-2 justify-center"
+                >
+                  <FaUndo /> Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== EDIT FORM ========== */}
       {editingName && (
         <div className="bg-gradient-to-br from-emerald-900/40 to-teal-900/30 backdrop-blur-lg rounded-2xl border border-emerald-500/40 p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
@@ -137,22 +379,22 @@ export default function TranslatorManager({ movies = [], addNotification, update
                 )}
               </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handlePhotoUpload(e.target.files?.[0])}
-              />
-
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="px-3 py-1.5 text-xs bg-cyan-600 hover:bg-cyan-700 rounded-lg flex items-center gap-1 disabled:opacity-50 text-black font-semibold"
+                  onClick={() =>
+                    setImageMethod((m) => ({
+                      ...m,
+                      edit: m.edit === "upload" ? "link" : "upload",
+                    }))
+                  }
+                  className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center gap-1"
                 >
-                  <FaCloudUploadAlt /> Upload Photo
+                  {imageMethod.edit === "upload" ? (
+                    <><FaLink /> Use Link</>
+                  ) : (
+                    <><FaCloudUploadAlt /> Use Upload</>
+                  )}
                 </button>
                 {editValue.photo_url && (
                   <button
@@ -165,6 +407,36 @@ export default function TranslatorManager({ movies = [], addNotification, update
                 )}
               </div>
 
+              {imageMethod.edit === "upload" ? (
+                <>
+                  <input
+                    ref={editFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleEditPhotoUpload(e.target.files?.[0])}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => editFileRef.current?.click()}
+                    disabled={uploading}
+                    className="px-3 py-1.5 text-xs bg-cyan-600 hover:bg-cyan-700 rounded-lg flex items-center gap-1 disabled:opacity-50 text-black font-semibold"
+                  >
+                    <FaCloudUploadAlt /> Upload Photo
+                  </button>
+                </>
+              ) : (
+                <input
+                  type="text"
+                  value={editValue.photo_url}
+                  onChange={(e) =>
+                    setEditValue((v) => ({ ...v, photo_url: e.target.value }))
+                  }
+                  placeholder="Paste image URL"
+                  className="w-full p-2 text-xs bg-gray-800/70 border border-gray-700 rounded-lg"
+                />
+              )}
+
               {uploading && (
                 <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
                   <div
@@ -173,16 +445,6 @@ export default function TranslatorManager({ movies = [], addNotification, update
                   />
                 </div>
               )}
-
-              <input
-                type="text"
-                value={editValue.photo_url}
-                onChange={(e) =>
-                  setEditValue((v) => ({ ...v, photo_url: e.target.value }))
-                }
-                placeholder="…or paste image URL"
-                className="w-full p-2 text-xs bg-gray-800/70 border border-gray-700 rounded-lg"
-              />
             </div>
 
             {/* Name + actions */}
@@ -207,7 +469,7 @@ export default function TranslatorManager({ movies = [], addNotification, update
 
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
-                  onClick={handleSave}
+                  onClick={handleSaveEdit}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-black"
                 >
                   <FaSave /> Save
@@ -224,22 +486,34 @@ export default function TranslatorManager({ movies = [], addNotification, update
         </div>
       )}
 
-      {/* ===== LIST ===== */}
+      {/* ========== LIST ========== */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
             <FaLanguage className="text-emerald-400" />
             All Translators ({translators.length})
           </h3>
-          <div className="relative">
-            <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-            <input
-              type="text"
-              placeholder="Search translators…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-2 bg-gray-800/70 border border-gray-700 rounded-lg text-sm w-full sm:w-56"
-            />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (showAddForm) cancelAdd();
+                else setShowAddForm(true);
+              }}
+              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg font-semibold text-sm text-black flex items-center gap-2"
+            >
+              <FaPlusCircle className="text-xs" />
+              {showAddForm ? "Close" : "Add New Translator"}
+            </button>
+            <div className="relative">
+              <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+              <input
+                type="text"
+                placeholder="Search translators…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8 pr-3 py-2 bg-gray-800/70 border border-gray-700 rounded-lg text-sm w-full sm:w-56"
+              />
+            </div>
           </div>
         </div>
 
@@ -251,9 +525,9 @@ export default function TranslatorManager({ movies = [], addNotification, update
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 bg-gray-900/30 rounded-xl">
             <FaLanguage className="text-5xl text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400">No translators found in your movies.</p>
+            <p className="text-gray-400">No translators found.</p>
             <p className="text-gray-500 text-xs mt-1">
-              Translators appear here automatically once you assign them to movies.
+              Click <span className="text-emerald-400">Add New Translator</span> above to create one.
             </p>
           </div>
         ) : (

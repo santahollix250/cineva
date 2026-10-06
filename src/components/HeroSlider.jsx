@@ -15,11 +15,23 @@ import HeroCard from './HeroCard';
 import { getTranslatorsWithProfiles } from '../lib/translators';
 
 /* ------------------------------------------------------------------
+   ⭐ NEW: module-level cache of the last successfully loaded URL
+   so newly-mounted HeroSlides start with a real image, never blank
+------------------------------------------------------------------- */
+const lastGoodHeroUrl = { current: '' };
+
+/* ------------------------------------------------------------------
    Smart image optimizer
 ------------------------------------------------------------------- */
 const useSmartHeroImage = (backgroundUrl, posterUrl, isMobile) => {
-    const [optimizedUrl, setOptimizedUrl] = useState(backgroundUrl || posterUrl);
-    const [isLoading, setIsLoading] = useState(true);
+    // ⭐ Start from the cache so a remounted slide isn't blank
+    const [optimizedUrl, setOptimizedUrl] = useState(
+        () => lastGoodHeroUrl.current || backgroundUrl || posterUrl || ''
+    );
+    const [isLoading, setIsLoading] = useState(
+        // If we already have a cached URL, we are NOT loading
+        () => !lastGoodHeroUrl.current && !!(backgroundUrl || posterUrl)
+    );
     const [useFallback, setUseFallback] = useState(false);
 
     useEffect(() => {
@@ -44,8 +56,16 @@ const useSmartHeroImage = (backgroundUrl, posterUrl, isMobile) => {
             }
         }
 
+        // ⭐ If this URL is already cached at module level, no need to reload
+        if (url && url === lastGoodHeroUrl.current) {
+            setOptimizedUrl(url);
+            setIsLoading(false);
+            return;
+        }
+
         const img = new Image();
         img.onload = () => {
+            lastGoodHeroUrl.current = url;
             setOptimizedUrl(url);
             setIsLoading(false);
         };
@@ -292,7 +312,7 @@ const HeroSlide = ({
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
-                        backgroundImage: `url(${optimizedUrl})`,
+                        backgroundImage: optimizedUrl ? `url(${optimizedUrl})` : 'none',
                         backgroundPosition: 'center 20%',
                         backgroundSize: 'cover',
                         filter: 'blur(40px) saturate(1.3) brightness(0.4)',
@@ -303,7 +323,7 @@ const HeroSlide = ({
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 mix-blend-overlay"
                     style={{
-                        backgroundImage: `url(${optimizedUrl})`,
+                        backgroundImage: optimizedUrl ? `url(${optimizedUrl})` : 'none',
                         backgroundPosition: 'center',
                         backgroundSize: 'cover',
                         filter: 'blur(60px) saturate(1.4)',
@@ -311,8 +331,9 @@ const HeroSlide = ({
                     }}
                 />
 
-                {isLoading && isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#060d0a] to-black animate-pulse">
+                {/* ⭐ Loading overlay ONLY when we truly have nothing to show yet */}
+                {isLoading && isActive && !optimizedUrl && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#060d0a] to-black">
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-12 h-12 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                         </div>

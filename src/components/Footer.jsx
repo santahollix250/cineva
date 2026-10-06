@@ -24,7 +24,7 @@ export default function Footer() {
     whatsapp: "250783948792",
     email: "irakabahodjabiri@gmail.com",
     address: "Bugesera Heights, Kigali",
-    website: "https://agasobanuyecineva.com"
+    website: "https://cineva.com"
   };
 
   // Developer Info
@@ -43,11 +43,11 @@ export default function Footer() {
   const SocialIcon = ({ Icon, url, gradient, label }) => (
     <button
       onClick={() => openLink(url)}
-      className={`w-12 h-12 rounded-xl ${gradient} flex items-center justify-center transition-all duration-500 hover:scale-110 hover:-translate-y-1 group relative border border-emerald-900/30 hover:border-transparent shadow-lg hover:shadow-xl`}
+      className={`w-11 h-11 rounded-xl ${gradient} flex items-center justify-center transition-all duration-500 hover:scale-110 hover:-translate-y-1 group relative border border-emerald-900/30 hover:border-transparent shadow-lg hover:shadow-xl`}
       aria-label={label}
     >
-      <Icon className="text-white text-xl group-hover:scale-110 transition-transform duration-300" />
-      <span className="absolute -top-8 text-xs bg-gray-900 px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap border border-emerald-600/30 shadow-lg z-50">
+      <Icon className="text-white text-lg group-hover:scale-110 transition-transform duration-300" />
+      <span className="absolute -top-8 text-[10px] bg-gray-900 px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap border border-emerald-600/30 shadow-lg z-50 pointer-events-none">
         {label}
       </span>
     </button>
@@ -56,22 +56,26 @@ export default function Footer() {
   const ContactItem = ({ icon: Icon, onClick, title, value, subtitle }) => (
     <div
       onClick={onClick}
-      className="flex items-center gap-3 p-3 hover:bg-gradient-to-r hover:from-emerald-600/20 hover:to-teal-600/20 rounded-xl cursor-pointer transition-all duration-300 group border border-transparent hover:border-emerald-600/30"
+      className="flex items-center gap-3 p-2.5 hover:bg-gradient-to-r hover:from-emerald-600/20 hover:to-teal-600/20 rounded-xl cursor-pointer transition-all duration-300 group border border-transparent hover:border-emerald-600/30"
     >
-      <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-600/30">
-        <Icon className="text-black text-base" />
+      <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-600/30 flex-shrink-0">
+        <Icon className="text-black text-sm" />
       </div>
-      <div>
-        <p className="text-gray-400 text-xs font-medium">{title}</p>
-        <p className="text-white text-sm font-semibold group-hover:text-emerald-400 transition-colors">{value}</p>
-        {subtitle && <p className="text-gray-500 text-[10px] flex items-center gap-1 mt-0.5"><FiClock className="text-emerald-400" /> {subtitle}</p>}
+      <div className="min-w-0">
+        <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wide">{title}</p>
+        <p className="text-white text-xs font-semibold group-hover:text-emerald-400 transition-colors truncate">{value}</p>
+        {subtitle && (
+          <p className="text-gray-500 text-[10px] flex items-center gap-1 mt-0.5">
+            <FiClock className="text-emerald-400 text-[9px]" /> {subtitle}
+          </p>
+        )}
       </div>
     </div>
   );
 
   return (
     <footer className="bg-gradient-to-b from-black via-gray-900 to-black text-white relative overflow-hidden">
-      {/* Animated Background Elements */}
+      {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-600 rounded-full filter blur-[128px] opacity-20 animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-600 rounded-full filter blur-[128px] opacity-20 animate-pulse delay-1000"></div>
@@ -84,24 +88,24 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-        {/* Main Grid - 3 columns without Quick Links */}
+        {/* Main Grid - 3 columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
 
-          {/* Brand Column - Expanded */}
+          {/* Brand Column */}
           <div className="space-y-5 md:col-span-1">
             <div className="flex items-center gap-3 group">
-              {/* Logo with enhanced styling */}
+              {/* Logo */}
               <div className="relative">
                 <div className="h-16 w-16 rounded-xl overflow-hidden ring-2 ring-emerald-600/50 group-hover:ring-emerald-400 transition-all duration-500 group-hover:scale-105 shadow-xl shadow-emerald-600/30">
                   <img
                     src={logo}
-                    alt="agasobanuyecineva Logo"
+                    alt="Cineva Logo"
                     className="h-full w-full object-cover"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.parentElement.innerHTML = `
                         <div class="h-full w-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                          <span class="text-black font-bold text-xl">A</span>
+                          <span class="text-black font-bold text-xl">C</span>
                         </div>
                       `;
                     }}
@@ -112,18 +116,13 @@ export default function Footer() {
 
               {/* Brand Name */}
               <div className="flex flex-col">
-                <h2 className="text-2xl font-bold">
+                <h2 className="text-3xl font-bold leading-none">
                   <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent bg-300% animate-gradient">
-                    agasobanuye
+                    Cineva
                   </span>
                 </h2>
-                <h2 className="text-2xl font-bold -mt-1">
-                  <span className="bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent bg-300% animate-gradient">
-                    cineva
-                  </span>
-                </h2>
-                <span className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                  <FaRocket className="text-emerald-400" /> Premium Streaming in Rwanda
+                <span className="text-[11px] text-gray-500 flex items-center gap-1 mt-1.5">
+                  <FaRocket className="text-emerald-400 text-[10px]" /> Premium Streaming in Rwanda
                 </span>
               </div>
             </div>
@@ -157,27 +156,27 @@ export default function Footer() {
                 Contact Us
               </span>
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <ContactItem
                 icon={FaWhatsapp}
                 onClick={() => openWhatsApp(contactInfo.whatsapp)}
                 title="WhatsApp"
                 value={contactInfo.whatsapp}
-                subtitle="Usually replies in 1 hour"
+                subtitle="Replies in 1 hour"
               />
               <ContactItem
                 icon={FiPhone}
                 onClick={() => makeCall(contactInfo.phone)}
                 title="Call"
                 value={contactInfo.phone}
-                subtitle="24/7 Support Available"
+                subtitle="24/7 Support"
               />
               <ContactItem
                 icon={FiMail}
                 onClick={() => sendEmail(contactInfo.email)}
                 title="Email"
                 value={contactInfo.email}
-                subtitle="Response within 24 hours"
+                subtitle="Within 24 hours"
               />
               <ContactItem
                 icon={FaLocationDot}
@@ -203,7 +202,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Social & Dev Column - Enhanced Social Media Focus */}
+          {/* Social & Dev Column */}
           <div className="md:col-span-1">
             <h3 className="text-lg font-bold mb-5 inline-block">
               <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent border-b-2 border-emerald-600 pb-1">
@@ -211,8 +210,8 @@ export default function Footer() {
               </span>
             </h3>
 
-            {/* Social Media Grid - Enhanced with gradients */}
-            <div className="grid grid-cols-3 gap-3 mb-8">
+            {/* Social Media Grid */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
               <SocialIcon
                 Icon={FaYoutube}
                 url={socialLinks.youtube}
@@ -225,12 +224,7 @@ export default function Footer() {
                 gradient="bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400"
                 label="Instagram"
               />
-              <SocialIcon
-                Icon={FaTwitter}
-                url={socialLinks.twitter}
-                gradient="bg-gradient-to-br from-blue-400 to-blue-500 hover:from-blue-300 hover:to-blue-400"
-                label="Twitter/X"
-              />
+             
               <SocialIcon
                 Icon={FaFacebook}
                 url={socialLinks.facebook}
@@ -249,18 +243,7 @@ export default function Footer() {
                 gradient="bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600"
                 label="WhatsApp"
               />
-              <SocialIcon
-                Icon={FaTelegram}
-                url={socialLinks.telegram}
-                gradient="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500"
-                label="Telegram"
-              />
-              <SocialIcon
-                Icon={FaDiscord}
-                url={socialLinks.discord}
-                gradient="bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600"
-                label="Discord"
-              />
+            
               <SocialIcon
                 Icon={FaGithub}
                 url={developer.github}
@@ -269,19 +252,7 @@ export default function Footer() {
               />
             </div>
 
-            {/* Social Stats */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl p-3 border border-emerald-600/20 text-center">
-                <p className="text-2xl font-bold text-emerald-400">10K+</p>
-                <p className="text-xs text-gray-400">Followers</p>
-              </div>
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl p-3 border border-teal-600/20 text-center">
-                <p className="text-2xl font-bold text-teal-400">50K+</p>
-                <p className="text-xs text-gray-400">Views</p>
-              </div>
-            </div>
-
-            {/* Developer - Enhanced */}
+            {/* Developer Card */}
             <div className="bg-gradient-to-r from-gray-900/80 to-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-emerald-600/30">
               <p className="text-xs text-gray-400 flex items-center gap-2 mb-3">
                 <FaCode className="text-emerald-400" />
@@ -315,11 +286,11 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar - Enhanced */}
+        {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-400">
           <p className="flex items-center gap-2 order-2 sm:order-1 mt-4 sm:mt-0">
             <FaShieldAlt className="text-emerald-400" />
-            © {new Date().getFullYear()} agasobanuyecineva. All rights reserved.
+            © {new Date().getFullYear()} Cineva. All rights reserved.
           </p>
           <div className="flex gap-6 order-1 sm:order-2">
             <a href="/privacy" className="hover:text-emerald-400 transition-colors flex items-center gap-1 group">

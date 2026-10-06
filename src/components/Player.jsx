@@ -8,12 +8,62 @@ import {
     FaFilm, FaTv, FaFire, FaClock,
     FaPlayCircle, FaChevronRight, FaChevronLeft,
     FaYoutube, FaVimeo, FaDailymotion, FaList, FaLayerGroup,
-    FaLanguage, FaCalendarAlt, FaTag, FaInfoCircle, FaEye, FaThumbsUp, FaCalendar,
-    FaBookmark, FaCloudDownloadAlt
+    FaCalendarAlt, FaTag, FaInfoCircle, FaEye, FaThumbsUp, FaCalendar,
+    FaBookmark, FaCloudDownloadAlt, FaUser
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import { MoviesContext } from '../context/MoviesContext';
 import MovieCast from './MovieCast';
+import { getTranslatorsWithProfiles } from '../lib/translators';
+
+/* ------------------------------------------------------------------
+   Translator Badge — avatar + name (matches hero / SeriesPlayer)
+------------------------------------------------------------------- */
+const TranslatorBadge = ({ name, profile, isMobile = false }) => {
+    if (!name) return null;
+
+    const displayName = profile?.display_name || profile?.name || name;
+    const photoUrl = profile?.photo_url;
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 rounded-full
+                bg-black/60 backdrop-blur-sm border border-emerald-500/40
+                shadow-lg shadow-emerald-500/10
+                ${isMobile ? 'pl-0.5 pr-2.5 py-0.5' : 'pl-1 pr-3 py-1'}
+            `}
+            title={displayName}
+        >
+            <span
+                className={`relative flex-shrink-0 rounded-full overflow-hidden
+                    ring-1 ring-emerald-400/60 bg-emerald-950
+                    ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}
+                `}
+            >
+                {photoUrl ? (
+                    <img
+                        src={photoUrl}
+                        alt={displayName}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                ) : (
+                    <span className="w-full h-full flex items-center justify-center">
+                        <FaUser className={`text-emerald-400 ${isMobile ? 'text-[8px]' : 'text-[10px]'}`} />
+                    </span>
+                )}
+            </span>
+            <span
+                className={`text-emerald-200 font-semibold truncate
+                    ${isMobile ? 'text-[10px] max-w-[80px]' : 'text-xs md:text-sm max-w-[140px]'}
+                `}
+            >
+                {displayName}
+            </span>
+        </span>
+    );
+};
 
 // ===== Error Boundary for player crashes =====
 class PlayerErrorBoundary extends React.Component {
@@ -84,6 +134,9 @@ const Player = () => {
     const [isVimeoVideo, setIsVimeoVideo] = useState(false);
     const [isDailyMotionVideo, setIsDailyMotionVideo] = useState(false);
 
+    // ⭐ Translator profiles map
+    const [translatorProfiles, setTranslatorProfiles] = useState({});
+
     // Movie parts
     const [movieParts, setMovieParts] = useState([]);
     const [selectedPart, setSelectedPart] = useState(null);
@@ -109,6 +162,42 @@ const Player = () => {
     const DISPLAY_LIMIT = 5;
     const isStreamingVideo = isVimeoVideo || isDailyMotionVideo || useEmbed || videoType === 'youtube';
     const showCustomControls = !isStreamingVideo;
+
+    // ⭐ Scroll to top when the player mounts (fixes "opens from bottom")
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, []);
+
+    // ⭐ Scroll to top whenever the movie changes
+    useEffect(() => {
+        if (movie?.id) {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+    }, [movie?.id]);
+
+    // ⭐ Load translator profiles once
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const list = await getTranslatorsWithProfiles(movies || []);
+                if (cancelled || !Array.isArray(list)) return;
+                const map = {};
+                list.forEach((t) => {
+                    if (t?.name) {
+                        map[t.name] = {
+                            display_name: t.display_name || t.name,
+                            photo_url: t.photo_url || ''
+                        };
+                    }
+                });
+                setTranslatorProfiles(map);
+            } catch (err) {
+                console.warn('Player: failed to load translator profiles', err);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [movies]);
 
     // Initialize movie from context
     useEffect(() => {
@@ -166,7 +255,7 @@ const Player = () => {
         }
     }, [videoType]);
 
-    // Initialize YouTube player — guarded + deferred
+    // Initialize YouTube player
     useEffect(() => {
         if (!youTubeApiReady || videoType !== 'youtube' || !youtubeId) return;
         if (!youtubeContainerRef.current) return;
@@ -579,7 +668,7 @@ const Player = () => {
         navigate(`/player/${related.id}`, {
             state: { movie: { ...related, download_link: related.download_link || related.download } },
         });
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     };
 
     const scrollRelated = (dir) => {
@@ -607,6 +696,11 @@ const Player = () => {
     const playerType = getPlayerTypeInfo();
     const isFavorite = favorites.includes(movie?.id);
     const inWatchlist = watchlist.includes(movie?.id);
+
+    // ⭐ Current movie's translator profile
+    const currentTranslatorProfile = movie?.translator
+        ? translatorProfiles[movie.translator]
+        : null;
 
     // ===== RENDER VIDEO =====
     const renderVideo = () => {
@@ -1104,10 +1198,16 @@ const Player = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                         <div className="lg:col-span-2">
                             <h1 className="text-2xl md:text-3xl font-bold mb-3">{movie.title}</h1>
-                            <div className="flex flex-wrap gap-2 mb-4">
+                            <div className="flex flex-wrap gap-2 mb-4 items-center">
                                 {movie.year && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaCalendarAlt className="text-xs" /> {movie.year}</span>}
                                 {movie.rating && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaStar className="text-black" /> {movie.rating}</span>}
-                                {movie.translator && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaLanguage className="text-black" /> {movie.translator}</span>}
+                                {movie.translator && (
+                                    <TranslatorBadge
+                                        name={movie.translator}
+                                        profile={currentTranslatorProfile}
+                                        isMobile={isMobile}
+                                    />
+                                )}
                                 {movie.category && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-cyan-600 to-teal-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaTag className="text-black" /> {movie.category.split(',')[0]}</span>}
                                 {movieParts.length > 0 && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border border-emerald-600/30 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaLayerGroup className="text-emerald-400" />{movieParts.length} Part{movieParts.length > 1 ? 's' : ''}</span>}
                             </div>
@@ -1132,7 +1232,16 @@ const Player = () => {
                                     {movie.genre && <p><span className="text-gray-400">Genre:</span> <span className="text-white">{movie.genre}</span></p>}
                                     {movie.country && <p><span className="text-gray-400">Country:</span> <span className="text-white">{movie.country}</span></p>}
                                     {movie.language && <p><span className="text-gray-400">Language:</span> <span className="text-white">{movie.language}</span></p>}
-                                    {movie.translator && <p><span className="text-gray-400">Translator:</span> <span className="text-emerald-400">{movie.translator}</span></p>}
+                                    {movie.translator && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-400">Translator:</span>
+                                            <TranslatorBadge
+                                                name={movie.translator}
+                                                profile={currentTranslatorProfile}
+                                                isMobile={true}
+                                            />
+                                        </div>
+                                    )}
                                     {movie.year && <p><span className="text-gray-400">Year:</span> <span className="text-white">{movie.year}</span></p>}
                                     {movie.duration && <p><span className="text-gray-400">Duration:</span> <span className="text-white">{movie.duration}</span></p>}
                                     {movie.director && <p><span className="text-gray-400">Director:</span> <span className="text-white">{movie.director}</span></p>}

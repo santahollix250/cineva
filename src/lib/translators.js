@@ -1,10 +1,6 @@
 // src/lib/translators.js
 import { supabase } from './supabase';
 
-/**
- * Get every translator that appears in movies/series.
- * Merges with any profile info (photo) stored in `translator_profiles`.
- */
 export async function getTranslatorsWithProfiles(movies = []) {
   // 1) Collect unique translator names + counts from movies
   const map = new Map();
@@ -21,7 +17,7 @@ export async function getTranslatorsWithProfiles(movies = []) {
     entry.total = entry.movies + entry.series;
   });
 
-  // 2) Load profile rows (photos)
+  // 2) Load ALL profile rows (photos + display names)
   let profilesByName = {};
   try {
     const { data, error } = await supabase
@@ -37,23 +33,44 @@ export async function getTranslatorsWithProfiles(movies = []) {
     console.warn('translator_profiles fetch failed:', e);
   }
 
-  // 3) Merge
-  const merged = Array.from(map.values()).map((t) => ({
-    ...t,
-    id: profilesByName[t.name]?.id || `legacy-${t.name}`,
-    photo_url: profilesByName[t.name]?.photo_url || '',
-    display_name: profilesByName[t.name]?.display_name || t.name,
-  }));
+  // ⭐ 3) Merge: start from movie-derived names, THEN add any profile-only rows
+  const mergedMap = new Map();
 
-  // Sort: most translated first
-  merged.sort((a, b) => b.total - a.total);
+  // 3a) Movie-derived translators
+  Array.from(map.values()).forEach((t) => {
+    const profile = profilesByName[t.name];
+    mergedMap.set(t.name, {
+      ...t,
+      id: profile?.id || `legacy-${t.name}`,
+      photo_url: profile?.photo_url || '',
+      display_name: profile?.display_name || t.name,
+    });
+  });
+
+  // 3b) Profile-only translators (new ones just created — count = 0)
+  Object.values(profilesByName).forEach((profile) => {
+    if (!mergedMap.has(profile.name)) {
+      mergedMap.set(profile.name, {
+        name: profile.name,
+        movies: 0,
+        series: 0,
+        total: 0,
+        id: profile.id || `profile-${profile.name}`,
+        photo_url: profile.photo_url || '',
+        display_name: profile.display_name || profile.name,
+      });
+    }
+  });
+
+  const merged = Array.from(mergedMap.values());
+  // Sort: most translated first, then alphabetical for ties (new ones at a stable spot)
+  merged.sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total;
+    return (a.display_name || a.name).localeCompare(b.display_name || b.name);
+  });
   return merged;
 }
 
-/**
- * Upsert a profile (photo + display name) keyed by translator name.
- * Creates the row if it doesn't exist.
- */
 export async function upsertTranslatorProfile(name, { photo_url, display_name }) {
   const payload = {
     name,
@@ -108,10 +125,6 @@ export async function uploadTranslatorPhoto(file) {
   return publicUrl;
 }
 
-/**
- * Rename a translator across all movies that use the old name.
- * Call this when you want to fix a typo in the name.
- */
 export async function renameTranslatorInMovies(movies, oldName, newName, updateMovieFn) {
   const affected = movies.filter(
     (m) => (m?.translator || '').trim() === oldName.trim()
