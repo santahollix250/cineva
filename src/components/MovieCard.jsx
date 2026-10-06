@@ -1,5 +1,5 @@
 // src/components/MovieCard.jsx
-import { FaPlay, FaStar, FaHeart, FaRegHeart, FaClock, FaTv, FaLayerGroup } from "react-icons/fa";
+import { FaPlay, FaStar, FaHeart, FaRegHeart, FaClock, FaLayerGroup } from "react-icons/fa";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -44,14 +44,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
   // ── Latest episode detection (for series) ──
   const latestEpisode = movie?.latestEpisode || null;
   const hasLatestEpisode = isSeries && !!latestEpisode;
-
-  // ── Episode label: "S2 E5" ──
-  const episodeLabel = (() => {
-    if (!hasLatestEpisode) return null;
-    const s = parseInt(latestEpisode.seasonNumber) || 1;
-    const e = parseInt(latestEpisode.episodeNumber) || 1;
-    return `S${s} E${e}`;
-  })();
 
   // ── Effective poster: use latest episode thumbnail for series when available ──
   const effectivePoster = (() => {
@@ -241,25 +233,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
           )}
         </div>
 
-        {/* ═══════════ LATEST EPISODE BADGE (series only) ═══════════ */}
-        {hasLatestEpisode && episodeLabel && (
-          <div className="absolute bottom-9 left-1.5 right-1.5 flex items-center justify-center z-10 pointer-events-none">
-            <span
-              className="inline-flex items-center gap-1
-                px-2 py-0.5 rounded-md
-                bg-black/75 backdrop-blur-md
-                border border-emerald-500/50 shadow-lg
-                text-[8px] sm:text-[9px] font-bold tracking-wide
-                text-emerald-300"
-            >
-              <FaTv className="text-[6px] text-emerald-400" />
-              <span className="text-white/95">Latest</span>
-              <span className="text-white/80">•</span>
-              <span className="text-white/95">{episodeLabel}</span>
-            </span>
-          </div>
-        )}
-
         {/* ═══════════ BOTTOM ROW: Year on left, Like on right ═══════════ */}
         <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between gap-1 z-10">
 
@@ -303,7 +276,7 @@ export default function MovieCard({ movie, onSeriesClick }) {
           {movie?.title || 'Untitled'}
         </h3>
 
-        {/* Latest Episode title (series only) — just the title, no "Latest Episode:" prefix */}
+        {/* Latest Episode title (series only) — just the title, no prefix */}
         {hasLatestEpisode && latestEpisode?.title && (
           <p
             className="mt-0.5 text-[9px] xs:text-[10px] sm:text-[11px] font-medium
