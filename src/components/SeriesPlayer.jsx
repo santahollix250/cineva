@@ -18,6 +18,25 @@ import ShareButton from '../components/ShareButton';
 import ShareOGMeta from '../components/ShareOGMeta';
 
 /* ------------------------------------------------------------------
+   ⭐ SHARE HELPERS — build a valid absolute poster URL for og:image------------------------------------------------------------------- */
+const SITE_URL = 'https://irafilms.store';
+const DEFAULT_POSTER = `${SITE_URL}/og-default.jpg`;
+
+const buildAbsolutePosterUrl = (raw) => {
+    if (!raw || typeof raw !== 'string') return DEFAULT_POSTER;
+    const t = raw.trim();
+    if (!t) return DEFAULT_POSTER;
+    if (/^https?:\/\//i.test(t)) return t;
+    if (t.startsWith('//')) return `https:${t}`;
+    if (t.startsWith('/')) return `${SITE_URL}${t}`;
+    const supabaseUrl = import.meta?.env?.VITE_SUPABASE_URL;
+    if (supabaseUrl && !t.includes('/')) {
+        return `${supabaseUrl}/storage/v1/object/public/${t}`;
+    }
+    return `${SITE_URL}/${t}`;
+};
+
+/* ------------------------------------------------------------------
    Translator Badge — avatar + name
 ------------------------------------------------------------------- */
 const TranslatorBadge = ({ name, profile, isMobile = false }) => {
@@ -1646,12 +1665,12 @@ const SeriesPlayer = () => {
         ? translatorProfiles[series.translator]
         : null;
 
-    // ⭐ Share URL + info — points at Vercel /api/share for OG previews
+    // ⭐⭐⭐ SHARE URL + INFO — FIXED ⭐⭐⭐
     const shareUrl = typeof window !== 'undefined' && series?.id
         ? `${window.location.origin}/api/share?id=${series.id}&type=series`
         : '';
     const shareTitle = series?.title || 'Untitled Series';
-    const sharePoster = series?.poster || series?.background || '';
+    const sharePoster = buildAbsolutePosterUrl(series?.poster || series?.background);
     const shareDescription = series?.description
         ? String(series.description).slice(0, 150)
         : 'Watch on Irafilms — premium streaming in Rwanda.';
