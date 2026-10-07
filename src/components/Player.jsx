@@ -15,9 +15,11 @@ import { supabase } from '../lib/supabase';
 import { MoviesContext } from '../context/MoviesContext';
 import MovieCast from './MovieCast';
 import { getTranslatorsWithProfiles } from '../lib/translators';
+import ShareButton from '../components/ShareButton';
+import ShareOGMeta from '../components/ShareOGMeta';
 
 /* ------------------------------------------------------------------
-   Translator Badge — avatar + name (matches hero / SeriesPlayer)
+   Translator Badge — avatar + name
 ------------------------------------------------------------------- */
 const TranslatorBadge = ({ name, profile, isMobile = false }) => {
     if (!name) return null;
@@ -99,7 +101,6 @@ const Player = () => {
     const { id } = useParams();
     const { movies } = useContext(MoviesContext);
 
-    // Refs
     const videoRef = useRef(null);
     const playerContainerRef = useRef(null);
     const youtubeContainerRef = useRef(null);
@@ -108,7 +109,6 @@ const Player = () => {
     const commentsEndRef = useRef(null);
     const scrollContainerRef = useRef(null);
 
-    // State
     const [movie, setMovie] = useState(location.state?.movie || null);
     const [videoUrl, setVideoUrl] = useState('');
     const [playing, setPlaying] = useState(false);
@@ -134,14 +134,11 @@ const Player = () => {
     const [isVimeoVideo, setIsVimeoVideo] = useState(false);
     const [isDailyMotionVideo, setIsDailyMotionVideo] = useState(false);
 
-    // ⭐ Translator profiles map
     const [translatorProfiles, setTranslatorProfiles] = useState({});
 
-    // Movie parts
     const [movieParts, setMovieParts] = useState([]);
     const [selectedPart, setSelectedPart] = useState(null);
 
-    // Comments
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [userName, setUserName] = useState('');
@@ -151,11 +148,9 @@ const Player = () => {
     const [editText, setEditText] = useState('');
     const [userAvatar, setUserAvatar] = useState('');
 
-    // Favorites/Watchlist
     const [favorites, setFavorites] = useState([]);
     const [watchlist, setWatchlist] = useState([]);
 
-    // Related movies
     const [relatedMovies, setRelatedMovies] = useState([]);
     const [relatedLoading, setRelatedLoading] = useState(false);
 
@@ -163,12 +158,12 @@ const Player = () => {
     const isStreamingVideo = isVimeoVideo || isDailyMotionVideo || useEmbed || videoType === 'youtube';
     const showCustomControls = !isStreamingVideo;
 
-    // ⭐ Scroll to top when the player mounts (fixes "opens from bottom")
+    // ⭐ Scroll to top on mount
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, []);
 
-    // ⭐ Scroll to top whenever the movie changes
+    // ⭐ Scroll to top when movie changes
     useEffect(() => {
         if (movie?.id) {
             window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -210,25 +205,72 @@ const Player = () => {
         }
     }, [movie, id, movies]);
 
-    // Parse movie parts
+    // ⭐ Parse movie parts (bulletproof)
     useEffect(() => {
-        if (movie?.download) {
-            try {
-                const parsed = typeof movie.download === 'string' ? JSON.parse(movie.download) : movie.download;
-                const parts = Array.isArray(parsed) ? parsed : parsed?.parts || [];
-                setMovieParts(parts);
-                if (parts.length && !selectedPart) setSelectedPart(parts[0]);
-            } catch { setMovieParts([]); }
+        const tryParse = (value) => {
+            if (!value) return null;
+            let v = value;
+            for (let i = 0; i < 3; i++) {
+                if (typeof v === 'string') {
+                    try { v = JSON.parse(v); } catch { return null; }
+                } else break;
+            }
+            return v;
+        };
+
+        let parts = [];
+
+        if (Array.isArray(movie?.parts) && movie.parts.length > 0) {
+            parts = movie.parts;
+        } else {
+            const parsed = tryParse(movie?.download);
+            if (parsed) {
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    parts = parsed;
+                } else if (parsed.parts && Array.isArray(parsed.parts) && parsed.parts.length > 0) {
+                    parts = parsed.parts;
+                } else if (
+                    typeof parsed === 'object' &&
+                    (parsed.title || parsed.partNumber || parsed.videoUrl || parsed.download_link)
+                ) {
+                    parts = [parsed];
+                }
+            }
+        }
+
+        setMovieParts(parts);
+
+        if (parts.length > 0 && !selectedPart) {
+            setSelectedPart(parts[0]);
         }
     }, [movie]);
 
-    // Update video when part changes
+    // ⭐ Update video when part changes (with fallback chain)
     useEffect(() => {
         if (selectedPart) {
             setLoading(true);
             setError('');
             setUseEmbed(false);
-            initializeVideo(selectedPart.streamLink || selectedPart.videoUrl, selectedPart.videoType);
+
+            const partUrl =
+                selectedPart.streamLink ||
+                selectedPart.videoUrl ||
+                movie?.streamLink ||
+                movie?.videoUrl ||
+                '';
+
+            const partType =
+                selectedPart.videoType ||
+                movie?.videoType ||
+                undefined;
+
+            if (!partUrl || !String(partUrl).trim()) {
+                setError('This part has no video source.');
+                setLoading(false);
+                return;
+            }
+
+            initializeVideo(partUrl, partType);
         } else if (movie) {
             initializeVideo(movie.videoUrl, movie.videoType);
         }
@@ -697,10 +739,19 @@ const Player = () => {
     const isFavorite = favorites.includes(movie?.id);
     const inWatchlist = watchlist.includes(movie?.id);
 
-    // ⭐ Current movie's translator profile
     const currentTranslatorProfile = movie?.translator
         ? translatorProfiles[movie.translator]
         : null;
+
+    // ⭐ Share URL + info — points at Vercel /api/share for OG previews
+    const shareUrl = typeof window !== 'undefined' && movie?.id
+        ? `${window.location.origin}/api/share?id=${movie.id}&type=movie`
+        : '';
+    const shareTitle = movie?.title || 'Untitled';
+    const sharePoster = movie?.poster || movie?.background || '';
+    const shareDescription = movie?.description
+        ? String(movie.description).slice(0, 150)
+        : 'Watch on Irafilms — premium streaming in Rwanda.';
 
     // ===== RENDER VIDEO =====
     const renderVideo = () => {
@@ -1070,6 +1121,14 @@ const Player = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black text-white">
+            {/* ⭐ Dynamic OG meta for link previews */}
+            <ShareOGMeta
+                title={`Watch ${shareTitle} on Irafilms`}
+                description={shareDescription}
+                image={sharePoster}
+                url={shareUrl}
+            />
+
             {!isFullscreen && (
                 <div className="absolute top-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-b from-black/90 via-black/60 to-transparent z-30">
                     <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -1210,6 +1269,15 @@ const Player = () => {
                                 )}
                                 {movie.category && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-cyan-600 to-teal-600 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 text-black"><FaTag className="text-black" /> {movie.category.split(',')[0]}</span>}
                                 {movieParts.length > 0 && <span className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border border-emerald-600/30 rounded-full text-xs md:text-sm font-medium flex items-center gap-1"><FaLayerGroup className="text-emerald-400" />{movieParts.length} Part{movieParts.length > 1 ? 's' : ''}</span>}
+
+                                {/* ⭐ SHARE BUTTON */}
+                                <ShareButton
+                                    title={shareTitle}
+                                    poster={sharePoster}
+                                    url={shareUrl}
+                                    isMobile={isMobile}
+                                    accent="emerald"
+                                />
                             </div>
 
                             <div className="bg-gray-900/50 rounded-xl p-4 mb-5 border border-gray-800">
@@ -1217,7 +1285,6 @@ const Player = () => {
                                 <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{movie.description || 'No description available.'}</p>
                             </div>
 
-                            {/* ✅ CAST SECTION — TMDB powered */}
                             <MovieCast movieId={movie?.id} />
 
                             {movieParts.length > 0 && renderPartsList()}
@@ -1247,8 +1314,20 @@ const Player = () => {
                                     {movie.director && <p><span className="text-gray-400">Director:</span> <span className="text-white">{movie.director}</span></p>}
                                     {movie.cast && <p><span className="text-gray-400">Cast:</span> <span className="text-white">{movie.cast}</span></p>}
                                 </div>
+
+                                {/* ⭐ SHARE in sidebar too */}
+                                <div className="mt-4 pt-4 border-t border-gray-800">
+                                    <ShareButton
+                                        title={shareTitle}
+                                        poster={sharePoster}
+                                        url={shareUrl}
+                                        isMobile={isMobile}
+                                        accent="emerald"
+                                    />
+                                </div>
+
                                 {canDownload(movie) && (
-                                    <div className="mt-6 pt-4 border-t border-gray-800">
+                                    <div className="mt-4">
                                         <button onClick={() => handleDownload(getDownloadLink(movie))} className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl text-black font-medium flex items-center justify-center gap-2 text-sm md:text-base shadow-lg shadow-emerald-600/30" disabled={downloading}>
                                             {downloading ? <><FaSpinner className="animate-spin" />Downloading... {downloadProgress}%</> : <><FaCloudDownloadAlt />Download Movie</>}
                                         </button>

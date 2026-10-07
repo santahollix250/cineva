@@ -180,12 +180,10 @@ function Admin({ onLogout }) {
   const [showEpisodeForm, setShowEpisodeForm] = useState(false);
   const [mainVideoUrl, setMainVideoUrl] = useState("");
 
-  // ⭐ In-form episodes (series only)
   const [formEpisodes, setFormEpisodes] = useState([]);
   const [formEpisodeForm, setFormEpisodeForm] = useState(emptyFormEpisode);
   const [editingFormEpisode, setEditingFormEpisode] = useState(null);
 
-  // ⭐ In-form parts (movies only — restored)
   const [formParts, setFormParts] = useState([]);
   const [formPartForm, setFormPartForm] = useState(emptyPart);
   const [editingFormPart, setEditingFormPart] = useState(null);
@@ -317,7 +315,6 @@ function Admin({ onLogout }) {
     setTimeout(() => { clearInterval(interval); setUploadProgress(100); setUploadingFile(false); addNotification("success", "Video uploaded"); }, 2000);
   };
 
-  // ===== IN-FORM EPISODES =====
   const handleFormEpisodeChange = (e) => {
     const { name, value } = e.target;
     setFormEpisodeForm(f => ({ ...f, [name]: value }));
@@ -387,7 +384,6 @@ function Admin({ onLogout }) {
     if (editingFormEpisode?.tempId === tempId) handleCancelEditFormEpisode();
   };
 
-  // ===== IN-FORM PARTS (movies only — restored) =====
   const handleFormPartChange = (e) => {
     const { name, value } = e.target;
     setFormPartForm(f => ({ ...f, [name]: value }));
@@ -496,15 +492,26 @@ function Admin({ onLogout }) {
     addNotification("info", "Form reset");
   };
 
+  // ⭐ FIXED: robust parts parsing in startEdit
   const startEdit = (movie) => {
     if (!movie) return;
 
     let parts = [];
     if (movie.download) {
       try {
-        const parsed = JSON.parse(movie.download);
-        if (Array.isArray(parsed)) parts = parsed;
-        else if (parsed?.parts) parts = parsed.parts;
+        let parsed = movie.download;
+        // Unwrap up to 3 levels of stringification
+        for (let i = 0; i < 3 && typeof parsed === 'string'; i++) {
+          parsed = JSON.parse(parsed);
+        }
+        if (Array.isArray(parsed)) {
+          parts = parsed;
+        } else if (parsed?.parts && Array.isArray(parsed.parts)) {
+          parts = parsed.parts;
+        } else if (parsed && typeof parsed === 'object' && (parsed.title || parsed.partNumber || parsed.videoUrl)) {
+          // Single part object → wrap in array
+          parts = [parsed];
+        }
       } catch (e) { /* ignore */ }
     }
 
@@ -594,7 +601,6 @@ function Admin({ onLogout }) {
       streamLink = effectiveVideoUrl;
     }
 
-    // ⭐ For MOVIES: save in-form parts. For SERIES: keep existing download untouched.
     let downloadPayload = existing?.download || form.download || "";
     if (form.type === 'movie') {
       const cleanedParts = formParts
@@ -658,7 +664,6 @@ function Admin({ onLogout }) {
         addNotification("success", `${form.type === 'series' ? 'Series' : 'Movie'} added`);
       }
 
-      // ⭐ Save in-form episodes (series only)
       if (form.type === 'series' && formEpisodes.length > 0) {
         if (!savedMovieId) {
           addNotification("error", "Could not resolve series ID for episodes");
@@ -792,9 +797,13 @@ function Admin({ onLogout }) {
     let parts = [];
     if (movie.download) {
       try {
-        const parsed = JSON.parse(movie.download);
+        let parsed = movie.download;
+        for (let i = 0; i < 3 && typeof parsed === 'string'; i++) {
+          parsed = JSON.parse(parsed);
+        }
         if (Array.isArray(parsed)) parts = parsed;
-        else if (parsed?.parts) parts = parsed.parts;
+        else if (parsed?.parts && Array.isArray(parsed.parts)) parts = parsed.parts;
+        else if (parsed && typeof parsed === 'object' && (parsed.title || parsed.partNumber || parsed.videoUrl)) parts = [parsed];
       } catch (e) { parts = []; }
     }
     setMovieParts(parts);
@@ -880,9 +889,13 @@ function Admin({ onLogout }) {
   const getPartsCount = (movie) => {
     if (!movie.download) return 0;
     try {
-      const p = JSON.parse(movie.download);
-      if (Array.isArray(p)) return p.length;
-      if (p?.parts) return p.parts.length;
+      let parsed = movie.download;
+      for (let i = 0; i < 3 && typeof parsed === 'string'; i++) {
+        parsed = JSON.parse(parsed);
+      }
+      if (Array.isArray(parsed)) return parsed.length;
+      if (parsed?.parts && Array.isArray(parsed.parts)) return parsed.parts.length;
+      if (parsed && typeof parsed === 'object' && (parsed.title || parsed.partNumber)) return 1;
     } catch (e) { return 0; }
     return 0;
   };
@@ -1252,7 +1265,6 @@ function Admin({ onLogout }) {
                     stagedCast={stagedCast} onCastStaged={setStagedCast} />
                 </div>
 
-                {/* ⭐ IN-FORM PARTS — ONLY for type === "movie" (restored) */}
                 {form.type === 'movie' && (
                   <div className="sm:col-span-2 mt-2 pt-4 border-t border-gray-700">
                     <div className="flex items-center justify-between mb-3">
@@ -1370,7 +1382,6 @@ function Admin({ onLogout }) {
                   </div>
                 )}
 
-                {/* ⭐ IN-FORM EPISODES — only for series */}
                 {form.type === 'series' && (
                   <div className="sm:col-span-2 mt-2 pt-4 border-t border-gray-700">
                     <div className="flex items-center justify-between mb-3">

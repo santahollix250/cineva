@@ -9,25 +9,51 @@ export default function MovieCard({ movie, onSeriesClick }) {
   const [imageError, setImageError] = useState(false);
   const navigate = useNavigate();
 
-  const getMovieParts = (movie) => {
-    if (!movie) return [];
-    if (movie.parts && Array.isArray(movie.parts)) return movie.parts;
-    if (movie.download) {
-      try {
-        const parsed = typeof movie.download === 'string' ? JSON.parse(movie.download) : movie.download;
-        if (Array.isArray(parsed)) return parsed;
-        else if (parsed && parsed.parts && Array.isArray(parsed.parts)) return parsed.parts;
-      } catch (e) { /* Not JSON */ }
+  // ⭐ Bulletproof parts parser — handles every shape the DB might return
+  const getMovieParts = (m) => {
+    if (!m) return [];
+
+    const tryParse = (value) => {
+      if (!value) return null;
+      let v = value;
+      for (let i = 0; i < 3; i++) {
+        if (typeof v === 'string') {
+          try { v = JSON.parse(v); } catch { return null; }
+        } else break;
+      }
+      return v;
+    };
+
+    // 1. Already an array on movie.parts
+    if (Array.isArray(m.parts) && m.parts.length > 0) {
+      return m.parts;
     }
+
+    // 2. Parse from download
+    const parsed = tryParse(m.download);
+    if (parsed) {
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (parsed.parts && Array.isArray(parsed.parts) && parsed.parts.length > 0) {
+        return parsed.parts;
+      }
+      // ⭐ Single part object → wrap in array
+      if (
+        typeof parsed === 'object' &&
+        (parsed.title || parsed.partNumber || parsed.videoUrl || parsed.download_link)
+      ) {
+        return [parsed];
+      }
+    }
+
     return [];
   };
 
-  const hasPlayableContent = (movie) => {
-    if (!movie) return false;
-    if (movie.videoUrl || movie.streamLink) return true;
-    const parts = getMovieParts(movie);
-    if (parts.length > 0) return true;
-    if (movie.embedCode) return true;
+  const hasPlayableContent = (m) => {
+    if (!m) return false;
+    if (m.videoUrl || m.streamLink) return true;
+    const p = getMovieParts(m);
+    if (p.length > 0) return true;
+    if (m.embedCode) return true;
     return false;
   };
 
@@ -41,17 +67,14 @@ export default function MovieCard({ movie, onSeriesClick }) {
 
   const isSeries = movie?.type === 'series';
 
-  // ── Latest episode detection (for series) ──
   const latestEpisode = movie?.latestEpisode || null;
   const hasLatestEpisode = isSeries && !!latestEpisode;
 
-  // ── Effective poster: use latest episode thumbnail for series when available ──
   const effectivePoster = (() => {
     if (hasLatestEpisode && latestEpisode.thumbnail) return latestEpisode.thumbnail;
     return movie?.poster || movie?.background;
   })();
 
-  // ── Effective date: use latest episode date for series when available ──
   const uploadedDateStr = (() => {
     if (hasLatestEpisode) {
       return latestEpisode.created_at || latestEpisode.airDate || movie?.created_at;
@@ -59,7 +82,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
     return movie?.created_at || movie?.uploaded_at || movie?.timestamp;
   })();
 
-  // ── Is this a "new" upload? (uploaded in the last 14 days) ──
   const isNewUpload = (() => {
     if (!uploadedDateStr) return false;
     try {
@@ -118,23 +140,22 @@ export default function MovieCard({ movie, onSeriesClick }) {
 
     const movieId = movie?.id || movie?._id || Date.now().toString();
 
-    if (parts.length > 0) {
-      navigate(`/player/${movieId}`, {
-        state: {
-          movie: {
-            ...movie,
-            parts: parts,
-            hasParts: true,
-            videoUrl: parts[0]?.videoUrl || movie.videoUrl,
-            streamLink: parts[0]?.streamLink || movie.streamLink
-          }
-        }
-      });
-    } else {
-      navigate(`/player/${movieId}`, {
-        state: { movie: { ...movie, hasParts: false } }
-      });
-    }
+    // ⭐ Recompute parts locally so we always pass a proper array
+    const partsToSend = getMovieParts(movie);
+    const firstPart = partsToSend.length > 0 ? partsToSend[0] : null;
+    const firstPartUrl = firstPart?.videoUrl || firstPart?.streamLink || "";
+
+    const movieToPlay = {
+      ...movie,
+      parts: partsToSend,
+      hasParts: partsToSend.length > 0,
+      download: movie.download,
+      videoUrl: movie.videoUrl || firstPartUrl || null,
+      streamLink: movie.streamLink || firstPartUrl || null,
+      download_link: movie.download_link || movie.download
+    };
+
+    navigate(`/player/${movieId}`, { state: { movie: movieToPlay } });
   };
 
   const toggleLike = (e) => {
@@ -169,7 +190,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
           onError={() => setImageError(true)}
         />
 
-        {/* Soft bottom gradient for readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
 
         {/* ─── HOVER OVERLAY (desktop only) ─── */}
@@ -194,8 +214,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
 
         {/* ═══════════ TOP ROW: Type + NEW on left, Rating on right ═══════════ */}
         <div className="absolute top-1.5 left-1.5 right-1.5 flex items-start justify-between gap-1 z-10">
-
-          {/* Left cluster: Type + optional NEW */}
           <div className="flex items-center gap-1 min-w-0">
             <span
               className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px]
@@ -221,7 +239,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
             )}
           </div>
 
-          {/* Right cluster: Rating only */}
           {rating && (
             <span className="inline-flex items-center gap-0.5
               px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold
@@ -235,8 +252,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
 
         {/* ═══════════ BOTTOM ROW: Year on left, Like on right ═══════════ */}
         <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between gap-1 z-10">
-
-          {/* Year pill (or empty spacer so like stays right) */}
           {year ? (
             <span className="px-1.5 py-0.5 rounded
               text-[8px] sm:text-[9px] font-semibold text-white/90
@@ -247,7 +262,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
             <span />
           )}
 
-          {/* Like button */}
           <button
             onClick={toggleLike}
             aria-label="Like"
@@ -269,14 +283,11 @@ export default function MovieCard({ movie, onSeriesClick }) {
 
       {/* ═══════════ INFO BELOW POSTER ═══════════ */}
       <div className="pt-2 sm:pt-2.5">
-
-        {/* Series title */}
         <h3 className="text-white text-[11px] xs:text-xs sm:text-sm font-semibold
           line-clamp-2 leading-snug group-hover:text-emerald-400 transition-colors duration-200">
           {movie?.title || 'Untitled'}
         </h3>
 
-        {/* Latest Episode title (series only) — just the title, no prefix */}
         {hasLatestEpisode && latestEpisode?.title && (
           <p
             className="mt-0.5 text-[9px] xs:text-[10px] sm:text-[11px] font-medium
@@ -288,7 +299,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
           </p>
         )}
 
-        {/* Translator — emerald so it's distinct from the episode title */}
         {translator && (
           <p className="mt-1 text-[9px] xs:text-[10px] sm:text-[11px] font-medium
             text-emerald-400 truncate" title={translator}>
@@ -296,7 +306,6 @@ export default function MovieCard({ movie, onSeriesClick }) {
           </p>
         )}
 
-        {/* Meta row: category • time */}
         {(category || uploadedTime) && (
           <div className="flex items-center gap-1 mt-0.5 text-[8px] xs:text-[9px] sm:text-[10px] text-gray-500">
             {category && (

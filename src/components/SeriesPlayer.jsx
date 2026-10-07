@@ -14,6 +14,8 @@ import { supabase } from '../lib/supabase';
 import { MoviesContext } from '../context/MoviesContext';
 import MovieCast from './MovieCast';
 import { getTranslatorsWithProfiles } from '../lib/translators';
+import ShareButton from '../components/ShareButton';
+import ShareOGMeta from '../components/ShareOGMeta';
 
 /* ------------------------------------------------------------------
    Translator Badge — avatar + name
@@ -70,7 +72,6 @@ const SeriesPlayer = () => {
     const { id } = useParams();
     const { movies, episodes = [], getEpisodesBySeries } = useContext(MoviesContext);
 
-    // Get series data from location state
     const [series, setSeries] = useState(location.state?.series || null);
     const [currentEpisode, setCurrentEpisode] = useState(location.state?.episode || null);
     const [episodesList, setEpisodesList] = useState(location.state?.episodes || []);
@@ -80,10 +81,8 @@ const SeriesPlayer = () => {
     const [seasons, setSeasons] = useState([]);
     const [showEpisodeList, setShowEpisodeList] = useState(true);
 
-    // ⭐ Translator profiles map
     const [translatorProfiles, setTranslatorProfiles] = useState({});
 
-    // ========== REFS ==========
     const videoRef = useRef(null);
     const playerContainerRef = useRef(null);
     const youtubeContainerRef = useRef(null);
@@ -93,11 +92,9 @@ const SeriesPlayer = () => {
     const volumeBarRef = useRef(null);
     const episodesScrollRef = useRef(null);
 
-    // YouTube specific states
     const [youTubePlayer, setYouTubePlayer] = useState(null);
     const [youTubeApiReady, setYouTubeApiReady] = useState(false);
 
-    // Video player states
     const [videoUrl, setVideoUrl] = useState('');
     const [playing, setPlaying] = useState(false);
     const [volume, setVolume] = useState(0.8);
@@ -125,11 +122,9 @@ const SeriesPlayer = () => {
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showSeasonSelector, setShowSeasonSelector] = useState(false);
 
-    // Slider interaction states
     const [isSeeking, setIsSeeking] = useState(false);
     const [isVolumeChanging, setIsVolumeChanging] = useState(false);
 
-    // Comments state
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [userName, setUserName] = useState('');
@@ -139,11 +134,8 @@ const SeriesPlayer = () => {
     const [editText, setEditText] = useState('');
     const [userAvatar, setUserAvatar] = useState('');
 
-    // Favorites/Watchlist
     const [favorites, setFavorites] = useState([]);
     const [watchlist, setWatchlist] = useState([]);
-
-    // ========== INITIALIZATION ==========
 
     const sortEpisodes = (episodesArray) => {
         if (!episodesArray || !Array.isArray(episodesArray)) return [];
@@ -166,26 +158,22 @@ const SeriesPlayer = () => {
         return Array.from(seasonSet).sort((a, b) => a - b);
     };
 
-    // ⭐ Scroll to top when the player mounts (fixes "opens from bottom")
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, []);
 
-    // ⭐ Scroll to top whenever the series changes
     useEffect(() => {
         if (series?.id) {
             window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         }
     }, [series?.id]);
 
-    // ⭐ Scroll to top whenever the episode changes
     useEffect(() => {
         if (currentEpisode?.id) {
             window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         }
     }, [currentEpisode?.id]);
 
-    // ⭐ Load translator profiles once
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -286,8 +274,6 @@ const SeriesPlayer = () => {
             initializeVideo(currentEpisode);
         }
     }, [currentEpisode, retryCount]);
-
-    // ========== COMMENTS FUNCTIONS ==========
 
     useEffect(() => {
         const savedUser = localStorage.getItem('videoCommenter');
@@ -494,39 +480,15 @@ const SeriesPlayer = () => {
         localStorage.setItem('videoCommenter', JSON.stringify(userData));
     };
 
-    // ========== VIDEO FUNCTIONS ==========
-
     const detectVideoType = (url) => {
         if (!url || typeof url !== 'string') return 'direct';
-
-        if (url.includes('dailymotion.com') || url.includes('dai.ly')) {
-            return 'dailymotion';
-        }
-
-        if (url.includes('vimeo.com') || url.includes('player.vimeo.com') || /^\d+$/.test(url.trim())) {
-            return 'vimeo';
-        }
-
-        if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('youtube-nocookie.com')) {
-            return 'youtube';
-        }
-
-        if (url.match(/\.(mp4|webm|mkv|avi|mov|m3u8|mpd|ogg|ogv|wmv|flv|m4v|3gp|ts)$/i)) {
-            return 'direct';
-        }
-
-        if (url.includes('/stream/') || url.includes('/video/') || url.includes('/watch/')) {
-            return 'direct';
-        }
-
-        if (url.includes('mux.com') || url.includes('.mpd')) {
-            return 'mux';
-        }
-
-        if (url.includes('<iframe') || url.includes('embed')) {
-            return 'embed';
-        }
-
+        if (url.includes('dailymotion.com') || url.includes('dai.ly')) return 'dailymotion';
+        if (url.includes('vimeo.com') || url.includes('player.vimeo.com') || /^\d+$/.test(url.trim())) return 'vimeo';
+        if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('youtube-nocookie.com')) return 'youtube';
+        if (url.match(/\.(mp4|webm|mkv|avi|mov|m3u8|mpd|ogg|ogv|wmv|flv|m4v|3gp|ts)$/i)) return 'direct';
+        if (url.includes('/stream/') || url.includes('/video/') || url.includes('/watch/')) return 'direct';
+        if (url.includes('mux.com') || url.includes('.mpd')) return 'mux';
+        if (url.includes('<iframe') || url.includes('embed')) return 'embed';
         return 'direct';
     };
 
@@ -828,7 +790,6 @@ const SeriesPlayer = () => {
                 setDailyMotionId(dailymotionId);
                 const embedUrl = `https://www.dailymotion.com/embed/video/${dailymotionId}?autoplay=1&queue-autoplay-next=0&queue-enable=0&sharing-enable=0&ui-logo=0&ui-start-screen-info=0&controls=true&ui-theme=dark&ui-advance=0&ui-chapters=0&ui-description=0&ui-mute=0&ui-endscreen=0&logo=0&info=0`;
                 setVideoUrl(embedUrl);
-                console.log("🎬 Using DailyMotion embedded player (clean mode)");
             } else {
                 setError("Invalid DailyMotion URL");
             }
@@ -840,7 +801,6 @@ const SeriesPlayer = () => {
             if (vimeoId) {
                 const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0&controls=true&badge=0&transparent=1&color=10b981&autopause=0&player_id=0&app_id=0`;
                 setVideoUrl(embedUrl);
-                console.log("🎬 Using Vimeo embedded player (clean mode)");
             } else {
                 setError("Invalid Vimeo URL");
             }
@@ -852,7 +812,6 @@ const SeriesPlayer = () => {
             if (youtubeId) {
                 setYoutubeId(youtubeId);
                 setVideoUrl('');
-                console.log("🎬 Using YouTube API player with custom controls");
             } else {
                 setError("Invalid YouTube URL");
             }
@@ -866,13 +825,11 @@ const SeriesPlayer = () => {
             } else {
                 setVideoUrl(url);
             }
-            console.log("🎬 Using embed player");
         } else {
             setIsVimeoVideo(false);
             setIsDailyMotionVideo(false);
             setIsYouTubeVideo(false);
             setVideoUrl(url);
-            console.log("🎬 Using custom HTML5 player");
         }
         setLoading(false);
     };
@@ -1200,7 +1157,6 @@ const SeriesPlayer = () => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, [showMobileMenu]);
 
-    // ========== RECOMMENDATIONS ("You May Also Like") ==========
     const recommendations = useMemo(() => {
         if (!movies || movies.length === 0) return [];
 
@@ -1310,8 +1266,6 @@ const SeriesPlayer = () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, [navigate, episodes, getEpisodesBySeries]);
 
-    // ========== RENDER FUNCTIONS ==========
-
     const renderVideoPlayer = () => {
         if (useEmbed) {
             return (
@@ -1323,15 +1277,8 @@ const SeriesPlayer = () => {
                         allow="autoplay; fullscreen; picture-in-picture"
                         allowFullScreen
                         title={currentEpisode?.title || 'Video Player'}
-                        onLoad={() => {
-                            console.log("✅ Embed iframe loaded");
-                            setVideoLoaded(true);
-                            setPlaying(true);
-                        }}
-                        onError={() => {
-                            setError("Failed to load embedded video");
-                            setVideoLoaded(false);
-                        }}
+                        onLoad={() => { setVideoLoaded(true); setPlaying(true); }}
+                        onError={() => { setError("Failed to load embedded video"); setVideoLoaded(false); }}
                     />
                 </div>
             );
@@ -1347,15 +1294,8 @@ const SeriesPlayer = () => {
                         allow="autoplay; fullscreen; picture-in-picture"
                         allowFullScreen
                         title={currentEpisode?.title || 'Video Player'}
-                        onLoad={() => {
-                            console.log("✅ DailyMotion iframe loaded");
-                            setVideoLoaded(true);
-                            setPlaying(true);
-                        }}
-                        onError={() => {
-                            setError("Failed to load DailyMotion video");
-                            setVideoLoaded(false);
-                        }}
+                        onLoad={() => { setVideoLoaded(true); setPlaying(true); }}
+                        onError={() => { setError("Failed to load DailyMotion video"); setVideoLoaded(false); }}
                     />
                 </div>
             );
@@ -1369,54 +1309,25 @@ const SeriesPlayer = () => {
                         allow="autoplay; fullscreen; picture-in-picture"
                         allowFullScreen
                         title={currentEpisode?.title || 'Video Player'}
-                        onLoad={() => {
-                            console.log("✅ Vimeo iframe loaded");
-                            setVideoLoaded(true);
-                            setPlaying(true);
-                        }}
-                        onError={() => {
-                            setError("Failed to load Vimeo video");
-                            setVideoLoaded(false);
-                        }}
+                        onLoad={() => { setVideoLoaded(true); setPlaying(true); }}
+                        onError={() => { setError("Failed to load Vimeo video"); setVideoLoaded(false); }}
                     />
                 </div>
             );
         } else if (videoType === 'youtube') {
             return (
                 <div className="relative w-full h-full bg-black">
-                    <div
-                        ref={youtubeContainerRef}
-                        className="w-full h-full"
-                        style={{
-                            position: 'relative',
-                            zIndex: 1
-                        }}
-                    />
+                    <div ref={youtubeContainerRef} className="w-full h-full" style={{ position: 'relative', zIndex: 1 }} />
                     <div
                         className="absolute inset-0 z-20"
-                        style={{
-                            background: 'transparent',
-                            cursor: 'pointer'
-                        }}
+                        style={{ background: 'transparent', cursor: 'pointer' }}
                         onClick={handlePlayPause}
                         onMouseEnter={() => showControlsWithTimer()}
                         onMouseLeave={() => setShowControls(false)}
                     />
-                    <div
-                        className="absolute inset-0 z-10"
-                        style={{
-                            background: 'rgba(0,0,0,0.001)',
-                            pointerEvents: 'none'
-                        }}
-                    />
+                    <div className="absolute inset-0 z-10" style={{ background: 'rgba(0,0,0,0.001)', pointerEvents: 'none' }} />
                     {!playing && (
-                        <div
-                            className="absolute inset-0 z-25"
-                            style={{
-                                background: 'black',
-                                pointerEvents: 'none'
-                            }}
-                        />
+                        <div className="absolute inset-0 z-25" style={{ background: 'black', pointerEvents: 'none' }} />
                     )}
                 </div>
             );
@@ -1428,58 +1339,40 @@ const SeriesPlayer = () => {
                     src={videoUrl}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={() => {
-                        console.log("✅ HTML5 video metadata loaded");
                         setVideoLoaded(true);
                         if (videoRef.current) {
                             setDuration(videoRef.current.duration);
                             const playPromise = videoRef.current.play();
                             if (playPromise !== undefined) {
-                                playPromise
-                                    .then(() => {
-                                        setPlaying(true);
-                                    })
-                                    .catch(err => {
-                                        console.log("Auto-play prevented:", err);
-                                        setPlaying(false);
-                                    });
+                                playPromise.then(() => setPlaying(true)).catch(err => {
+                                    console.log("Auto-play prevented:", err);
+                                    setPlaying(false);
+                                });
                             }
                         }
                     }}
-                    onPlay={() => {
-                        console.log("▶️ HTML5 video playing");
-                        setPlaying(true);
-                        setError('');
-                    }}
-                    onPause={() => {
-                        console.log("⏸️ HTML5 video paused");
-                        setPlaying(false);
-                    }}
+                    onPlay={() => { setPlaying(true); setError(''); }}
+                    onPause={() => setPlaying(false)}
                     onError={(e) => {
                         console.error("❌ Video error:", e);
                         const video = videoRef.current;
                         let errorMessage = "Failed to load video. ";
-
                         if (video && video.error) {
                             switch (video.error.code) {
                                 case MediaError.MEDIA_ERR_ABORTED:
-                                    errorMessage += "The video playback was aborted.";
-                                    break;
+                                    errorMessage += "The video playback was aborted."; break;
                                 case MediaError.MEDIA_ERR_NETWORK:
-                                    errorMessage += "A network error caused the video download to fail.";
-                                    break;
+                                    errorMessage += "A network error caused the video download to fail."; break;
                                 case MediaError.MEDIA_ERR_DECODE:
-                                    errorMessage += "The video playback was aborted due to a corruption problem or because the video used features your browser does not support.";
-                                    break;
+                                    errorMessage += "The video playback was aborted due to a corruption problem or because the video used features your browser does not support."; break;
                                 case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                                    errorMessage += "The video format is not supported by your browser.";
-                                    break;
+                                    errorMessage += "The video format is not supported by your browser."; break;
                                 default:
                                     errorMessage += "An unknown error occurred.";
                             }
                         } else {
                             errorMessage += "The video source might be invalid or unavailable.";
                         }
-
                         setError(errorMessage);
                         setVideoLoaded(false);
                     }}
@@ -1516,53 +1409,24 @@ const SeriesPlayer = () => {
                 <>
                     <div className="mb-6 p-4 md:p-5 bg-gray-800/50 rounded-xl border border-gray-700">
                         <div className="flex items-center gap-3 mb-4">
-                            <img
-                                src={userAvatar}
-                                alt={userName}
-                                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-emerald-600"
-                                onError={(e) => {
-                                    e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`;
-                                }}
-                            />
+                            <img src={userAvatar} alt={userName} className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-emerald-600"
+                                onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`; }} />
                             <div className="flex-1">
-                                <input
-                                    type="text"
-                                    value={userName}
-                                    onChange={updateUserName}
+                                <input type="text" value={userName} onChange={updateUserName}
                                     className="w-full px-3 md:px-4 py-2 md:py-3 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm md:text-base"
-                                    placeholder="Your name"
-                                />
+                                    placeholder="Your name" />
                             </div>
                         </div>
 
                         <form onSubmit={handleSubmitComment} className="relative">
-                            <textarea
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
+                            <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)}
                                 className="w-full px-3 md:px-4 py-3 md:py-3 bg-gray-900 border border-gray-700 rounded-xl text-white resize-none text-sm md:text-base"
-                                placeholder="Share your thoughts about this episode..."
-                                rows="3"
-                                maxLength="500"
-                            />
+                                placeholder="Share your thoughts about this episode..." rows="3" maxLength="500" />
                             <div className="flex items-center justify-between mt-3">
-                                <span className="text-xs md:text-sm text-gray-400">
-                                    {newComment.length}/500 characters
-                                </span>
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting || !newComment.trim()}
-                                    className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed rounded-lg text-black font-medium flex items-center gap-2 transition-all duration-200 text-sm md:text-base"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <FaSpinner className="animate-spin" />
-                                            Posting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FaPaperPlane /> Post Comment
-                                        </>
-                                    )}
+                                <span className="text-xs md:text-sm text-gray-400">{newComment.length}/500 characters</span>
+                                <button type="submit" disabled={isSubmitting || !newComment.trim()}
+                                    className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed rounded-lg text-black font-medium flex items-center gap-2 transition-all duration-200 text-sm md:text-base">
+                                    {isSubmitting ? (<><FaSpinner className="animate-spin" />Posting...</>) : (<><FaPaperPlane /> Post Comment</>)}
                                 </button>
                             </div>
                         </form>
@@ -1576,33 +1440,19 @@ const SeriesPlayer = () => {
                             </div>
                         ) : (
                             comments.map((comment) => (
-                                <div
-                                    key={comment.id}
-                                    className="bg-gray-800/30 rounded-xl p-4 md:p-5 hover:bg-gray-800/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600"
-                                >
+                                <div key={comment.id} className="bg-gray-800/30 rounded-xl p-4 md:p-5 hover:bg-gray-800/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600">
                                     <div className="flex items-start gap-3">
-                                        <img
-                                            src={comment.user_avatar}
-                                            alt={comment.user_name}
+                                        <img src={comment.user_avatar} alt={comment.user_name}
                                             className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-emerald-600/50"
-                                            onError={(e) => {
-                                                e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_name}`;
-                                            }}
-                                        />
+                                            onError={(e) => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_name}`; }} />
 
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="font-bold text-white text-sm md:text-base">
-                                                        {comment.user_name}
-                                                    </span>
+                                                    <span className="font-bold text-white text-sm md:text-base">{comment.user_name}</span>
                                                     <span className="text-xs text-gray-400">
                                                         {formatTimeAgo(comment.created_at)}
-                                                        {comment.device_info?.platform && (
-                                                            <span className="ml-2">
-                                                                • {comment.device_info.platform}
-                                                            </span>
-                                                        )}
+                                                        {comment.device_info?.platform && (<span className="ml-2">• {comment.device_info.platform}</span>)}
                                                     </span>
                                                 </div>
 
@@ -1610,37 +1460,13 @@ const SeriesPlayer = () => {
                                                     <div className="flex items-center gap-1 md:gap-2">
                                                         {editingComment === comment.id ? (
                                                             <>
-                                                                <button
-                                                                    onClick={() => handleSaveEdit(comment.id)}
-                                                                    className="p-1.5 md:p-2 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
-                                                                    title="Save"
-                                                                >
-                                                                    <FaCheck size={14} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => setEditingComment(null)}
-                                                                    className="p-1.5 md:p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                                                                    title="Cancel"
-                                                                >
-                                                                    <FaTimes size={14} />
-                                                                </button>
+                                                                <button onClick={() => handleSaveEdit(comment.id)} className="p-1.5 md:p-2 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all" title="Save"><FaCheck size={14} /></button>
+                                                                <button onClick={() => setEditingComment(null)} className="p-1.5 md:p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all" title="Cancel"><FaTimes size={14} /></button>
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <button
-                                                                    onClick={() => handleEditComment(comment)}
-                                                                    className="p-1.5 md:p-2 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all"
-                                                                    title="Edit"
-                                                                >
-                                                                    <FaEdit size={14} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteComment(comment.id)}
-                                                                    className="p-1.5 md:p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                                                                    title="Delete"
-                                                                >
-                                                                    <FaTrash size={14} />
-                                                                </button>
+                                                                <button onClick={() => handleEditComment(comment)} className="p-1.5 md:p-2 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all" title="Edit"><FaEdit size={14} /></button>
+                                                                <button onClick={() => handleDeleteComment(comment.id)} className="p-1.5 md:p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all" title="Delete"><FaTrash size={14} /></button>
                                                             </>
                                                         )}
                                                     </div>
@@ -1649,25 +1475,17 @@ const SeriesPlayer = () => {
 
                                             {editingComment === comment.id ? (
                                                 <div className="mb-3">
-                                                    <textarea
-                                                        value={editText}
-                                                        onChange={(e) => setEditText(e.target.value)}
+                                                    <textarea value={editText} onChange={(e) => setEditText(e.target.value)}
                                                         className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm md:text-base"
-                                                        rows="2"
-                                                        autoFocus
-                                                    />
+                                                        rows="2" autoFocus />
                                                 </div>
                                             ) : (
-                                                <p className="text-gray-200 mb-3 whitespace-pre-wrap text-sm md:text-base leading-relaxed">
-                                                    {comment.message}
-                                                </p>
+                                                <p className="text-gray-200 mb-3 whitespace-pre-wrap text-sm md:text-base leading-relaxed">{comment.message}</p>
                                             )}
 
                                             <div className="flex items-center gap-3 md:gap-4">
-                                                <button
-                                                    onClick={() => handleLikeComment(comment.id)}
-                                                    className="flex items-center gap-1.5 text-gray-400 hover:text-emerald-500 transition-colors text-sm md:text-base"
-                                                >
+                                                <button onClick={() => handleLikeComment(comment.id)}
+                                                    className="flex items-center gap-1.5 text-gray-400 hover:text-emerald-500 transition-colors text-sm md:text-base">
                                                     <FaHeart className={`${comment.likes > 0 ? 'text-emerald-500' : ''} text-sm md:text-base`} />
                                                     <span>{comment.likes || 0}</span>
                                                 </button>
@@ -1697,21 +1515,15 @@ const SeriesPlayer = () => {
                                     <div className="text-xs md:text-sm text-gray-400">Total Comments</div>
                                 </div>
                                 <div className="text-center p-3 md:p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
-                                    <div className="text-xl md:text-3xl font-bold text-amber-500">
-                                        {comments.reduce((sum, c) => sum + (c.likes || 0), 0)}
-                                    </div>
+                                    <div className="text-xl md:text-3xl font-bold text-amber-500">{comments.reduce((sum, c) => sum + (c.likes || 0), 0)}</div>
                                     <div className="text-xs md:text-sm text-gray-400">Total Likes</div>
                                 </div>
                                 <div className="text-center p-3 md:p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
-                                    <div className="text-xl md:text-3xl font-bold text-teal-500">
-                                        {new Set(comments.map(c => c.user_name)).size}
-                                    </div>
+                                    <div className="text-xl md:text-3xl font-bold text-teal-500">{new Set(comments.map(c => c.user_name)).size}</div>
                                     <div className="text-xs md:text-sm text-gray-400">Unique Users</div>
                                 </div>
                                 <div className="text-center p-3 md:p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
-                                    <div className="text-xl md:text-3xl font-bold text-cyan-500">
-                                        {comments.filter(c => c.device_info?.platform?.includes('Mobile')).length}
-                                    </div>
+                                    <div className="text-xl md:text-3xl font-bold text-cyan-500">{comments.filter(c => c.device_info?.platform?.includes('Mobile')).length}</div>
                                     <div className="text-xs md:text-sm text-gray-400">Mobile Users</div>
                                 </div>
                             </div>
@@ -1732,9 +1544,7 @@ const SeriesPlayer = () => {
                         <FaMagic className="text-emerald-500 text-xl md:text-2xl" />
                         You May Also Like
                     </h3>
-                    <span className="text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-900/40 px-2 py-1 rounded-full">
-                        {recommendations.length}
-                    </span>
+                    <span className="text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-900/40 px-2 py-1 rounded-full">{recommendations.length}</span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
@@ -1744,41 +1554,24 @@ const SeriesPlayer = () => {
                         const latest = rec._latestEpisode;
 
                         return (
-                            <button
-                                key={rec.id}
-                                onClick={() => handleOpenRecommended(rec)}
-                                className="group text-left rounded-xl overflow-hidden border border-gray-800 hover:border-emerald-500/60 transition-all duration-300 hover:-translate-y-1 bg-gradient-to-b from-gray-900 to-black"
-                            >
+                            <button key={rec.id} onClick={() => handleOpenRecommended(rec)}
+                                className="group text-left rounded-xl overflow-hidden border border-gray-800 hover:border-emerald-500/60 transition-all duration-300 hover:-translate-y-1 bg-gradient-to-b from-gray-900 to-black">
                                 <div className="relative aspect-[2/3] w-full overflow-hidden">
-                                    <img
-                                        src={poster}
-                                        alt={rec.title}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                        loading="lazy"
-                                    />
+                                    <img src={poster} alt={rec.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
 
                                     <div className="absolute top-1.5 left-1.5 right-1.5 flex items-start justify-between gap-1">
-                                        <span className="px-1.5 py-0.5 rounded text-[8px] font-black tracking-wider uppercase bg-emerald-500/95 text-black shadow">
-                                            Series
-                                        </span>
+                                        <span className="px-1.5 py-0.5 rounded text-[8px] font-black tracking-wider uppercase bg-emerald-500/95 text-black shadow">Series</span>
                                         {rating && (
                                             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold bg-black/70 backdrop-blur-sm border border-amber-400/40 text-amber-300">
-                                                <FaStar className="text-[7px] text-amber-400" />
-                                                {rating}
+                                                <FaStar className="text-[7px] text-amber-400" /> {rating}
                                             </span>
                                         )}
                                     </div>
 
                                     <div className="absolute bottom-1.5 left-1.5 right-1.5 text-[9px] text-white/90 flex items-center justify-between">
-                                        <span className="px-1.5 py-0.5 bg-black/60 backdrop-blur-sm rounded">
-                                            {rec._episodeCount} EP
-                                        </span>
-                                        {rec.year && (
-                                            <span className="px-1.5 py-0.5 bg-black/60 backdrop-blur-sm rounded">
-                                                {rec.year}
-                                            </span>
-                                        )}
+                                        <span className="px-1.5 py-0.5 bg-black/60 backdrop-blur-sm rounded">{rec._episodeCount} EP</span>
+                                        {rec.year && (<span className="px-1.5 py-0.5 bg-black/60 backdrop-blur-sm rounded">{rec.year}</span>)}
                                     </div>
 
                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
@@ -1789,19 +1582,9 @@ const SeriesPlayer = () => {
                                 </div>
 
                                 <div className="p-2">
-                                    <h4 className="text-white text-[11px] sm:text-xs font-semibold line-clamp-2 leading-snug group-hover:text-emerald-400 transition-colors">
-                                        {rec.title}
-                                    </h4>
-                                    {rec.translator && (
-                                        <p className="mt-1 text-[9px] text-emerald-400/90 truncate" title={rec.translator}>
-                                            {rec.translator}
-                                        </p>
-                                    )}
-                                    {latest && (
-                                        <p className="mt-0.5 text-[9px] text-cyan-400/90 truncate" title={latest.title}>
-                                            ▶ {latest.title}
-                                        </p>
-                                    )}
+                                    <h4 className="text-white text-[11px] sm:text-xs font-semibold line-clamp-2 leading-snug group-hover:text-emerald-400 transition-colors">{rec.title}</h4>
+                                    {rec.translator && (<p className="mt-1 text-[9px] text-emerald-400/90 truncate" title={rec.translator}>{rec.translator}</p>)}
+                                    {latest && (<p className="mt-0.5 text-[9px] text-cyan-400/90 truncate" title={latest.title}>▶ {latest.title}</p>)}
                                 </div>
                             </button>
                         );
@@ -1832,33 +1615,13 @@ const SeriesPlayer = () => {
                     <h1 className="text-2xl md:text-4xl text-white font-bold mb-2 md:mb-4">Playback Error</h1>
                     <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8">{error || "No episode selected"}</p>
                     <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base"
-                        >
-                            Go Back
-                        </button>
-                        <button
-                            onClick={handleGoHome}
-                            className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 rounded-xl text-white font-medium transition-all duration-200 flex items-center gap-2 justify-center text-sm md:text-base"
-                        >
-                            <FaHome /> Go Home
-                        </button>
+                        <button onClick={() => navigate(-1)} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base">Go Back</button>
+                        <button onClick={handleGoHome} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 rounded-xl text-white font-medium transition-all duration-200 flex items-center gap-2 justify-center text-sm md:text-base"><FaHome /> Go Home</button>
                         {error && error.includes('format') && (
-                            <button
-                                onClick={handleUseEmbed}
-                                className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base"
-                            >
-                                Try Embed Player
-                            </button>
+                            <button onClick={handleUseEmbed} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base">Try Embed Player</button>
                         )}
                         {error && (
-                            <button
-                                onClick={handleRetry}
-                                className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base"
-                            >
-                                Retry
-                            </button>
+                            <button onClick={handleRetry} className="px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 text-sm md:text-base">Retry</button>
                         )}
                     </div>
                 </div>
@@ -1867,18 +1630,11 @@ const SeriesPlayer = () => {
     }
 
     const getPlayerTypeInfo = () => {
-        if (useEmbed) {
-            return { color: 'text-amber-400', bgColor: 'bg-amber-600', label: 'Embed', text: 'text-amber-300' };
-        }
-        if (isDailyMotionVideo) {
-            return { color: 'text-teal-400', bgColor: 'bg-teal-600', label: 'DailyMotion', text: 'text-teal-300' };
-        } else if (isVimeoVideo) {
-            return { color: 'text-cyan-400', bgColor: 'bg-cyan-600', label: 'Vimeo', text: 'text-cyan-300' };
-        } else if (videoType === 'youtube') {
-            return { color: 'text-red-400', bgColor: 'bg-red-600', label: 'YouTube', text: 'text-red-300' };
-        } else {
-            return { color: 'text-emerald-400', bgColor: 'bg-emerald-600', label: 'Custom Player', text: 'text-emerald-300' };
-        }
+        if (useEmbed) return { color: 'text-amber-400', bgColor: 'bg-amber-600', label: 'Embed', text: 'text-amber-300' };
+        if (isDailyMotionVideo) return { color: 'text-teal-400', bgColor: 'bg-teal-600', label: 'DailyMotion', text: 'text-teal-300' };
+        else if (isVimeoVideo) return { color: 'text-cyan-400', bgColor: 'bg-cyan-600', label: 'Vimeo', text: 'text-cyan-300' };
+        else if (videoType === 'youtube') return { color: 'text-red-400', bgColor: 'bg-red-600', label: 'YouTube', text: 'text-red-300' };
+        else return { color: 'text-emerald-400', bgColor: 'bg-emerald-600', label: 'Custom Player', text: 'text-emerald-300' };
     };
 
     const playerType = getPlayerTypeInfo();
@@ -1886,20 +1642,34 @@ const SeriesPlayer = () => {
     const isFavorite = favorites.includes(currentEpisode?.id);
     const inWatchlist = watchlist.includes(currentEpisode?.id);
 
-    // ⭐ Translator profile for the current series
     const currentTranslatorProfile = series?.translator
         ? translatorProfiles[series.translator]
         : null;
 
+    // ⭐ Share URL + info — points at Vercel /api/share for OG previews
+    const shareUrl = typeof window !== 'undefined' && series?.id
+        ? `${window.location.origin}/api/share?id=${series.id}&type=series`
+        : '';
+    const shareTitle = series?.title || 'Untitled Series';
+    const sharePoster = series?.poster || series?.background || '';
+    const shareDescription = series?.description
+        ? String(series.description).slice(0, 150)
+        : 'Watch on Irafilms — premium streaming in Rwanda.';
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black text-white">
+            {/* ⭐ Dynamic OG meta */}
+            <ShareOGMeta
+                title={`Watch ${shareTitle} on Irafilms`}
+                description={shareDescription}
+                image={sharePoster}
+                url={shareUrl}
+            />
+
             {!isFullscreen && (
                 <div className="absolute top-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-b from-black/90 via-black/60 to-transparent z-30">
                     <div className="max-w-7xl mx-auto flex items-center justify-between">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors text-sm md:text-base font-medium group"
-                        >
+                        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors text-sm md:text-base font-medium group">
                             <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" /> Back
                         </button>
 
@@ -1907,9 +1677,7 @@ const SeriesPlayer = () => {
                             <h1 className="text-xl md:text-2xl font-bold truncate max-w-2xl mx-auto">{series?.title || 'Series'}</h1>
                             <div className="flex items-center justify-center gap-2 mt-1">
                                 <FaVideo className={playerType.color} />
-                                <span className={`text-xs md:text-sm ${playerType.text}`}>
-                                    {playerType.label}
-                                </span>
+                                <span className={`text-xs md:text-sm ${playerType.text}`}>{playerType.label}</span>
                             </div>
                             <div className="text-xs md:text-sm text-gray-400 mt-0.5">
                                 Season {currentEpisode.seasonNumber || currentEpisode.season_number || 1} • Episode {currentEpisode.episodeNumber || currentEpisode.episode_number || 1}: {currentEpisode.title}
@@ -1917,70 +1685,58 @@ const SeriesPlayer = () => {
                         </div>
 
                         <div className="flex items-center gap-2 md:gap-4">
-                            <button
-                                onClick={toggleFavorite}
+                            <div className="hidden md:block">
+                                <ShareButton
+                                    title={shareTitle}
+                                    poster={sharePoster}
+                                    url={shareUrl}
+                                    isMobile={isMobile}
+                                    accent="emerald"
+                                />
+                            </div>
+
+                            <button onClick={toggleFavorite}
                                 className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${isFavorite ? 'text-emerald-500' : 'text-gray-400 hover:text-emerald-500'}`}
-                                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                            >
+                                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
                                 <FaHeart size={20} />
                             </button>
-                            <button
-                                onClick={toggleWatchlist}
+                            <button onClick={toggleWatchlist}
                                 className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${inWatchlist ? 'text-cyan-500' : 'text-gray-400 hover:text-cyan-500'}`}
-                                title={inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
-                            >
+                                title={inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}>
                                 <FaBookmark size={20} />
                             </button>
 
-                            <button
-                                onClick={goToPreviousEpisode}
-                                disabled={currentEpisodeIndex === 0}
-                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${currentEpisodeIndex === 0
-                                    ? 'bg-gray-800/50 text-gray-600 cursor-not-allowed'
-                                    : 'bg-gray-800 hover:bg-gray-700 text-white'
-                                    }`}
-                                title="Previous Episode"
-                            >
+                            <button onClick={goToPreviousEpisode} disabled={currentEpisodeIndex === 0}
+                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${currentEpisodeIndex === 0 ? 'bg-gray-800/50 text-gray-600 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
+                                title="Previous Episode">
                                 <FaArrowCircleLeft size={18} />
                             </button>
                             <span className="text-xs md:text-sm text-gray-300 hidden md:block font-medium">
                                 {currentEpisodeIndex + 1}/{episodesList.length}
                             </span>
-                            <button
-                                onClick={goToNextEpisode}
-                                disabled={currentEpisodeIndex === episodesList.length - 1}
-                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${currentEpisodeIndex === episodesList.length - 1
-                                    ? 'bg-gray-800/50 text-gray-600 cursor-not-allowed'
-                                    : 'bg-gray-800 hover:bg-gray-700 text-white'
-                                    }`}
-                                title="Next Episode"
-                            >
+                            <button onClick={goToNextEpisode} disabled={currentEpisodeIndex === episodesList.length - 1}
+                                className={`p-1.5 md:p-2 rounded-lg transition-colors hidden md:block ${currentEpisodeIndex === episodesList.length - 1 ? 'bg-gray-800/50 text-gray-600 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
+                                title="Next Episode">
                                 <FaArrowCircleRight size={18} />
                             </button>
 
-                            <button
-                                onClick={() => setShowEpisodeList(!showEpisodeList)}
+                            <button onClick={() => setShowEpisodeList(!showEpisodeList)}
                                 className="p-1.5 md:p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white hidden md:block"
-                                title={showEpisodeList ? 'Hide episodes' : 'Show episodes'}
-                            >
+                                title={showEpisodeList ? 'Hide episodes' : 'Show episodes'}>
                                 <FaListUl size={20} />
                             </button>
 
                             {seasons.length > 1 && (
-                                <button
-                                    onClick={() => setShowSeasonSelector(!showSeasonSelector)}
+                                <button onClick={() => setShowSeasonSelector(!showSeasonSelector)}
                                     className="p-1.5 md:p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white hidden md:flex items-center gap-1"
-                                    title="Select Season"
-                                >
+                                    title="Select Season">
                                     <FaTv size={18} />
                                     <span className="text-xs">S{selectedSeason}</span>
                                 </button>
                             )}
 
-                            <button
-                                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                                className="md:hidden p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
-                            >
+                            <button onClick={() => setShowMobileMenu(!showMobileMenu)}
+                                className="md:hidden p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white">
                                 <FaEllipsisV size={18} />
                             </button>
 
@@ -1990,18 +1746,24 @@ const SeriesPlayer = () => {
                                         <p className="text-sm font-medium text-gray-300">Menu Options</p>
                                     </div>
                                     <div className="p-3 space-y-1 max-h-[80vh] overflow-y-auto">
-                                        <button
-                                            onClick={toggleFavorite}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${isFavorite ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-300 hover:bg-gray-800'}`}
-                                        >
+                                        <div className="mb-2">
+                                            <ShareButton
+                                                title={shareTitle}
+                                                poster={sharePoster}
+                                                url={shareUrl}
+                                                isMobile={isMobile}
+                                                accent="emerald"
+                                            />
+                                        </div>
+
+                                        <button onClick={toggleFavorite}
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${isFavorite ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-300 hover:bg-gray-800'}`}>
                                             <FaHeart size={18} />
                                             <span className="text-sm">{isFavorite ? 'Remove from favorites' : 'Add to favorites'}</span>
                                         </button>
 
-                                        <button
-                                            onClick={toggleWatchlist}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${inWatchlist ? 'text-cyan-500 bg-cyan-500/10' : 'text-gray-300 hover:bg-gray-800'}`}
-                                        >
+                                        <button onClick={toggleWatchlist}
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${inWatchlist ? 'text-cyan-500 bg-cyan-500/10' : 'text-gray-300 hover:bg-gray-800'}`}>
                                             <FaBookmark size={18} />
                                             <span className="text-sm">{inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}</span>
                                         </button>
@@ -2013,8 +1775,7 @@ const SeriesPlayer = () => {
                                                 <p className="text-xs text-gray-400 px-3 py-2">Select Season</p>
                                                 <div className="flex flex-wrap gap-2 px-3">
                                                     {seasons.map(season => (
-                                                        <button
-                                                            key={season}
+                                                        <button key={season}
                                                             onClick={() => {
                                                                 setSelectedSeason(season);
                                                                 const firstEpisode = episodesList.find(ep =>
@@ -2026,11 +1787,7 @@ const SeriesPlayer = () => {
                                                                 }
                                                                 setShowMobileMenu(false);
                                                             }}
-                                                            className={`px-3 py-1.5 rounded-lg text-sm ${selectedSeason === season
-                                                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black'
-                                                                : 'bg-gray-800 text-gray-300'
-                                                                }`}
-                                                        >
+                                                            className={`px-3 py-1.5 rounded-lg text-sm ${selectedSeason === season ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black' : 'bg-gray-800 text-gray-300'}`}>
                                                             Season {season}
                                                         </button>
                                                     ))}
@@ -2040,37 +1797,20 @@ const SeriesPlayer = () => {
 
                                         <div className="border-t border-gray-800 my-2"></div>
 
-                                        <button
-                                            onClick={goToPreviousEpisode}
-                                            disabled={currentEpisodeIndex === 0}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${currentEpisodeIndex === 0
-                                                ? 'text-gray-600 cursor-not-allowed'
-                                                : 'text-gray-300 hover:bg-gray-800'
-                                                }`}
-                                        >
+                                        <button onClick={goToPreviousEpisode} disabled={currentEpisodeIndex === 0}
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${currentEpisodeIndex === 0 ? 'text-gray-600 cursor-not-allowed' : 'text-gray-300 hover:bg-gray-800'}`}>
                                             <FaArrowCircleLeft size={18} />
                                             <span className="text-sm">Previous Episode</span>
                                         </button>
 
-                                        <button
-                                            onClick={goToNextEpisode}
-                                            disabled={currentEpisodeIndex === episodesList.length - 1}
-                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${currentEpisodeIndex === episodesList.length - 1
-                                                ? 'text-gray-600 cursor-not-allowed'
-                                                : 'text-gray-300 hover:bg-gray-800'
-                                                }`}
-                                        >
+                                        <button onClick={goToNextEpisode} disabled={currentEpisodeIndex === episodesList.length - 1}
+                                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${currentEpisodeIndex === episodesList.length - 1 ? 'text-gray-600 cursor-not-allowed' : 'text-gray-300 hover:bg-gray-800'}`}>
                                             <FaArrowCircleRight size={18} />
                                             <span className="text-sm">Next Episode</span>
                                         </button>
 
-                                        <button
-                                            onClick={() => {
-                                                setShowEpisodeList(!showEpisodeList);
-                                                setShowMobileMenu(false);
-                                            }}
-                                            className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
-                                        >
+                                        <button onClick={() => { setShowEpisodeList(!showEpisodeList); setShowMobileMenu(false); }}
+                                            className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors">
                                             <FaListUl size={18} />
                                             <span className="text-sm">{showEpisodeList ? 'Hide episodes' : 'Show episodes'}</span>
                                         </button>
@@ -2078,14 +1818,9 @@ const SeriesPlayer = () => {
                                         {hasDownload(currentEpisode) && (
                                             <>
                                                 <div className="border-t border-gray-800 my-2"></div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        handleDownload(e, currentEpisode);
-                                                        setShowMobileMenu(false);
-                                                    }}
+                                                <button onClick={(e) => { handleDownload(e, currentEpisode); setShowMobileMenu(false); }}
                                                     className="w-full flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 hover:from-emerald-600/30 hover:to-teal-600/30 rounded-lg transition-all group border border-emerald-500/20 hover:border-emerald-500/40"
-                                                    disabled={downloading && downloadEpisodeId === currentEpisode.id}
-                                                >
+                                                    disabled={downloading && downloadEpisodeId === currentEpisode.id}>
                                                     <div className="w-8 h-8 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-lg flex items-center justify-center">
                                                         <FaCloudDownloadAlt className="text-emerald-400 text-lg" />
                                                     </div>
@@ -2113,8 +1848,7 @@ const SeriesPlayer = () => {
                         <p className="text-xs text-gray-400 mb-2 px-2">Select Season</p>
                         <div className="flex flex-col gap-1">
                             {seasons.map(season => (
-                                <button
-                                    key={season}
+                                <button key={season}
                                     onClick={() => {
                                         setSelectedSeason(season);
                                         const firstEpisode = episodesList.find(ep =>
@@ -2126,11 +1860,7 @@ const SeriesPlayer = () => {
                                         }
                                         setShowSeasonSelector(false);
                                     }}
-                                    className={`px-4 py-2 rounded-lg text-sm text-left transition-all ${selectedSeason === season
-                                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black'
-                                        : 'text-gray-300 hover:bg-gray-800'
-                                        }`}
-                                >
+                                    className={`px-4 py-2 rounded-lg text-sm text-left transition-all ${selectedSeason === season ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black' : 'text-gray-300 hover:bg-gray-800'}`}>
                                     Season {season}
                                 </button>
                             ))}
@@ -2156,23 +1886,13 @@ const SeriesPlayer = () => {
                         showControlsWithTimer();
                     }
                 }}
-                style={isFullscreen ? {
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 9999
-                } : {}}
+                style={isFullscreen ? { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 9999 } : {}}
             >
                 {renderVideoPlayer()}
 
                 {shouldShowCustomControls && videoLoaded && !playing && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20">
-                        <button
-                            onClick={handlePlayPause}
-                            className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-2xl"
-                        >
+                        <button onClick={handlePlayPause} className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-2xl">
                             <FaPlay size={24} className="text-black ml-1" />
                         </button>
                     </div>
@@ -2193,18 +1913,8 @@ const SeriesPlayer = () => {
                             <FaExclamationTriangle className="text-emerald-500 text-4xl md:text-5xl mx-auto mb-3" />
                             <p className="text-white text-sm md:text-base mb-4">{error}</p>
                             <div className="flex gap-3 justify-center">
-                                <button
-                                    onClick={handleRetry}
-                                    className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-medium text-sm"
-                                >
-                                    Try Again
-                                </button>
-                                <button
-                                    onClick={handleUseEmbed}
-                                    className="px-4 py-2 bg-gradient-to-br from-cyan-600 to-teal-700 hover:from-cyan-700 hover:to-teal-800 rounded-lg text-black font-medium text-sm"
-                                >
-                                    Try Embed Player
-                                </button>
+                                <button onClick={handleRetry} className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg text-black font-medium text-sm">Try Again</button>
+                                <button onClick={handleUseEmbed} className="px-4 py-2 bg-gradient-to-br from-cyan-600 to-teal-700 hover:from-cyan-700 hover:to-teal-800 rounded-lg text-black font-medium text-sm">Try Embed Player</button>
                             </div>
                         </div>
                     </div>
@@ -2214,20 +1924,11 @@ const SeriesPlayer = () => {
                     <div className={`absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent transition-all duration-300 z-30 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                         <div className="max-w-7xl mx-auto slider-container">
                             <div className="mb-3">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.001"
-                                    value={progress}
-                                    onMouseDown={handleSeekStart}
-                                    onTouchStart={handleSeekStart}
-                                    onChange={handleSeekChange}
-                                    onMouseUp={handleSeekEnd}
-                                    onTouchEnd={handleSeekEnd}
+                                <input type="range" min="0" max="1" step="0.001" value={progress}
+                                    onMouseDown={handleSeekStart} onTouchStart={handleSeekStart}
+                                    onChange={handleSeekChange} onMouseUp={handleSeekEnd} onTouchEnd={handleSeekEnd}
                                     className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-emerald-500 [&::-webkit-slider-thumb]:to-teal-500 hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
-                                    onClick={(e) => e.stopPropagation()}
-                                />
+                                    onClick={(e) => e.stopPropagation()} />
                                 <div className="flex justify-between text-xs text-gray-300 mt-1">
                                     <span className="font-mono">{formatTime(currentTime)}</span>
                                     <span className="font-mono">{formatTime(duration)}</span>
@@ -2236,56 +1937,27 @@ const SeriesPlayer = () => {
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 md:gap-4">
-                                    <button
-                                        onClick={handlePlayPause}
-                                        className="hover:text-emerald-400 transition-colors p-1.5"
-                                    >
-                                        {playing ? (
-                                            <FaPause className={`${isMobile ? 'text-xl' : 'text-2xl'}`} />
-                                        ) : (
-                                            <FaPlay className={`${isMobile ? 'text-xl ml-0.5' : 'text-2xl ml-1'}`} />
-                                        )}
+                                    <button onClick={handlePlayPause} className="hover:text-emerald-400 transition-colors p-1.5">
+                                        {playing ? <FaPause className={`${isMobile ? 'text-xl' : 'text-2xl'}`} /> : <FaPlay className={`${isMobile ? 'text-xl ml-0.5' : 'text-2xl ml-1'}`} />}
                                     </button>
 
                                     {!isMobile && (
                                         <>
-                                            <button
-                                                onClick={(e) => handleRewind(e, 10)}
-                                                className="hover:text-emerald-400 transition-colors p-1.5"
-                                            >
-                                                <FaBackward className="text-xl" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => handleForward(e, 10)}
-                                                className="hover:text-emerald-400 transition-colors p-1.5"
-                                            >
-                                                <FaForward className="text-xl" />
-                                            </button>
+                                            <button onClick={(e) => handleRewind(e, 10)} className="hover:text-emerald-400 transition-colors p-1.5"><FaBackward className="text-xl" /></button>
+                                            <button onClick={(e) => handleForward(e, 10)} className="hover:text-emerald-400 transition-colors p-1.5"><FaForward className="text-xl" /></button>
                                         </>
                                     )}
 
                                     {!isMobile && (
                                         <div className="flex items-center gap-2 ml-1">
-                                            <button
-                                                onClick={handleToggleMute}
-                                                className="hover:text-emerald-400 transition-colors p-1.5"
-                                            >
+                                            <button onClick={handleToggleMute} className="hover:text-emerald-400 transition-colors p-1.5">
                                                 {muted ? <FaVolumeMute className="text-xl" /> : <FaVolumeUp className="text-xl" />}
                                             </button>
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="1"
-                                                step="0.1"
-                                                value={volume}
-                                                onMouseDown={handleVolumeStart}
-                                                onTouchStart={handleVolumeStart}
-                                                onChange={handleVolumeChange}
-                                                onMouseUp={handleVolumeEnd}
-                                                onTouchEnd={handleVolumeEnd}
+                                            <input type="range" min="0" max="1" step="0.1" value={volume}
+                                                onMouseDown={handleVolumeStart} onTouchStart={handleVolumeStart}
+                                                onChange={handleVolumeChange} onMouseUp={handleVolumeEnd} onTouchEnd={handleVolumeEnd}
                                                 className="w-20 md:w-28 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-emerald-500 [&::-webkit-slider-thumb]:to-teal-500 hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
+                                                onClick={(e) => e.stopPropagation()} />
                                         </div>
                                     )}
                                 </div>
@@ -2293,18 +1965,13 @@ const SeriesPlayer = () => {
                                 <div className="flex items-center gap-2 md:gap-4">
                                     {!isMobile && (
                                         <div className="relative group">
-                                            <button className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-800/80 hover:bg-gray-700 rounded-lg text-xs md:text-sm font-medium">
-                                                {playbackRate}x
-                                            </button>
+                                            <button className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-800/80 hover:bg-gray-700 rounded-lg text-xs md:text-sm font-medium">{playbackRate}x</button>
                                             <div className="absolute right-0 top-full mt-1 bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-700 rounded-lg p-1.5 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-40">
                                                 <div className="text-xs text-gray-400 mb-1 px-1">Speed</div>
                                                 <div className="grid grid-cols-2 gap-1">
                                                     {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(rate => (
-                                                        <button
-                                                            key={rate}
-                                                            onClick={(e) => handlePlaybackRate(rate, e)}
-                                                            className={`px-2 py-1 text-xs rounded ${playbackRate === rate ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black' : 'bg-gray-800 hover:bg-gray-700'}`}
-                                                        >
+                                                        <button key={rate} onClick={(e) => handlePlaybackRate(rate, e)}
+                                                            className={`px-2 py-1 text-xs rounded ${playbackRate === rate ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black' : 'bg-gray-800 hover:bg-gray-700'}`}>
                                                             {rate}x
                                                         </button>
                                                     ))}
@@ -2313,15 +1980,8 @@ const SeriesPlayer = () => {
                                         </div>
                                     )}
 
-                                    <button
-                                        onClick={handleFullscreen}
-                                        className="hover:text-emerald-400 transition-colors p-1.5"
-                                    >
-                                        {isFullscreen ? (
-                                            <FaCompress className={`${isMobile ? 'text-xl' : 'text-2xl'}`} />
-                                        ) : (
-                                            <FaExpand className={`${isMobile ? 'text-xl' : 'text-2xl'}`} />
-                                        )}
+                                    <button onClick={handleFullscreen} className="hover:text-emerald-400 transition-colors p-1.5">
+                                        {isFullscreen ? <FaCompress className={`${isMobile ? 'text-xl' : 'text-2xl'}`} /> : <FaExpand className={`${isMobile ? 'text-xl' : 'text-2xl'}`} />}
                                     </button>
                                 </div>
                             </div>
@@ -2333,9 +1993,7 @@ const SeriesPlayer = () => {
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-emerald-500/30 z-30">
                         <div className="flex items-center gap-1.5">
                             <FaVideo className={playerType.color} />
-                            <span className="text-white text-xs">
-                                {playerType.label} Player
-                            </span>
+                            <span className="text-white text-xs">{playerType.label} Player</span>
                         </div>
                     </div>
                 )}
@@ -2345,7 +2003,6 @@ const SeriesPlayer = () => {
                 <div className="max-w-7xl mx-auto px-4 py-5 md:py-8">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                         <div className="lg:col-span-2">
-                            {/* Episode Info */}
                             <div className="mb-6 md:mb-8">
                                 <h1 className="text-2xl md:text-4xl font-bold mb-2">{series?.title}</h1>
                                 <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4">
@@ -2366,32 +2023,23 @@ const SeriesPlayer = () => {
                                         </span>
                                     )}
 
-                                    {/* ⭐ TRANSLATOR BADGE */}
                                     {series?.translator && (
-                                        <TranslatorBadge
-                                            name={series.translator}
-                                            profile={currentTranslatorProfile}
-                                            isMobile={isMobile}
-                                        />
+                                        <TranslatorBadge name={series.translator} profile={currentTranslatorProfile} isMobile={isMobile} />
                                     )}
 
+                                    <ShareButton
+                                        title={shareTitle}
+                                        poster={sharePoster}
+                                        url={shareUrl}
+                                        isMobile={isMobile}
+                                        accent="emerald"
+                                    />
+
                                     {hasDownload(currentEpisode) && (
-                                        <button
-                                            onClick={(e) => handleDownload(e, currentEpisode)}
+                                        <button onClick={(e) => handleDownload(e, currentEpisode)}
                                             className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full text-black font-medium shadow-lg shadow-emerald-600/30 transition-all duration-200 transform hover:scale-105 text-xs md:text-sm"
-                                            disabled={downloading && downloadEpisodeId === currentEpisode.id}
-                                        >
-                                            {downloading && downloadEpisodeId === currentEpisode.id ? (
-                                                <>
-                                                    <FaSpinner className="animate-spin" />
-                                                    <span>Opening...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FaCloudDownloadAlt />
-                                                    <span>Download</span>
-                                                </>
-                                            )}
+                                            disabled={downloading && downloadEpisodeId === currentEpisode.id}>
+                                            {downloading && downloadEpisodeId === currentEpisode.id ? (<><FaSpinner className="animate-spin" /><span>Opening...</span></>) : (<><FaCloudDownloadAlt /><span>Download</span></>)}
                                         </button>
                                     )}
                                 </div>
@@ -2401,29 +2049,20 @@ const SeriesPlayer = () => {
                                 </p>
 
                                 <div className="flex flex-wrap gap-3 md:gap-4 text-gray-400 text-xs md:text-sm">
-                                    {currentEpisode.duration && (
-                                        <span className="flex items-center gap-1"><FaClock /> {currentEpisode.duration}</span>
-                                    )}
-                                    {currentEpisode.views && (
-                                        <span className="flex items-center gap-1"><FaEye /> {currentEpisode.views} views</span>
-                                    )}
-                                    {currentEpisode.likes && (
-                                        <span className="flex items-center gap-1"><FaThumbsUp /> {currentEpisode.likes}</span>
-                                    )}
+                                    {currentEpisode.duration && (<span className="flex items-center gap-1"><FaClock /> {currentEpisode.duration}</span>)}
+                                    {currentEpisode.views && (<span className="flex items-center gap-1"><FaEye /> {currentEpisode.views} views</span>)}
+                                    {currentEpisode.likes && (<span className="flex items-center gap-1"><FaThumbsUp /> {currentEpisode.likes}</span>)}
                                 </div>
                             </div>
 
-                            {/* CAST STRIP */}
                             <MovieCast movieId={series?.id} />
 
-                            {/* Season Selector */}
                             {seasons.length > 0 && (
                                 <div className="mb-6">
                                     <h3 className="text-lg md:text-xl font-bold mb-3">Seasons</h3>
                                     <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                                         {seasons.map(season => (
-                                            <button
-                                                key={season}
+                                            <button key={season}
                                                 onClick={() => {
                                                     setSelectedSeason(season);
                                                     const firstEpisode = episodesList.find(ep =>
@@ -2434,11 +2073,7 @@ const SeriesPlayer = () => {
                                                         goToEpisode(index);
                                                     }
                                                 }}
-                                                className={`px-4 md:px-5 py-2 rounded-full whitespace-nowrap transition-all duration-200 text-sm md:text-base font-medium ${selectedSeason === season
-                                                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black shadow-lg shadow-emerald-600/30 scale-105'
-                                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:scale-105'
-                                                    }`}
-                                            >
+                                                className={`px-4 md:px-5 py-2 rounded-full whitespace-nowrap transition-all duration-200 text-sm md:text-base font-medium ${selectedSeason === season ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-black shadow-lg shadow-emerald-600/30 scale-105' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:scale-105'}`}>
                                                 Season {season}
                                             </button>
                                         ))}
@@ -2446,7 +2081,6 @@ const SeriesPlayer = () => {
                                 </div>
                             )}
 
-                            {/* Episodes Grid */}
                             {episodesList.length > 0 && showEpisodeList && (
                                 <div className="mb-8">
                                     <h3 className="text-lg md:text-xl font-bold mb-3">Episodes</h3>
@@ -2460,42 +2094,26 @@ const SeriesPlayer = () => {
                                                 const episodeHasDownload = hasDownload(episode);
 
                                                 return (
-                                                    <div
-                                                        key={episode.id}
-                                                        className={`flex items-center gap-3 p-3 md:p-4 rounded-xl transition-all duration-200 ${isCurrent
-                                                            ? 'bg-gradient-to-r from-emerald-600/20 to-teal-600/10 border border-emerald-500/50 shadow-lg shadow-emerald-600/10'
-                                                            : 'bg-gradient-to-br from-gray-800/30 to-gray-900/30 hover:from-gray-800/50 hover:to-gray-900/50 border border-gray-700/50 hover:border-gray-600'
-                                                            }`}
-                                                    >
-                                                        <button
-                                                            onClick={() => goToEpisode(globalIndex)}
-                                                            className="flex-1 flex items-center gap-3 text-left"
-                                                        >
+                                                    <div key={episode.id}
+                                                        className={`flex items-center gap-3 p-3 md:p-4 rounded-xl transition-all duration-200 ${isCurrent ? 'bg-gradient-to-r from-emerald-600/20 to-teal-600/10 border border-emerald-500/50 shadow-lg shadow-emerald-600/10' : 'bg-gradient-to-br from-gray-800/30 to-gray-900/30 hover:from-gray-800/50 hover:to-gray-900/50 border border-gray-700/50 hover:border-gray-600'}`}>
+                                                        <button onClick={() => goToEpisode(globalIndex)} className="flex-1 flex items-center gap-3 text-left">
                                                             <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
                                                                 <span className="text-xs md:text-sm font-bold text-black">{epNumber}</span>
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <h4 className="font-medium text-white text-sm md:text-base truncate">
-                                                                    {episode.title}
-                                                                </h4>
+                                                                <h4 className="font-medium text-white text-sm md:text-base truncate">{episode.title}</h4>
                                                                 {episode.duration && (
-                                                                    <p className="text-xs text-gray-400 flex items-center gap-1">
-                                                                        <FaClock size={10} /> {episode.duration}
-                                                                    </p>
+                                                                    <p className="text-xs text-gray-400 flex items-center gap-1"><FaClock size={10} /> {episode.duration}</p>
                                                                 )}
                                                             </div>
-                                                            {isCurrent && (
-                                                                <FaPlay size={10} className="text-emerald-400 flex-shrink-0" />
-                                                            )}
+                                                            {isCurrent && <FaPlay size={10} className="text-emerald-400 flex-shrink-0" />}
                                                         </button>
 
                                                         {episodeHasDownload && (
-                                                            <button
-                                                                onClick={(e) => handleDownload(e, episode)}
+                                                            <button onClick={(e) => handleDownload(e, episode)}
                                                                 className="p-2 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 hover:from-emerald-600/30 hover:to-teal-600/30 rounded-lg transition-all border border-emerald-500/20 hover:border-emerald-500/40 group"
                                                                 title="Download this episode"
-                                                                disabled={downloading && downloadEpisodeId === episode.id}
-                                                            >
+                                                                disabled={downloading && downloadEpisodeId === episode.id}>
                                                                 {downloading && downloadEpisodeId === episode.id ? (
                                                                     <FaSpinner className="animate-spin text-emerald-400 text-sm" />
                                                                 ) : (
@@ -2510,14 +2128,10 @@ const SeriesPlayer = () => {
                                 </div>
                             )}
 
-                            {/* YOU MAY ALSO LIKE */}
                             {renderRecommendations()}
-
-                            {/* Comments */}
                             {renderCommentsSection()}
                         </div>
 
-                        {/* Right sidebar */}
                         <div className="lg:col-span-1">
                             <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-5 md:p-6 border border-gray-800 sticky top-4">
                                 <h3 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
@@ -2525,47 +2139,39 @@ const SeriesPlayer = () => {
                                     About {series?.title}
                                 </h3>
 
-                                {series?.poster && (
-                                    <img
-                                        src={series.poster}
-                                        alt={series.title}
-                                        className="w-full rounded-xl mb-4 border border-gray-700"
-                                    />
-                                )}
+                                {series?.poster && (<img src={series.poster} alt={series.title} className="w-full rounded-xl mb-4 border border-gray-700" />)}
 
                                 <p className="text-gray-300 text-sm md:text-base mb-4 leading-relaxed">
                                     {series?.description || 'No description available for this series.'}
                                 </p>
 
                                 <div className="space-y-2 text-xs md:text-sm">
-                                    {series?.genre && (
-                                        <p><span className="text-gray-400">Genre:</span> <span className="text-white">{series.genre}</span></p>
-                                    )}
-                                    {series?.country && (
-                                        <p><span className="text-gray-400">Country:</span> <span className="text-white">{series.country}</span></p>
-                                    )}
-                                    {series?.language && (
-                                        <p><span className="text-gray-400">Language:</span> <span className="text-white">{series.language}</span></p>
-                                    )}
+                                    {series?.genre && (<p><span className="text-gray-400">Genre:</span> <span className="text-white">{series.genre}</span></p>)}
+                                    {series?.country && (<p><span className="text-gray-400">Country:</span> <span className="text-white">{series.country}</span></p>)}
+                                    {series?.language && (<p><span className="text-gray-400">Language:</span> <span className="text-white">{series.language}</span></p>)}
                                     {series?.translator && (
                                         <div className="flex items-center gap-2">
                                             <span className="text-gray-400">Translator:</span>
-                                            <TranslatorBadge
-                                                name={series.translator}
-                                                profile={currentTranslatorProfile}
-                                                isMobile={true}
-                                            />
+                                            <TranslatorBadge name={series.translator} profile={currentTranslatorProfile} isMobile={true} />
                                         </div>
                                     )}
                                     <p><span className="text-gray-400">Total Episodes:</span> <span className="text-white">{episodesList.length}</span></p>
                                     <p><span className="text-gray-400">Seasons:</span> <span className="text-white">{seasons.length}</span></p>
                                 </div>
 
-                                <div className="mt-6 pt-4 border-t border-gray-800">
-                                    <button
-                                        onClick={() => setShowComments(!showComments)}
-                                        className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm md:text-base"
-                                    >
+                                <div className="mt-4 pt-4 border-t border-gray-800">
+                                    <ShareButton
+                                        title={shareTitle}
+                                        poster={sharePoster}
+                                        url={shareUrl}
+                                        isMobile={isMobile}
+                                        accent="emerald"
+                                    />
+                                </div>
+
+                                <div className="mt-4">
+                                    <button onClick={() => setShowComments(!showComments)}
+                                        className="w-full px-4 py-2.5 md:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-black font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm md:text-base">
                                         <FaComment />
                                         {showComments ? 'Hide Comments' : 'View Comments'} ({comments.length})
                                     </button>
@@ -2577,21 +2183,11 @@ const SeriesPlayer = () => {
             )}
 
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                    height: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #1f2937;
-                    border-radius: 3px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #10b981;
-                    border-radius: 3px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #34d399;
-                }
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 3px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 3px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #34d399; }
+                .scrollbar-hide::-webkit-scrollbar { display: none; }
             `}</style>
         </div>
     );
