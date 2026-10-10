@@ -3,13 +3,15 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import {
   FaUser, FaSearch, FaCloudUploadAlt, FaTimes, FaFilm,
   FaTv, FaCheckCircle, FaEdit, FaSave, FaUndo, FaLanguage,
-  FaPlusCircle, FaMagic, FaLink
+  FaPlusCircle, FaMagic, FaLink, FaTrash, FaSpinner
 } from "react-icons/fa";
 import {
   getTranslatorsWithProfiles,
   upsertTranslatorProfile,
   uploadTranslatorPhoto,
   renameTranslatorInMovies,
+  deleteTranslatorProfileByName,
+  clearTranslatorFromMovies,
 } from "../lib/translators";
 
 export default function TranslatorManager({
@@ -21,6 +23,9 @@ export default function TranslatorManager({
   const [translators, setTranslators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  // ⭐ Delete state
+  const [deletingName, setDeletingName] = useState(null);
 
   // EDIT state
   const [editingName, setEditingName] = useState(null);
@@ -141,7 +146,7 @@ export default function TranslatorManager({
   };
 
   // ================================================================
-  //  ADD NEW TRANSLATOR  (no slug field — auto-generated from display name)
+  //  ADD NEW TRANSLATOR
   // ================================================================
   const handleAddPhotoUpload = async (file) => {
     if (!file) return;
@@ -179,7 +184,6 @@ export default function TranslatorManager({
       return;
     }
 
-    // Auto-generate slug from display name
     const slug = displayName.toLowerCase().replace(/\s+/g, "_");
 
     try {
@@ -190,12 +194,10 @@ export default function TranslatorManager({
 
       addNotification?.("success", `Translator "${displayName}" saved`);
 
-      // Reset form
       setAddValue({ display_name: "", photo_url: "" });
       setImageMethod((m) => ({ ...m, add: "upload" }));
       setShowAddForm(false);
 
-      // Reload list — new translator should now appear
       load();
     } catch (err) {
       console.error(err);
@@ -208,6 +210,60 @@ export default function TranslatorManager({
     setImageMethod((m) => ({ ...m, add: "upload" }));
     setProgress(0);
     setShowAddForm(false);
+  };
+
+  // ================================================================
+  //  ⭐ DELETE TRANSLATOR
+  // ================================================================
+  const handleDelete = async (t) => {
+    const name = t?.name;
+    if (!name) return;
+
+    const taggedCount = (movies || []).filter(
+      (m) => (m.translator || "").trim() === name
+    ).length;
+
+    const ok = window.confirm(
+      `Delete translator "${t.display_name || name}"?\n\n` +
+      `This will remove the translator from ${taggedCount} ` +
+      `movie${taggedCount === 1 ? "" : "s"}/series and delete their profile.\n\n` +
+      `This cannot be undone. Continue?`
+    );
+    if (!ok) return;
+
+    setDeletingName(name);
+    try {
+      // STEP A — Clear the translator from all tagged movies
+      let cleared = 0;
+      try {
+        cleared = await clearTranslatorFromMovies(name);
+      } catch (clearErr) {
+        console.warn("Clear translator from movies failed:", clearErr);
+      }
+
+      // STEP B — Delete the profile by name
+      await deleteTranslatorProfileByName(name);
+
+      addNotification?.(
+        "success",
+        `Translator "${t.display_name || name}" deleted` +
+        (cleared > 0
+          ? ` (removed from ${cleared} item${cleared === 1 ? "" : "s"})`
+          : "")
+      );
+
+      // STEP C — If it was being edited, cancel
+      if (editingName === name) cancelEdit();
+
+      // STEP D — Refresh local list + parent context
+      await load();
+      refreshMovies?.();
+    } catch (err) {
+      console.error("Delete translator error:", err);
+      addNotification?.("error", err.message || "Delete failed");
+    } finally {
+      setDeletingName(null);
+    }
   };
 
   // ================================================================
@@ -532,65 +588,83 @@ export default function TranslatorManager({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {filtered.map((t) => (
-              <div
-                key={t.name}
-                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-emerald-900/30 p-3 flex gap-3 items-center hover:border-emerald-500/40 transition-colors"
-              >
-                {/* Avatar */}
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-emerald-500/40 flex-shrink-0 bg-gray-800">
-                  {t.photo_url ? (
-                    <img
-                      src={t.photo_url}
-                      alt={t.display_name || t.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-600">
-                      <FaUser />
+            {filtered.map((t) => {
+              const isDeleting = deletingName === t.name;
+
+              return (
+                <div
+                  key={t.name}
+                  className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-emerald-900/30 p-3 flex gap-3 items-center hover:border-emerald-500/40 transition-colors"
+                >
+                  {/* Avatar */}
+                  <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-emerald-500/40 flex-shrink-0 bg-gray-800">
+                    {t.photo_url ? (
+                      <img
+                        src={t.photo_url}
+                        alt={t.display_name || t.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-600">
+                        <FaUser />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-1">
+                      <h4 className="font-bold text-sm truncate">
+                        {t.display_name || t.name}
+                      </h4>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => startEdit(t)}
+                          className="p-1.5 bg-cyan-600/20 hover:bg-cyan-600/40 rounded"
+                          title="Edit photo & name"
+                        >
+                          <FaEdit className="text-cyan-400 text-xs" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(t)}
+                          disabled={isDeleting}
+                          className="p-1.5 bg-red-600/20 hover:bg-red-600/40 rounded disabled:opacity-50"
+                          title="Delete translator"
+                        >
+                          {isDeleting ? (
+                            <FaSpinner className="text-red-400 text-xs animate-spin" />
+                          ) : (
+                            <FaTrash className="text-red-400 text-xs" />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-1">
-                    <h4 className="font-bold text-sm truncate">
-                      {t.display_name || t.name}
-                    </h4>
-                    <button
-                      onClick={() => startEdit(t)}
-                      className="p-1.5 bg-cyan-600/20 hover:bg-cyan-600/40 rounded flex-shrink-0"
-                      title="Edit photo & name"
-                    >
-                      <FaEdit className="text-cyan-400 text-xs" />
-                    </button>
+                    {/* Counts */}
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] flex items-center gap-0.5">
+                        <FaFilm className="text-[8px]" /> {t.movies}
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] flex items-center gap-0.5">
+                        <FaTv className="text-[8px]" /> {t.series}
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-full text-[10px] flex items-center gap-0.5">
+                        <FaCheckCircle className="text-[8px]" /> {t.total}
+                      </span>
+                    </div>
+
+                    {t.photo_url ? (
+                      <p className="text-[10px] text-emerald-400/70 mt-1 flex items-center gap-1">
+                        <FaCheckCircle className="text-[8px]" /> Photo set
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-amber-400/70 mt-1">
+                        No photo yet — click ✏️ to add one
+                      </p>
+                    )}
                   </div>
-
-                  {/* Counts */}
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] flex items-center gap-0.5">
-                      <FaFilm className="text-[8px]" /> {t.movies}
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] flex items-center gap-0.5">
-                      <FaTv className="text-[8px]" /> {t.series}
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-full text-[10px] flex items-center gap-0.5">
-                      <FaCheckCircle className="text-[8px]" /> {t.total}
-                    </span>
-                  </div>
-
-                  {t.photo_url ? (
-                    <p className="text-[10px] text-emerald-400/70 mt-1 flex items-center gap-1">
-                      <FaCheckCircle className="text-[8px]" /> Photo set
-                    </p>
-                  ) : (
-                    <p className="text-[10px] text-amber-400/70 mt-1">
-                      No photo yet — click ✏️ to add one
-                    </p>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

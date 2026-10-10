@@ -3,19 +3,18 @@ import { FaYoutube, FaTwitter, FaInstagram, FaFacebook, FaTiktok, FaWhatsapp, Fa
 import { FiMail, FiPhone, FiGlobe, FiClock } from 'react-icons/fi';
 import { FaLocationDot } from 'react-icons/fa6';
 import { MdEmail } from 'react-icons/md';
-import logo from '../assets/Newlogo.png';
 
 export default function Footer() {
   // Social Links
   const socialLinks = {
     youtube: "https://youtube.com/@irakabahodjabiri?si=P5Ste_J9oYDkGcqG",
     instagram: "https://www.instagram.com/osicardjabir9/",
-    twitter: "https://twitter.com/agasobanuyeflex",
-    facebook: "https://facebook.com/agasobanuyeflex",
+    twitter: "https://twitter.com/cineva.store",
+    facebook: "https://facebook.com/cineva.store",
     tiktok: "https://www.tiktok.com/@flxemov",
     whatsapp: "https://chat.whatsapp.com/0029Vb6gSfuFcowDBIM2rp2u",
-    telegram: "https://t.me/agasobanuyeflex",
-    discord: "https://discord.gg/agasobanuyeflex"
+    telegram: "https://t.me/cineva.store",
+    discord: "https://discord.gg/cineva.store"
   };
 
   // Contact Info
@@ -24,7 +23,7 @@ export default function Footer() {
     whatsapp: "250783948792",
     email: "irakabahodjabiri@gmail.com",
     address: "Bugesera Heights, Kigali",
-    website: "https://cineva.com"
+    website: "https://cineva.store"
   };
 
   // Developer Info
@@ -94,24 +93,116 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="space-y-5 md:col-span-1">
             <div className="flex items-center gap-3 group">
-              {/* Logo */}
+              {/* ⭐ Logo — same SVG as Navbar, pasted directly */}
               <div className="relative">
-                <div className="h-16 w-16 rounded-xl overflow-hidden ring-2 ring-emerald-600/50 group-hover:ring-emerald-400 transition-all duration-500 group-hover:scale-105 shadow-xl shadow-emerald-600/30">
-                  <img
-                    src={logo}
-                    alt="Cineva Logo"
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `
-                        <div class="h-full w-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                          <span class="text-black font-bold text-xl">C</span>
-                        </div>
-                      `;
-                    }}
-                  />
+                {/* Soft glow behind the logo */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 blur-md opacity-40 group-hover:opacity-70 transition-opacity duration-300" />
+
+                {/* Rotating accent ring */}
+                <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 animate-spin-slow opacity-60" />
+
+                {/* The C Play logo */}
+                <div className="relative rounded-2xl overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                  <svg
+                    width="64"
+                    height="64"
+                    viewBox="0 0 64 64"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <defs>
+                      <linearGradient id="footerCBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#064e3b" />
+                        <stop offset="55%" stopColor="#065f46" />
+                        <stop offset="100%" stopColor="#0f172a" />
+                      </linearGradient>
+                      <linearGradient id="footerCArc" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#6ee7b7" />
+                        <stop offset="45%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#14b8a6" />
+                      </linearGradient>
+                      <linearGradient id="footerCPlay" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#a7f3d0" />
+                        <stop offset="100%" stopColor="#34d399" />
+                      </linearGradient>
+                      <radialGradient id="footerCGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#34d399" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+                      </radialGradient>
+                    </defs>
+
+                    <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#footerCBg)" />
+                    <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#footerCGlow)" />
+
+                    <rect
+                      x="2"
+                      y="2"
+                      width="60"
+                      height="60"
+                      rx="16"
+                      fill="none"
+                      stroke="url(#footerCArc)"
+                      strokeWidth="1.5"
+                      opacity="0.7"
+                    />
+
+                    {[
+                      { x: 12, y: 32 },
+                      { x: 15, y: 20 },
+                      { x: 22, y: 12 },
+                      { x: 32, y: 8 },
+                      { x: 42, y: 12 },
+                      { x: 49, y: 20 },
+                      { x: 52, y: 32 },
+                      { x: 49, y: 44 },
+                      { x: 42, y: 52 },
+                      { x: 32, y: 56 },
+                      { x: 22, y: 52 },
+                      { x: 15, y: 44 },
+                    ].map((dot, i) => (
+                      <circle
+                        key={i}
+                        cx={dot.x}
+                        cy={dot.y}
+                        r="1.2"
+                        fill="url(#footerCArc)"
+                        opacity={i % 2 === 0 ? 0.9 : 0.55}
+                      />
+                    ))}
+
+                    <path
+                      d="M 44 20 A 16 16 0 1 0 44 44"
+                      stroke="url(#footerCArc)"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+
+                    <path
+                      d="M 42 20 A 16 16 0 0 0 26 15"
+                      stroke="#a7f3d0"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                      opacity="0.75"
+                    />
+
+                    <path
+                      d="M 26 24 L 40 32 L 26 40 Z"
+                      fill="url(#footerCPlay)"
+                      stroke="#065f46"
+                      strokeWidth="1.2"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M 28 27 L 28 37 L 35 32 Z"
+                      fill="#ecfdf5"
+                      opacity="0.35"
+                    />
+
+                    <circle cx="20" cy="18" r="1" fill="#a7f3d0" opacity="0.9" />
+                  </svg>
                 </div>
-                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
               </div>
 
               {/* Brand Name */}
@@ -224,7 +315,6 @@ export default function Footer() {
                 gradient="bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400"
                 label="Instagram"
               />
-             
               <SocialIcon
                 Icon={FaFacebook}
                 url={socialLinks.facebook}
@@ -243,7 +333,6 @@ export default function Footer() {
                 gradient="bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600"
                 label="WhatsApp"
               />
-            
               <SocialIcon
                 Icon={FaGithub}
                 url={developer.github}
@@ -308,6 +397,24 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      {/* Animations */}
+      <style>{`
+        @keyframes spin-slow {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient { animation: gradient 3s ease infinite; }
+
+        .bg-300\\% { background-size: 300% auto; }
+      `}</style>
     </footer>
   );
 }

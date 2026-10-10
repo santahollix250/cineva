@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { FaShare, FaWhatsapp, FaFacebook, FaTwitter, FaTelegram, FaLink, FaCheck, FaTimes } from 'react-icons/fa';
 
-const DEFAULT_POSTER = 'https://irafilms.store/og-default.jpg';
+const DEFAULT_POSTER = 'https://cineva.store/og-default.jpg';
 
 function normalizeImage(raw) {
   if (!raw || typeof raw !== 'string') return DEFAULT_POSTER;
@@ -10,7 +10,7 @@ function normalizeImage(raw) {
   if (!t) return DEFAULT_POSTER;
   if (/^https?:\/\//i.test(t)) return t;
   if (t.startsWith('//')) return `https:${t}`;
-  if (t.startsWith('/')) return `https://irafilms.store${t}`;
+  if (t.startsWith('/')) return `https://cineva.store${t}`;
   return t;
 }
 
@@ -18,7 +18,7 @@ export default function ShareButton({ title, poster, url, isMobile = false, acce
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const shareTitle = title || 'Watch on Irafilms';
+  const shareTitle = title || 'Watch on cineva.store';
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
   const shareImage = normalizeImage(poster);
 

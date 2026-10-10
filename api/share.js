@@ -2,9 +2,9 @@
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
-const SITE_URL = 'https://cinevamovies.vercel.app';
+const SITE_URL = 'https://cineva.store';
 const DEFAULT_POSTER = `${SITE_URL}/og-default.jpg`;
-const BRAND_NAME = 'Irafilms';
+const BRAND_NAME = 'CINEVA.store';
 
 const escapeHtml = (str) =>
   String(str ?? '')
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     const redirectUrl = `${SITE_URL}${redirectPath}`;
 
     const shareTitle = `Watch ${title} on ${BRAND_NAME}`;
-    const shareDesc = `✔️😍✔️😍 Dore website shyashya twakuraho flm byoroshye zishyashya mumbaze mbayobore`;
+    const shareDesc = `ONLY WEBSITE cineva.store WASANGAHO NEW MOVIE🍿🍿🍿FOR FREE`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300');

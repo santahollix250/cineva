@@ -751,7 +751,7 @@
         const sharePoster = movie?.poster || movie?.background || '';
         const shareDescription = movie?.description
             ? String(movie.description).slice(0, 150)
-            : 'Watch on Irafilms — premium streaming in Rwanda.';
+            : 'Watch on cineva.store — premium streaming in Rwanda.';
 
         // ===== RENDER VIDEO =====
         const renderVideo = () => {
@@ -1123,7 +1123,7 @@
             <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black text-white">
                 {/* ⭐ Dynamic OG meta for link previews */}
                 <ShareOGMeta
-                    title={`Watch ${shareTitle} on Irafilms`}
+                    title={`Watch ${shareTitle} on cineva`}
                     description={shareDescription}
                     image={sharePoster}
                     url={shareUrl}

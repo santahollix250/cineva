@@ -1,6 +1,9 @@
 // src/lib/translators.js
 import { supabase } from './supabase';
 
+/* ------------------------------------------------------------------
+   Fetch all translators (merged from movies + translator_profiles)
+------------------------------------------------------------------- */
 export async function getTranslatorsWithProfiles(movies = []) {
   // 1) Collect unique translator names + counts from movies
   const map = new Map();
@@ -33,7 +36,7 @@ export async function getTranslatorsWithProfiles(movies = []) {
     console.warn('translator_profiles fetch failed:', e);
   }
 
-  // ⭐ 3) Merge: start from movie-derived names, THEN add any profile-only rows
+  // 3) Merge: start from movie-derived names, THEN add profile-only rows
   const mergedMap = new Map();
 
   // 3a) Movie-derived translators
@@ -63,7 +66,6 @@ export async function getTranslatorsWithProfiles(movies = []) {
   });
 
   const merged = Array.from(mergedMap.values());
-  // Sort: most translated first, then alphabetical for ties (new ones at a stable spot)
   merged.sort((a, b) => {
     if (b.total !== a.total) return b.total - a.total;
     return (a.display_name || a.name).localeCompare(b.display_name || b.name);
@@ -71,6 +73,9 @@ export async function getTranslatorsWithProfiles(movies = []) {
   return merged;
 }
 
+/* ------------------------------------------------------------------
+   Upsert a translator profile (insert or update by name)
+------------------------------------------------------------------- */
 export async function upsertTranslatorProfile(name, { photo_url, display_name }) {
   const payload = {
     name,
@@ -89,15 +94,78 @@ export async function upsertTranslatorProfile(name, { photo_url, display_name })
   return data;
 }
 
+/* ------------------------------------------------------------------
+   Delete a translator profile by id
+------------------------------------------------------------------- */
 export async function deleteTranslatorProfile(id) {
+  if (!id) throw new Error('Translator id is required');
+
   const { error } = await supabase
     .from('translator_profiles')
     .delete()
     .eq('id', id);
+
   if (error) throw error;
   return true;
 }
 
+/* ------------------------------------------------------------------
+   ⭐ Delete by NAME (used by TranslatorManager to delete the profile
+   even when we only have the name string, not the numeric id)
+------------------------------------------------------------------- */
+export async function deleteTranslatorProfileByName(name) {
+  if (!name) throw new Error('Translator name is required');
+
+  const { error } = await supabase
+    .from('translator_profiles')
+    .delete()
+    .eq('name', name);
+
+  if (error) {
+    const msg = String(error.message || '').toLowerCase();
+    if (msg.includes('0 rows') || msg.includes('no rows')) return true;
+    throw error;
+  }
+  return true;
+}
+
+/* ------------------------------------------------------------------
+   ⭐ Clear a translator name from all movies/series tagged with it
+   Returns the number of rows updated.
+------------------------------------------------------------------- */
+export async function clearTranslatorFromMovies(name) {
+  if (!name) return 0;
+
+  // Find every movie tagged with this translator
+  const { data: matched, error: selErr } = await supabase
+    .from('movies')
+    .select('id')
+    .eq('translator', name);
+
+  if (selErr) {
+    console.warn('clearTranslatorFromMovies select failed:', selErr);
+    return 0;
+  }
+  if (!matched || matched.length === 0) return 0;
+
+  const ids = matched.map((r) => r.id);
+
+  const { error: updErr } = await supabase
+    .from('movies')
+    .update({ translator: '' })
+    .in('id', ids);
+
+  if (updErr) {
+    console.error('clearTranslatorFromMovies update failed:', updErr);
+    throw updErr;
+  }
+
+  return ids.length;
+}
+
+/* ------------------------------------------------------------------
+   Upload a translator photo to Supabase Storage
+------------------------------------------------------------------- */
 export async function uploadTranslatorPhoto(file) {
   if (!file) throw new Error('No file');
 
@@ -125,12 +193,42 @@ export async function uploadTranslatorPhoto(file) {
   return publicUrl;
 }
 
+/* ------------------------------------------------------------------
+   Bulk-rename a translator inside all movies
+------------------------------------------------------------------- */
 export async function renameTranslatorInMovies(movies, oldName, newName, updateMovieFn) {
+  if (!oldName || !newName || oldName.trim() === newName.trim()) return 0;
+
+  const cleanOld = oldName.trim();
+  const cleanNew = newName.trim();
+
   const affected = movies.filter(
-    (m) => (m?.translator || '').trim() === oldName.trim()
+    (m) => (m?.translator || '').trim() === cleanOld
   );
-  for (const movie of affected) {
-    await updateMovieFn(movie.id, { translator: newName });
+  if (affected.length === 0) return 0;
+
+  // Preferred: one bulk update
+  try {
+    const ids = affected.map((m) => m.id);
+    const { error } = await supabase
+      .from('movies')
+      .update({ translator: cleanNew })
+      .in('id', ids);
+    if (error) throw error;
+    return affected.length;
+  } catch (bulkErr) {
+    console.warn('Bulk rename failed, using per-movie fallback:', bulkErr);
+
+    if (typeof updateMovieFn !== 'function') return 0;
+    let count = 0;
+    for (const movie of affected) {
+      try {
+        await updateMovieFn(movie.id, { translator: cleanNew });
+        count++;
+      } catch (err) {
+        console.warn('rename fallback failed for', movie.id, err);
+      }
+    }
+    return count;
   }
-  return affected.length;
 }
